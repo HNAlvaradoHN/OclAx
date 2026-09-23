@@ -191,3 +191,22 @@ Reglas:
 - APK puede invocar un manejador/instalador del sistema, pero nunca se instala automáticamente.
 - Se declara `REQUEST_INSTALL_PACKAGES`; Android conserva el control de confianza “Instalar apps desconocidas” para OclAx.
 - Un archivo recibido por transferencia automática tampoco se abre/instala automáticamente: primero queda en la bandeja y requiere una acción posterior del usuario.
+
+
+## Implementación de Mi dispositivo
+
+Permisos declarados:
+- `QUERY_ALL_PACKAGES` para listar aplicaciones instaladas;
+- `MANAGE_EXTERNAL_STORAGE` para lectura amplia del almacenamiento compartido en Android 11+;
+- `READ_EXTERNAL_STORAGE` limitado a Android antiguos.
+
+Controles:
+- el acceso amplio se concede/revoca en la pantalla especial de Android;
+- OclAx comprueba `Environment.isExternalStorageManager()` antes de indexar archivos;
+- sin permiso amplio no se intenta indexar archivos reales;
+- aplicaciones siguen visibles aunque el acceso a archivos sea negado;
+- el índice de archivos no se persiste ni se transmite;
+- Mi dispositivo no muestra acción Eliminar;
+- autolimpieza sigue operando únicamente bajo `filesDir/oclax/items`;
+- abrir/compartir usa URI `content://` y permisos temporales de lectura;
+- Copiar texto aplica el mismo límite defensivo de 2 MiB.
