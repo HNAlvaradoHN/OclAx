@@ -40,14 +40,30 @@ internal object SyncthingLanPolicy {
         put("untrusted", false)
     }
 
-    fun verifyOptions(options: JSONObject) {
+    fun applyConnectedOptions(options: JSONObject): JSONObject =
+        applyToOptions(options).apply {
+            put("localAnnounceEnabled", false)
+        }
+
+    fun verifyDiscoveryOptions(options: JSONObject) {
+        verifyCommonOptions(options)
+        check(options.optBoolean("localAnnounceEnabled", false)) {
+            "El motor no confirmó discovery local."
+        }
+    }
+
+    fun verifyConnectedOptions(options: JSONObject) {
+        verifyCommonOptions(options)
+        check(!options.optBoolean("localAnnounceEnabled", true)) {
+            "Discovery local debe apagarse después de conectar."
+        }
+    }
+
+    private fun verifyCommonOptions(options: JSONObject) {
         val listen = options.optJSONArray("listenAddresses")
             ?: error("El motor no devolvió sus direcciones de escucha.")
         check(listen.length() == 1 && listen.optString(0) == LISTEN_ADDRESS) {
             "El motor no confirmó el listener LAN limitado."
-        }
-        check(options.optBoolean("localAnnounceEnabled", false)) {
-            "El motor no confirmó discovery local."
         }
         check(!options.optBoolean("globalAnnounceEnabled", true)) {
             "Discovery global no debe estar activo en la prueba LAN."
