@@ -180,3 +180,14 @@ Reglas:
 - secretos/API keys/configuración privada del motor de transferencia nunca se publican;
 - cualquier API de control local del motor debe estar vinculada localmente y protegida;
 - no se habilita infraestructura paga sin autorización.
+
+
+## Abrir contenido recibido
+
+- Abrir es siempre una acción explícita del usuario al tocar una tarjeta.
+- OclAx entrega una URI `content://` mediante FileProvider y únicamente `FLAG_GRANT_READ_URI_PERMISSION`.
+- No se entregan rutas `file://` ni permisos de escritura.
+- OclAx no interpreta ni ejecuta archivos arbitrarios internamente.
+- APK puede invocar un manejador/instalador del sistema, pero nunca se instala automáticamente.
+- Se declara `REQUEST_INSTALL_PACKAGES`; Android conserva el control de confianza “Instalar apps desconocidas” para OclAx.
+- Un archivo recibido por transferencia automática tampoco se abre/instala automáticamente: primero queda en la bandeja y requiere una acción posterior del usuario.

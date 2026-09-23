@@ -148,3 +148,31 @@ Recepción:
 - todo contenido entrante se materializa primero en almacenamiento privado/controlado por OclAx;
 - posteriormente el usuario puede compartirlo, copiarlo cuando aplique o guardarlo externamente;
 - autoaceptación nunca implica autoejecución/autoinstalación.
+
+
+## Abrir contenido
+
+La integración para abrir contenido externo pertenece a Plataforma/Android y queda encapsulada en `ContentOpener`.
+
+```text
+ItemCard
+   ↓ tap
+MainActivity
+   ↓
+ContentOpener
+   ↓
+FileProvider URI (read-only)
+   ↓
+Android ACTION_VIEW
+   ↓
+visor / galería / reproductor / instalador compatible
+```
+
+Reglas:
+- ItemStore sigue siendo la autoridad sobre la copia interna;
+- ContentOpener no modifica ni interpreta el archivo;
+- el receptor recibe permiso temporal de lectura;
+- la elección de aplicación predeterminada/resolución pertenece a Android;
+- APK usa el mismo principio de apertura explícita; OclAx no instala silenciosamente.
+
+La futura superficie Mi dispositivo reutiliza el mismo caso de uso con URIs externas autorizadas, evitando copias innecesarias.

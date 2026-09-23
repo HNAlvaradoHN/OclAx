@@ -346,3 +346,47 @@ Seguridad:
 - credenciales/API keys locales del motor nunca se publican ni se guardan en el repo.
 
 **Motivo:** ofrecer una experiencia tipo envío directo entre dispositivos, manteniendo al usuario en control del nivel de confianza por dispositivo.
+
+
+---
+
+## DEC-021 — Todo contenido utilizable se puede abrir desde OclAx
+
+**Decisión:** una tarjeta de contenido OclAx no es un archivo muerto. Al tocar la tarjeta, OclAx intenta abrir el elemento mediante Android usando su MIME real y una URI de solo lectura controlada por FileProvider.
+
+Comportamiento:
+- PDF → visor PDF predeterminado o selector de aplicaciones si Android necesita preguntar;
+- Word/documentos → aplicación compatible instalada;
+- imágenes → galería/visor compatible;
+- video/audio → reproductor compatible;
+- texto/código → aplicación compatible si existe;
+- APK → instalador del sistema u otro manejador compatible; la instalación siempre es iniciada por el usuario y Android conserva sus controles de “instalar apps desconocidas”;
+- tipos sin manejador → OclAx informa que no hay una aplicación disponible.
+
+Reglas:
+- tocar una tarjeta abre; las acciones Compartir, Copiar, Fijar y Eliminar mantienen su comportamiento propio;
+- OclAx no ejecuta contenido arbitrario internamente;
+- no se otorga escritura al visor externo;
+- futuras tarjetas de **Mi dispositivo** deben reutilizar la misma semántica de abrir con Android sin convertir el original en copia salvo que el usuario lo decida.
+
+**Motivo:** el contenido recibido debe poder usarse inmediatamente desde la bandeja y aprovechar las asociaciones/defaults del sistema.
+
+---
+
+## DEC-022 — Jerarquía de transporte OclAx ↔ OclAx
+
+**Decisión:** el prototipo Syncthing debe priorizar conexiones directas y usar relay únicamente como fallback.
+
+Orden conceptual:
+1. conexión directa en la misma red/LAN cuando esté disponible;
+2. conexión directa entre pares a través de Internet cuando Syncthing pueda establecerla;
+3. relay público de Syncthing cuando no sea posible una conexión directa.
+
+Aclaración:
+- el relay no es almacenamiento en nube ni “sube el archivo para después”; reenvía tráfico entre los dos dispositivos;
+- la sesión entre dispositivos permanece cifrada extremo a extremo;
+- el relay puede conocer metadatos de conexión como IP/device ID y volumen de tráfico;
+- los relays públicos disponibles actualmente no requieren un servicio pago de OclAx, pero no constituyen un SLA ni una garantía de gratuidad eterna;
+- OclAx no contratará ni desplegará infraestructura con costo sin autorización explícita.
+
+**Motivo:** conseguir una experiencia tipo “enviar y listo” usando primero la ruta más directa y rápida disponible, sin costo obligatorio de servidor.

@@ -215,3 +215,33 @@ Para cada app comprobar:
 - qué MIME acepta;
 - si importa una copia o conserva la URI;
 - comportamiento después de la limpieza del elemento.
+
+
+## Revisión 2026-09-23 — abrir contenido y transferencia OclAx ↔ OclAx
+
+### Abrir contenido
+
+VERIFICADO por documentación Android:
+- un archivo privado puede exponerse a otra app mediante una URI `content://` y permiso temporal de lectura;
+- `ACTION_VIEW` es el mecanismo estándar para entregar el contenido a un visor compatible;
+- para APK en Android 8+ una app que quiera solicitar instalación debe declarar `REQUEST_INSTALL_PACKAGES`; el usuario mantiene el control sobre si confía en OclAx como fuente de instalación.
+
+Conclusión para OclAx:
+- PDF, Word/documentos, imágenes, video, audio y otros elementos pueden abrirse desde la bandeja sin construir visores internos;
+- la compatibilidad final depende de que exista una aplicación instalada que acepte el MIME;
+- APK nunca debe auto-instalarse.
+
+### Syncthing como motor de envío
+
+VERIFICADO en el proyecto/documentación de Syncthing:
+- Syncthing es software libre bajo MPL-2.0;
+- prioriza comunicación entre dispositivos y puede usar relays cuando no logra una conexión directa;
+- los relays públicos retransmiten tráfico y no funcionan como almacenamiento permanente del archivo;
+- la conexión Syncthing entre los pares conserva cifrado TLS extremo a extremo incluso al atravesar un relay;
+- el relay puede conocer IP/device ID y volumen de tráfico;
+- mientras existe una conexión por relay, Syncthing sigue intentando una conexión directa y cambia a ella si la consigue.
+
+Implicación para UX OclAx:
+- **directo primero, relay después** puede ocultarse detrás de una única acción Enviar;
+- no hace falta presentar conceptos de NAT, relay o carpetas sincronizadas al usuario;
+- los relays públicos actuales permiten prototipar sin contratar infraestructura, pero no deben documentarse como un SLA gratuito garantizado para siempre.
