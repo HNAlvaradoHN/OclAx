@@ -54,3 +54,17 @@ Pendiente de probar:
 
 Hasta completar esa validación, APP-001 permanece como:
 `IMPLEMENTED_PENDING_VALIDATION`.
+
+
+## Firma estable de pruebas
+
+VERIFICADO en CI:
+- los cuatro GitHub Actions Secrets se reconocen y se muestran enmascarados;
+- el keystore se reconstruye en el almacenamiento temporal del runner;
+- el build de main con firma persistente terminó verde;
+- se publicó el artefacto APK firmado.
+
+Pendiente en dispositivo:
+- desinstalar una última vez la instalación antigua firmada con una clave efímera;
+- instalar el primer APK con firma persistente;
+- generar una build posterior y confirmar que Android la instala encima sin conflicto y conserva los datos internos.
