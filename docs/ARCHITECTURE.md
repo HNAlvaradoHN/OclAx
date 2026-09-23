@@ -203,3 +203,21 @@ Detalles:
 - Copiar se limita a Texto/Código e Imagen igual que en la bandeja.
 
 El ItemStore no participa en Mi dispositivo salvo que una acción futura importe explícitamente un original a la bandeja.
+
+## Miniaturas, exportación y borrado — 2026-09-23
+
+```text
+DeviceBrowser
+   ├─→ ThumbnailLoader ─→ ContentResolver / media decoder
+   ├─→ InstalledAppExporter ─→ sourceDir + splitSourceDirs ─→ cache + FileProvider
+   └─→ DeviceContentRepository.requestDelete ─→ MediaStore delete confirmation
+
+DocumentsProvider
+   └─→ ThumbnailLoader ─→ thumbnail cache ─→ openDocumentThumbnail
+```
+
+Responsabilidades:
+- `ThumbnailLoader` limita decodificación a imágenes/video y mantiene caché de memoria acotada.
+- `InstalledAppExporter` prepara copias temporales del código APK; no conoce datos privados de apps.
+- `DeviceContentRepository` crea/ejecuta la solicitud de eliminación; la UI solo confirma intención y lanza autorización del sistema.
+- `ViewModePreferences` persiste lista/cuadrícula por categoría sin mezclarlo con reglas de dominio.
