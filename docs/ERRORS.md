@@ -137,3 +137,14 @@ Ninguno registrado actualmente.
 
 **Prevención:** no asumir que herramientas del Android SDK están en `PATH`; resolver rutas desde `ANDROID_HOME` y validar ejecutables antes de usarlos.
 
+### ERR-010 — Lint bloqueó la actualización manual de la notificación del servicio
+**Estado:** RESUELTO_PENDIENTE_CI
+
+**Síntoma:** la primera CI completa del runtime construyó correctamente las cuatro ABI nativas, pero `lintDebug` bloqueó Android con `NotificationPermission` al llamar directamente a `NotificationManager.notify` en Android 13+.
+
+**Causa:** el foreground service ya posee su notificación obligatoria, pero la implementación intentaba actualizarla mediante la API general de notificaciones, cuyo contrato de lint exige `POST_NOTIFICATIONS`.
+
+**Corrección aplicada:** OclAx actualiza la misma notificación del servicio volviendo a llamar a `ServiceCompat.startForeground`, en lugar de pedir un permiso adicional que no es necesario para el flujo principal del foreground service.
+
+**Prevención:** no ampliar permisos para silenciar lint cuando existe una API más estrecha que representa correctamente el caso de uso; mantener mínimo privilegio.
+
