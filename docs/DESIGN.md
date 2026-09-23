@@ -134,3 +134,11 @@ Accesibilidad:
 - los iconos pueden verse más pequeños sin reducir innecesariamente el área táctil;
 - cada acción conserva descripción accesible;
 - el color no es la única señal de estado.
+
+
+## Ajuste tras tercera prueba física — 2026-09-23
+
+- El control visual de retención no debe competir con el selector principal.
+- La burbuja de tiempo se muestra más baja y corta (por ejemplo, `24 h`) manteniendo un área táctil mayor que su forma visible.
+- “Apps/APK” representa APK guardados en OclAx; no debe confundirse visualmente con una futura vista de aplicaciones instaladas del dispositivo.
+- La iconografía final debe acercarse al contenido real: miniaturas para imágenes cuando sea viable, iconos reconocibles por tipo y, para una futura vista de aplicaciones instaladas, icono real de cada app cuando Android lo permita.
