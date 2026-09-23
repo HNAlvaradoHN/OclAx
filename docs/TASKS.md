@@ -234,3 +234,21 @@ Política de recepción:
 Costo:
 - cero servicios pagos por defecto;
 - cualquier servidor/relay/infraestructura propia con costo requiere autorización previa.
+
+
+### OPEN-001 — Abrir contenido desde la bandeja
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Implementado:
+- tocar una tarjeta intenta abrir el archivo con Android usando ACTION_VIEW;
+- FileProvider entrega una URI de solo lectura;
+- PDF, documentos, imágenes, video, audio, texto y otros usan su MIME real;
+- APK puede pasar al instalador/manejador del sistema mediante acción iniciada por el usuario;
+- se declara REQUEST_INSTALL_PACKAGES para permitir el flujo de instalación de APK cuando Android lo autorice;
+- si no existe manejador compatible, se muestra un mensaje en lugar de fallar.
+
+Pendiente:
+- validación física con PDF, Word/OOXML, imagen, video, audio y APK;
+- verificar comportamiento con aplicación predeterminada y con selector cuando haya varias opciones;
+- verificar flujo de “instalar apps desconocidas” al primer intento de abrir un APK.
