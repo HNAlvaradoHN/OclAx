@@ -31,6 +31,7 @@ internal class SyncthingRuntimeConfig(
             "--no-restart",
             "--no-upgrade",
             "--no-port-probing",
+            "--paused",
             "--gui-address=$LOOPBACK_ADDRESS:$GUI_PORT",
             "--log-file=$logPath",
             "--log-max-old-files=1",
