@@ -81,6 +81,11 @@
 - límites de espacio para exportaciones temporales de APK;
 - PR #34 fusionado tras tests, lint y build verdes.
 
+## Implementado recientemente
+
+- miniaturas reales también en las tarjetas internas de OclAx para Imagen, Video y PDF;
+- carga asíncrona reutilizando ThumbnailLoader y fallback seguro a icono por tipo.
+
 ## En desarrollo
 
 - corrección tras prueba física: portada real de PDF mediante primera página renderizada;
@@ -95,8 +100,8 @@
 
 ## Siguiente paso exacto
 
-1. Instalar la build corregida y confirmar portada de PDF en Mi dispositivo y Archivos → OclAx.
-2. Borrar y cancelar borrado de una imagen y de un PDF/documento; confirmar que el original desaparece solo cuando se acepta y que la bandeja OclAx queda intacta.
+1. Validar miniaturas reales de Imagen/Video/PDF también dentro de la bandeja OclAx.
+2. Confirmar explícitamente portada de PDF en Mi dispositivo/Archivos → OclAx y borrado/cancelación de originales.
 3. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
 4. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
 5. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
