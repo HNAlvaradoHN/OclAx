@@ -67,11 +67,15 @@ internal class SyncthingRuntimeService : Service() {
     override fun onDestroy() {
         stopping = true
         synchronized(processLock) {
-            runtimeProcess?.destroy()
+            runtimeProcess?.destroyForcibly()
             runtimeProcess = null
         }
         worker.shutdownNow()
         super.onDestroy()
+    }
+
+    override fun onTimeout(startId: Int, fgsType: Int) {
+        requestStop()
     }
 
     private fun requestStart() {
@@ -98,16 +102,16 @@ internal class SyncthingRuntimeService : Service() {
                 synchronized(processLock) {
                     runtimeProcess = process
                 }
-                updateNotification("Motor de envío activo.")
 
                 Thread(
                     {
                         val exitCode = runCatching { process.waitFor() }.getOrDefault(-1)
                         val shouldStopService = synchronized(processLock) {
-                            if (runtimeProcess === process) {
+                            val ownedProcess = runtimeProcess === process
+                            if (ownedProcess) {
                                 runtimeProcess = null
                             }
-                            !stopping
+                            ownedProcess && !stopping
                         }
                         if (shouldStopService) {
                             updateNotification("Motor detenido (código $exitCode).")
@@ -119,7 +123,22 @@ internal class SyncthingRuntimeService : Service() {
                     isDaemon = true
                     start()
                 }
+
+                val restClient = SyncthingRestClient(runtimeConfig)
+                restClient.awaitReady()
+                restClient.enforcePrivateOptions()
+
+                if (stopping) {
+                    requestStop()
+                    return@execute
+                }
+
+                updateNotification("Motor de envío activo.")
             } catch (error: Exception) {
+                synchronized(processLock) {
+                    runtimeProcess?.destroyForcibly()
+                    runtimeProcess = null
+                }
                 updateNotification("No se pudo iniciar el motor de envío.")
                 stopForegroundAndSelf()
             }
