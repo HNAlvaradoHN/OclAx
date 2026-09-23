@@ -371,7 +371,7 @@ class MainActivity : ComponentActivity() {
                         device.deviceId to
                             ("No se conectó por LAN: " + (error.message ?: "error desconocido"))
                         )
-                    transferRuntimeStatus = "Motor aislado después de la prueba LAN."
+                    transferRuntimeStatus = "Prueba LAN cerrada de forma segura."
                 }
             }
         }
@@ -403,7 +403,11 @@ class MainActivity : ComponentActivity() {
                         "Se cerró la prueba LAN; revisá el motor antes de reintentar."
                     }
                     )
-                transferRuntimeStatus = "Motor aislado."
+                transferRuntimeStatus = if (result.isSuccess) {
+                    "Motor aislado."
+                } else {
+                    "Motor detenido por seguridad."
+                }
             }
         }
     }
