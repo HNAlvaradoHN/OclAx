@@ -1,6 +1,6 @@
 # AGENTS.md — Protocolo Maestro de OclAx
 
-**protocol_version:** 1  
+**protocol_version:** 2  
 **Proyecto:** OclAx  
 **Identidad del agente:** OclAx 📲  
 **Repositorio:** público  
@@ -98,6 +98,13 @@ Archivos centrales:
 - `docs/SECURITY.md`
 - `docs/TESTING.md`
 - `docs/ERRORS.md`
+- `docs/REVIEW_ROLES.md`
+
+Cuando exista UI, también:
+- `docs/DESIGN.md`
+
+Cuando existan herramientas externas relevantes:
+- `docs/TOOLS.md`
 
 Responsabilidad:
 
@@ -136,6 +143,15 @@ Qué pruebas existen, cómo se ejecutan y qué valida cada una.
 ### ERRORS
 Errores relevantes abiertos y resueltos útiles para evitar reincidencias.
 
+### REVIEW_ROLES
+Define en detalle los revisores/agentes, su alcance, cuándo se ejecutan y el formato mínimo de hallazgos.
+
+### DESIGN
+Cuando exista UI, es la fuente de verdad visual: tokens, tipografía, espaciado, componentes, patrones, accesibilidad y decisiones visuales.
+
+### TOOLS
+Cuando existan herramientas externas relevantes, registra su función, autorización, costo/cuotas, riesgos de privacidad y límites de uso.
+
 No conviertas PROJECT_STATE en una novela histórica.
 
 ---
@@ -155,6 +171,28 @@ Si existe un bloqueo:
 `UNSYNCED -> SYNCING -> BLOCKED`
 
 Solo una sesión READY puede modificar el proyecto.
+
+### Excepción limitada de bootstrap
+
+Si el repositorio es realmente nuevo y todavía no existe AGENTS.md, se permite un bootstrap limitado exclusivamente a:
+- confirmar que el repositorio es nuevo;
+- preguntar nombre e icono si faltan;
+- instalar gobernanza;
+- instalar identidad;
+- crear memoria oficial mínima;
+- crear registro persistente de sesión;
+- crear configuración base segura sin costo.
+
+Durante bootstrap NO desarrolles código de producto.
+
+Al terminar:
+1. vuelve a UNSYNCED;
+2. relee AGENTS.md desde GitHub;
+3. relee memoria oficial;
+4. comprueba estado real;
+5. reclama número persistente;
+6. pasa a READY;
+7. solo entonces comienza trabajo de producto.
 
 Mientras no esté READY:
 
@@ -949,72 +987,44 @@ Usa mínimo acceso necesario.
 
 No copies información sensible a una herramienta externa solo por comodidad.
 
+Las herramientas externas son auxiliares y nunca reemplazan GitHub como fuente técnica de verdad.
+Cuando una herramienta pase a formar parte real del flujo, registra su función y límites en `docs/TOOLS.md`.
+
 ---
 
 ## 30. Auditorías por roles
 
-Después de cambios significativos, ejecuta las revisiones aplicables.
+AGENTS.md define cuándo revisar. El detalle operativo vive en `docs/REVIEW_ROLES.md`.
 
-### Seguridad
-- vulnerabilidades;
-- permisos;
-- exposición;
-- secretos;
-- ataques previsibles.
+Roles base:
+- Seguridad;
+- Privacidad;
+- Arquitectura;
+- Plataforma / Stack;
+- Calidad / Limpieza;
+- Rendimiento;
+- QA / Testing;
+- Release;
+- Diseño / UX / Accesibilidad cuando exista UI.
 
-### Privacidad
-- datos personales;
-- logs;
-- metadatos;
-- fixtures;
-- retención.
+No todos los roles se ejecutan en cada cambio. Selecciona solo los aplicables al riesgo y alcance.
 
-### Arquitectura
-- responsabilidades;
-- acoplamiento;
-- complejidad;
-- contratos.
+Cada hallazgo debe indicar:
+- severidad: BLOQUEANTE / NO BLOQUEANTE / INFORMATIVO;
+- evidencia concreta;
+- riesgo o impacto;
+- recomendación mínima;
+- validación necesaria.
 
-### Calidad / Limpieza
-- código muerto;
-- duplicados;
-- imports;
-- dependencias;
-- nombres;
-- hacks.
+Un revisor:
+- no sustituye tests, lint, build ni CI;
+- no ignora AGENTS.md;
+- no revela datos sensibles;
+- no activa servicios pagos;
+- no modifica por cuenta propia salvo delegación;
+- no inventa defectos para justificar su existencia.
 
-### Rendimiento
-- memoria;
-- CPU;
-- I/O;
-- red;
-- almacenamiento;
-- cuellos de botella demostrables.
-
-### Plataforma
-- APIs;
-- compatibilidad;
-- lifecycle;
-- permisos;
-- comportamiento específico del stack.
-
-### QA / Testing
-- caso normal;
-- errores;
-- límites;
-- regresiones;
-- concurrencia;
-- recuperación.
-
-### Release
-- checklist final;
-- build;
-- seguridad;
-- privacidad;
-- documentación;
-- artefactos.
-
-Una auditoría debe intentar encontrar razones reales para rechazar, corregir o simplificar el cambio.
+Si dos revisores discrepan, gana la evidencia. Seguridad y privacidad tienen prioridad superior.
 
 ---
 
@@ -1150,6 +1160,16 @@ Cuando aplique considera:
 - navegación coherente.
 
 Mantén cambios visuales separados de lógica y datos siempre que sea razonable.
+
+### Memoria de diseño
+
+Cuando exista UI, mantén `docs/DESIGN.md` como fuente de verdad visual.
+
+Herramientas como Stitch u otros prototipadores pueden ayudar a explorar diseño, pero:
+- no reemplazan GitHub;
+- no reciben secretos ni datos privados;
+- no son requisito para compilar;
+- las decisiones duraderas vuelven a DESIGN.md y al código versionado.
 
 ---
 
