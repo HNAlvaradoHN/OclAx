@@ -228,8 +228,8 @@ Investigación verificada — 2026-09-23:
 - el runtime debe controlarse exclusivamente por loopback con API key privada.
 
 Spike técnico, en orden:
-1. construir/empaquetar Syncthing core estable y fijado por versión para ABI Android en CI **sin acceso a secretos de firma**;
-2. arrancarlo en un foreground service mínimo con directorios de configuración/datos privados de OclAx;
+1. **VERIFICADO:** construir/empaquetar Syncthing core v2.1.5 para Android arm64 en CI aislada y **sin acceso a secretos de firma**; se produjo un ELF Android API 26 con NDK r30 y verificación SHA-256.
+2. **SIGUIENTE:** empaquetar ese runtime dentro de una build de prueba OclAx y arrancarlo en un foreground service mínimo con directorios de configuración/datos privados.
 3. enlazar GUI/API a `127.0.0.1`, generar API key local y confirmar que no es accesible desde la LAN;
 4. desactivar auto-upgrade y usage reporting;
 5. obtener device ID/estado mediante REST y detener/reiniciar limpiamente;
