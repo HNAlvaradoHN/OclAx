@@ -173,7 +173,12 @@ Pendiente de validación física:
 
 ## Spike de transferencia OclAx ↔ OclAx
 
-Antes de conectar UX de envío, el spike debe demostrar:
+VERIFICADO en CI aislada:
+- Syncthing core v2.1.5 se compiló para Android arm64/API 26 con NDK r30;
+- el artefacto es un ELF aarch64 para Android y su SHA-256 coincide con el archivo de verificación generado en el mismo job;
+- el job usa permisos `contents: read` y no recibe secretos de firma de OclAx.
+
+Antes de conectar UX de envío, todavía debe demostrar:
 - el runtime Syncthing core pinneado arranca en Android y entrega un device ID;
 - REST/GUI responde únicamente por loopback y rechaza acceso desde otra máquina de la LAN;
 - la API exige la key privada generada localmente;
