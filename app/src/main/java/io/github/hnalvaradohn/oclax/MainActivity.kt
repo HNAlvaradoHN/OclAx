@@ -237,10 +237,28 @@ class MainActivity : ComponentActivity() {
             } catch (_: Exception) {
                 startActivity(fallbackIntent)
             }
-        } else if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
-            requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 4101)
         } else {
-            refresh()
+            val permissions = buildList {
+                if (
+                    checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) !=
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    add(Manifest.permission.READ_EXTERNAL_STORAGE)
+                }
+                if (
+                    Build.VERSION.SDK_INT <= Build.VERSION_CODES.P &&
+                    checkSelfPermission(Manifest.permission.WRITE_EXTERNAL_STORAGE) !=
+                    PackageManager.PERMISSION_GRANTED
+                ) {
+                    add(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                }
+            }
+
+            if (permissions.isNotEmpty()) {
+                requestPermissions(permissions.toTypedArray(), 4101)
+            } else {
+                refresh()
+            }
         }
     }
 
