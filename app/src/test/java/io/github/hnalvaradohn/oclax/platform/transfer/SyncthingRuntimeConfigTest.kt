@@ -18,6 +18,7 @@ class SyncthingRuntimeConfigTest {
         assertTrue(command.contains("--no-browser"))
         assertTrue(command.contains("--no-restart"))
         assertTrue(command.contains("--no-port-probing"))
+        assertTrue(command.contains("--paused"))
         assertFalse(command.any { it.contains("0.0.0.0") })
         assertFalse(command.any { it.contains("api", ignoreCase = true) && it.contains("key", ignoreCase = true) })
     }
