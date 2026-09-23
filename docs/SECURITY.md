@@ -134,3 +134,12 @@ SEC-001: revisar y configurar controles disponibles del repositorio público sin
 - Si existe una configuración parcial, CI falla para evitar builds ambiguos.
 - Esta firma es exclusivamente para pruebas internas y nunca será la clave de release/publicación.
 - Los APK de CI usan `GITHUB_RUN_NUMBER` como `versionCode` para permitir actualizaciones sucesivas.
+
+
+## Copiar desde una tarjeta
+
+- La acción Copiar se limita a elementos clasificados como Texto/Código o Imagen.
+- Texto se lee únicamente desde la copia privada validada de OclAx y tiene un límite defensivo de 2 MiB antes de materializarlo en memoria para el portapapeles.
+- Imagen usa el FileProvider propio de OclAx y una URI de contenido controlada por la app.
+- Copiar no usa la URI de origen externa ni obtiene permisos adicionales.
+- PDF, APK, documentos, video, audio y otros tipos no exponen la acción Copiar.
