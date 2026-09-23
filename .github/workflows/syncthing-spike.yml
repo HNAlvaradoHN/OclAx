@@ -31,12 +31,26 @@ jobs:
           go-version: ${{ env.GO_VERSION }}
           cache: false
 
-      - name: Install pinned Android NDK
+      - name: Resolve pinned Android NDK
         shell: bash
         run: |
           set -euo pipefail
-          sdkmanager "ndk;${NDK_VERSION}"
-          test -x "${ANDROID_HOME}/ndk/${NDK_VERSION}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android${MIN_ANDROID_API}-clang"
+
+          NDK_HOME="${ANDROID_HOME}/ndk/${NDK_VERSION}"
+          CLANG="${NDK_HOME}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android${MIN_ANDROID_API}-clang"
+
+          if [ ! -x "${CLANG}" ]; then
+            SDKMANAGER="$(find "${ANDROID_HOME}/cmdline-tools" -type f -name sdkmanager -perm -u+x -print -quit 2>/dev/null || true)"
+            if [ -z "${SDKMANAGER}" ]; then
+              echo "Android sdkmanager was not found under ANDROID_HOME/cmdline-tools."
+              find "${ANDROID_HOME}/cmdline-tools" -maxdepth 4 -type f -name sdkmanager -print 2>/dev/null || true
+              exit 1
+            fi
+            "${SDKMANAGER}" "ndk;${NDK_VERSION}"
+          fi
+
+          test -x "${CLANG}"
+          echo "OCLAX_NDK_CC=${CLANG}" >> "${GITHUB_ENV}"
 
       - name: Fetch pinned Syncthing source
         shell: bash
