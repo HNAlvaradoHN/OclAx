@@ -107,3 +107,16 @@ Corrección a validar:
 - Apps instaladas mediante LauncherApps;
 - etiquetas Apps instaladas / APK guardados;
 - carpetas virtuales por categoría dentro de DocumentsProvider manteniendo recientes directos.
+
+
+## Abrir contenido desde OclAx
+
+Pendiente de validación física:
+- tocar PDF y abrirlo con visor compatible;
+- tocar Word/OOXML y abrirlo con editor/visor instalado;
+- tocar imagen y abrirla con galería/visor;
+- tocar video/audio y abrirlo con reproductor;
+- tocar APK y llegar al instalador/manejador del sistema;
+- comprobar que Android respeta una app predeterminada o muestra resolución cuando corresponda;
+- comprobar mensaje seguro cuando no existe manejador compatible;
+- confirmar que ninguna apertura concede escritura ni modifica la copia OclAx.
