@@ -138,7 +138,7 @@ Ninguno registrado actualmente.
 **Prevención:** no asumir que herramientas del Android SDK están en `PATH`; resolver rutas desde `ANDROID_HOME` y validar ejecutables antes de usarlos.
 
 ### ERR-010 — Lint bloqueó la actualización manual de la notificación del servicio
-**Estado:** RESUELTO_PENDIENTE_CI
+**Estado:** RESUELTO
 
 **Síntoma:** la primera CI completa del runtime construyó correctamente las cuatro ABI nativas, pero `lintDebug` bloqueó Android con `NotificationPermission` al llamar directamente a `NotificationManager.notify` en Android 13+.
 
