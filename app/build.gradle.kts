@@ -3,6 +3,17 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
 }
 
+val ciRunNumber = System.getenv("GITHUB_RUN_NUMBER")?.toIntOrNull()
+val testKeystorePath = System.getenv("OCLAX_TEST_KEYSTORE_FILE")
+val testKeystorePassword = System.getenv("OCLAX_TEST_KEYSTORE_PASSWORD")
+val testKeyAlias = System.getenv("OCLAX_TEST_KEY_ALIAS")
+val testKeyPassword = System.getenv("OCLAX_TEST_KEY_PASSWORD")
+val hasStableTestSigning =
+    !testKeystorePath.isNullOrBlank() &&
+        !testKeystorePassword.isNullOrBlank() &&
+        !testKeyAlias.isNullOrBlank() &&
+        !testKeyPassword.isNullOrBlank()
+
 android {
     namespace = "io.github.hnalvaradohn.oclax"
     compileSdk = 36
@@ -11,8 +22,27 @@ android {
         applicationId = "io.github.hnalvaradohn.oclax"
         minSdk = 26
         targetSdk = 36
-        versionCode = 1
-        versionName = "0.1.0"
+        versionCode = ciRunNumber ?: 1
+        versionName = if (ciRunNumber != null) "0.1.$ciRunNumber" else "0.1.0"
+    }
+
+    signingConfigs {
+        if (hasStableTestSigning) {
+            create("oclaxTest") {
+                storeFile = file(requireNotNull(testKeystorePath))
+                storePassword = testKeystorePassword
+                keyAlias = testKeyAlias
+                keyPassword = testKeyPassword
+            }
+        }
+    }
+
+    buildTypes {
+        getByName("debug") {
+            if (hasStableTestSigning) {
+                signingConfig = signingConfigs.getByName("oclaxTest")
+            }
+        }
     }
 
     buildFeatures {
