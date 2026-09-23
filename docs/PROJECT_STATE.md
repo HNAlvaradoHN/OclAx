@@ -49,11 +49,17 @@
 - versionCode monotónico en CI;
 - APK firmado estable generado correctamente en main.
 
-## En desarrollo
+## Implementado recientemente
 
 - control de retención visualmente más compacto tras prueba física;
-- iconografía/miniaturas finales;
-- vista ordenada de aplicaciones instaladas del dispositivo con iconos reales, pendiente de definir su acción principal;
+- categoría Aplicaciones separada de APK;
+- aplicaciones lanzables del dispositivo ordenadas alfabéticamente con iconos reales;
+- iconos reconocibles por tipo en las tarjetas de OclAx;
+- visibilidad de apps sin permiso amplio `QUERY_ALL_PACKAGES`.
+
+## En desarrollo
+
+- miniaturas reales para contenido visual cuando aporten valor;
 - evaluar una organización opcional por categorías dentro de DocumentsProvider sin sacrificar el acceso directo a Recientes.
 
 ## Bloqueos
@@ -65,6 +71,6 @@ Ninguno conocido.
 1. Instalar la nueva build sobre la instalación con firma estable, sin desinstalar, para validar actualización real.
 2. Confirmar que Android conserva los datos internos al actualizar encima.
 3. Validar físicamente selector compacto, Copiar texto/imagen, Compartir, Eliminar con confirmación, retención y Fijados.
-4. Corregir el tamaño visual del selector de retención.
-5. Definir si la futura vista de aplicaciones instaladas sirve para abrir apps o para usarlas como destinos de compartir; después implementar la vista con iconos reales sin permisos amplios innecesarios.
-6. Continuar con iconografía/miniaturas y categorías opcionales en DocumentsProvider sin sacrificar Recientes.
+4. Validar físicamente el selector de retención compacto, la categoría Aplicaciones y los iconos reales.
+5. Confirmar que APK y Aplicaciones se perciben como categorías distintas.
+6. Continuar con miniaturas y categorías opcionales en DocumentsProvider sin sacrificar Recientes.
