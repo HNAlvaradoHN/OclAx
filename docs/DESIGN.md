@@ -113,3 +113,24 @@ Feedback del dueño después de probar la UI en dispositivo real:
 Regla UX:
 - la barra derecha organiza; no debe quitar protagonismo al contenido;
 - si la altura de pantalla no alcanza, el riel puede desplazarse verticalmente, pero nunca volver a depender de desplazamiento horizontal.
+
+
+## Ajuste aprobado tras segunda prueba física — 2026-09-23
+
+El dueño corrigió y refinó la organización visual:
+
+- el naranja anterior se percibió demasiado claro/durazno; la identidad pasa a un naranja más vivo y saturado;
+- el riel derecho implementado previamente queda **sustituido**;
+- el selector de categorías queda compacto y anclado al **lado izquierdo**;
+- solo se muestra la categoría activa (por defecto, Todo) como control principal;
+- al tocarla se abre una lista desplegable con las demás categorías;
+- la lista se cierra al seleccionar una categoría o tocar fuera;
+- esto devuelve el ancho principal a las tarjetas y evita ocupar una columna permanente;
+- tarjetas, badges y acciones se compactan visualmente;
+- las acciones visibles son Compartir, Copiar cuando aplique, Fijar/Desfijar y Eliminar;
+- Copiar solo aparece para **Texto/Código e Imágenes**.
+
+Accesibilidad:
+- los iconos pueden verse más pequeños sin reducir innecesariamente el área táctil;
+- cada acción conserva descripción accesible;
+- el color no es la única señal de estado.
