@@ -97,3 +97,29 @@ La raíz de OclAx debe priorizar **Recientes** y mostrar contenido mixto en un s
 **Regla de producto:** insertar debe requerir el mínimo de pasos posible. OclAx no debe obligar al usuario a navegar carpetas internas ni organizar manualmente antes de usar un elemento.
 
 **Limitación Android:** OclAx no puede capturar universalmente todo lo copiado en segundo plano. Por eso el ingreso al estante debe usar acciones explícitas y rápidas (Compartir a OclAx, importar, guardar selección/texto, o mecanismos equivalentes compatibles con Android). IME/Accessibility/Shizuku no forman parte del MVP salvo decisión posterior.
+
+
+---
+
+## DEC-011 — Compartir texto/imagen a OclAx publica también al portapapeles
+
+**Decisión:** cuando OclAx reciba mediante Compartir un texto o una imagen compatible, debe:
+
+1. importar el contenido a la bandeja temporal;
+2. colocarlo inmediatamente en el portapapeles del sistema;
+3. confirmar de forma breve que quedó listo.
+
+### Texto
+Publicar mediante ClipboardManager como texto plano.
+
+### Imagen
+Primero copiar los bytes a almacenamiento controlado por OclAx y después publicar al portapapeles una URI propia con permiso de lectura. No depender de la URI temporal del emisor.
+
+### Otros archivos
+PDF, APK, documentos, ZIP, video y demás se guardan en OclAx, pero no se promete pegado universal por portapapeles. Su salida principal es:
+
+`+ / Adjuntar → Archivos → OclAx → Recientes → insertar`
+
+**Objetivo:** ofrecer dos rutas rápidas sin duplicar la lógica de ingreso:
+- texto/imagen → Compartir a OclAx → queda en Recientes + listo para Pegar;
+- cualquier archivo → Compartir a OclAx → queda en Recientes + listo para seleccionar desde Archivos.
