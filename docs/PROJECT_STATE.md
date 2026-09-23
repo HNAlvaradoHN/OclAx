@@ -103,8 +103,10 @@
 - el arranque seguro genera/configura el motor antes de servir: listener de sincronización solo en loopback, discovery global/local, relay y NAT desactivados; telemetría y crash reporting desactivados;
 - el probe valida Device ID, autenticación REST, aislamiento loopback y start/stop;
 - **VERIFICADO EN CI MAIN:** tests, lint, build multi-ABI, presencia de los cuatro runtimes y APK firmado estable terminaron verdes en el run 125;
-- conexión LAN-only en desarrollo: peer pausado por defecto, discovery local y listener TCP solo durante **Probar LAN**, restricción a rangos privados, y retorno a modo aislado al desconectar;
-- todavía no existe transferencia de archivos en esta rama.
+- conexión LAN-only fusionada en main mediante PR #42: peer pausado por defecto, discovery local temporal, listener TCP restringido a redes privadas y retorno fail-closed a modo aislado al desconectar;
+- **VERIFICADO EN CI MAIN:** run 150 terminó verde con tests, lint, build multi-ABI, verificación de runtimes y APK debug publicado;
+- TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** porque falta la prueba física con dos teléfonos;
+- todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
 
 ## Bloqueos
 
