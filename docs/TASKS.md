@@ -12,6 +12,17 @@ Incluye:
 - política de seguridad y privacidad;
 - protocolo de sesión y handoff.
 
+### GOV-002 — Evolucionar gobernanza a protocolo V2
+**Estado:** DONE
+
+Incluye:
+- excepción formal de bootstrap;
+- REVIEW_ROLES separado de AGENTS.md;
+- DESIGN.md como memoria visual;
+- TOOLS.md para herramientas externas;
+- rol Diseño / UX / Accesibilidad;
+- protocol_version actualizado a 2.
+
 ## PENDING
 
 ### SEC-001 — Configurar protecciones del repositorio público
