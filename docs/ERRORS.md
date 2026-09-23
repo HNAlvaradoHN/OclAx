@@ -39,3 +39,15 @@ Ninguno registrado actualmente.
 **Solución:** evaluar MIME de documentos antes de las reglas genéricas JSON/XML.
 
 **Prevención:** ordenar clasificadores desde los tipos más específicos hacia los más generales y mantener pruebas con MIME reales representativos.
+
+
+### ERR-004 — APK debug de CI no puede actualizar instalación anterior
+**Estado:** ABIERTO
+
+**Síntoma:** Android muestra “No se instaló la app debido a un conflicto con un paquete” al intentar instalar un APK debug nuevo sobre una instalación anterior de OclAx.
+
+**Causa verificada:** el `applicationId` permanece igual (`io.github.hnalvaradohn.oclax`), pero el workflow genera APK debug en runners efímeros de GitHub Actions sin una clave de firma estable configurada. Cada runner puede crear un debug keystore distinto, por lo que Android rechaza la actualización por firma diferente.
+
+**Impacto:** desinstalar la versión anterior permite instalar la nueva, pero borra las copias privadas y preferencias de OclAx. No afecta archivos originales externos del dispositivo.
+
+**Corrección prevista:** configurar una clave de firma de pruebas estable almacenada únicamente como GitHub Actions Secret, nunca en el repositorio ni en artefactos públicos. Hasta entonces no prometer actualización “encima” entre APK generados por CI.
