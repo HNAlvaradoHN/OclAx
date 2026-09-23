@@ -83,7 +83,7 @@ internal fun TransferDevicesSection(
             ) {
                 OutlinedButton(
                     onClick = onProbe,
-                    enabled = !busy,
+                    enabled = !busy && activeLanDeviceId == null,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 ) {
                     Text("Probar motor")
