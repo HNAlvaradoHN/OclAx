@@ -213,6 +213,9 @@ DeviceBrowser
 
 DocumentsProvider
    └─→ ThumbnailLoader ─→ thumbnail cache ─→ openDocumentThumbnail
+
+OclAx ItemCard
+   └─→ ThumbnailLoader ─→ copia privada ItemStore
 ```
 
 Responsabilidades:
