@@ -92,10 +92,11 @@
 - TRANSFER-001 iniciado: spike técnico para Syncthing core v2.x detrás de una capa propia;
 - investigación confirmó que el wrapper Android oficial está archivado, por lo que no se adoptará como dependencia;
 - **VERIFICADO:** el spike aislado construyó Syncthing core v2.1.5 para Android arm64/API 26 con NDK r30, sin secretos de firma;
-- runtime Android integrado en la rama de trabajo para arm64-v8a, armeabi-v7a, x86_64 y x86: build nativo en job sin secretos, checksums antes de empaquetar, foreground service on-demand, REST loopback y API key privada;
+- runtime Android fusionado en main para arm64-v8a, armeabi-v7a, x86_64 y x86: build nativo en job sin secretos, checksums antes de empaquetar, foreground service on-demand, REST loopback y API key privada;
 - el arranque seguro genera/configura el motor antes de servir: listener de sincronización solo en loopback, discovery global/local, relay y NAT desactivados; telemetría y crash reporting desactivados;
 - el probe valida Device ID, autenticación REST, aislamiento loopback y start/stop;
-- pendiente CI final de la rama y validación física antes de considerar este tramo verificado.
+- **VERIFICADO EN CI MAIN:** tests, lint, build multi-ABI, presencia de los cuatro runtimes y APK firmado estable terminaron verdes en el run 125;
+- pendiente únicamente validación física del runtime antes de habilitar emparejamiento/red entre dispositivos.
 
 ## Bloqueos
 
