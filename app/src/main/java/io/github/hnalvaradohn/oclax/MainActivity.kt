@@ -36,7 +36,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.hnalvaradohn.oclax.data.ItemStore
+import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
+import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import java.text.DateFormat
 import java.util.Date
@@ -123,27 +125,20 @@ private fun OclAxHome(
 }
 
 private fun matchesFilter(item: StoredItem, filter: ContentFilter): Boolean {
-    val mime = item.mimeType.lowercase()
+    val type = contentTypeFor(item.mimeType)
     return when (filter) {
         ContentFilter.ALL -> true
         ContentFilter.PINNED -> item.pinned
-        ContentFilter.IMAGES -> mime.startsWith("image/")
-        ContentFilter.PDF -> mime == "application/pdf"
-        ContentFilter.APPS -> mime == "application/vnd.android.package-archive"
-        ContentFilter.TEXT -> mime.startsWith("text/") || mime.contains("json") || mime.contains("xml")
-        ContentFilter.VIDEO -> mime.startsWith("video/")
-        ContentFilter.AUDIO -> mime.startsWith("audio/")
-        ContentFilter.DOCUMENTS -> isDocumentMime(mime)
-        ContentFilter.OTHER -> !isKnownMime(mime)
+        ContentFilter.IMAGES -> type == ContentType.IMAGE
+        ContentFilter.PDF -> type == ContentType.PDF
+        ContentFilter.APPS -> type == ContentType.APP
+        ContentFilter.TEXT -> type == ContentType.TEXT
+        ContentFilter.VIDEO -> type == ContentType.VIDEO
+        ContentFilter.AUDIO -> type == ContentType.AUDIO
+        ContentFilter.DOCUMENTS -> type == ContentType.DOCUMENT
+        ContentFilter.OTHER -> type == ContentType.OTHER
     }
 }
-
-private fun isDocumentMime(mime: String): Boolean = mime.contains("msword") ||
-    mime.contains("officedocument") || mime.contains("opendocument") || mime == "application/rtf"
-
-private fun isKnownMime(mime: String): Boolean = mime.startsWith("image/") || mime == "application/pdf" ||
-    mime == "application/vnd.android.package-archive" || mime.startsWith("video/") || mime.startsWith("audio/") ||
-    mime.startsWith("text/") || mime.contains("json") || mime.contains("xml") || isDocumentMime(mime)
 
 @Composable
 private fun RetentionControl(retentionHours: Int, onRetentionChange: (Int) -> Unit) {
@@ -165,12 +160,13 @@ private fun RetentionControl(retentionHours: Int, onRetentionChange: (Int) -> Un
 
 @Composable
 private fun ItemRow(item: StoredItem, onPinToggle: (StoredItem) -> Unit) {
+    val type = contentTypeFor(item.mimeType)
     Row(modifier = Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
-        Text(typeGlyph(item.mimeType), style = MaterialTheme.typography.titleLarge)
+        Text(type.glyph, style = MaterialTheme.typography.titleLarge)
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(item.displayName, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-            Text(typeLabel(item.mimeType) + " · " + formatBytes(item.byteSize), style = MaterialTheme.typography.bodySmall)
+            Text(type.label + " · " + formatBytes(item.byteSize), style = MaterialTheme.typography.bodySmall)
             Text(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(item.createdAt)),
                 style = MaterialTheme.typography.labelSmall)
         }
@@ -181,28 +177,6 @@ private fun ItemRow(item: StoredItem, onPinToggle: (StoredItem) -> Unit) {
 
 private fun retentionLabel(hours: Int): String = when (hours) {
     1 -> "1 hora"; 24 -> "24 horas"; 72 -> "3 días"; 168 -> "7 días"; 0 -> "Nunca"; else -> "24 horas"
-}
-
-private fun typeLabel(mimeType: String): String = when {
-    mimeType.startsWith("image/") -> "Imagen"
-    mimeType == "application/pdf" -> "PDF"
-    mimeType == "application/vnd.android.package-archive" -> "Aplicación APK"
-    mimeType.startsWith("video/") -> "Video"
-    mimeType.startsWith("audio/") -> "Audio"
-    mimeType.startsWith("text/") || mimeType.contains("json") || mimeType.contains("xml") -> "Texto/Código"
-    isDocumentMime(mimeType.lowercase()) -> "Documento"
-    else -> "Archivo"
-}
-
-private fun typeGlyph(mimeType: String): String = when {
-    mimeType.startsWith("image/") -> "▣"
-    mimeType == "application/pdf" -> "PDF"
-    mimeType == "application/vnd.android.package-archive" -> "APK"
-    mimeType.startsWith("video/") -> "▶"
-    mimeType.startsWith("audio/") -> "♪"
-    mimeType.startsWith("text/") || mimeType.contains("json") || mimeType.contains("xml") -> "TXT"
-    isDocumentMime(mimeType.lowercase()) -> "DOC"
-    else -> "FILE"
 }
 
 private fun formatBytes(bytes: Long): String {
