@@ -224,3 +224,20 @@ Pendiente de validación física:
 - quitar un par no toca contenido OclAx ni originales del dispositivo;
 - agregar/quitar pares no debe generar tráfico de sincronización mientras el motor siga en modo aislado.
 
+## Conexión LAN entre pares
+
+Automático:
+- la política LAN permite solo `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` y `169.254.0.0/16`;
+- no acepta `0.0.0.0/0`, `::/0` ni `100.64.0.0/10`;
+- el listener de la prueba es TCP IPv4 en el puerto Syncthing esperado.
+
+Pendiente de validación física con dos teléfonos:
+1. instalar la misma build en ambos;
+2. ejecutar **Probar motor** en ambos y agregar mutuamente sus Device ID;
+3. conectar ambos a la misma Wi‑Fi;
+4. tocar **Probar LAN** sobre el otro dispositivo en ambos teléfonos;
+5. ambos deben llegar a **Conectado por LAN**;
+6. no debe transferirse ningún archivo en esta prueba;
+7. tocar **Desconectar LAN** y confirmar que vuelve a modo aislado;
+8. repetir con un peer incorrecto/no presente y confirmar timeout seguro sin quedar discovery/MulticastLock activos.
+
