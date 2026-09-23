@@ -210,3 +210,19 @@ Controles:
 - autolimpieza sigue operando únicamente bajo `filesDir/oclax/items`;
 - abrir/compartir usa URI `content://` y permisos temporales de lectura;
 - Copiar texto aplica el mismo límite defensivo de 2 MiB.
+
+## Exportación de aplicaciones instaladas
+
+- Compartir una app copia únicamente archivos APK desde `sourceDir` y `splitSourceDirs`.
+- Nunca se lee ni copia el directorio privado de datos de la aplicación instalada.
+- Las copias de exportación viven bajo la caché privada de OclAx y se comparten con URI `content://` de solo lectura.
+- Exportaciones antiguas se consideran temporales y se eliminan de la caché después de un TTL defensivo.
+- Compartir el APK no equivale a ejecutar o instalar: el receptor decide qué hacer y Android conserva sus controles de instalación.
+
+## Eliminación explícita de originales
+
+- Mi dispositivo puede solicitar borrar un original solo después de confirmación visible del usuario.
+- La acción destructiva usa la URI MediaStore del elemento seleccionado; no acepta rutas arbitrarias suministradas por texto externo.
+- En Android 11+ se usa la confirmación del sistema mediante `MediaStore.createDeleteRequest`.
+- El borrado de originales nunca participa en retención/autolimpieza y no cambia la regla de que ItemStore solo elimina copias privadas de OclAx.
+- Cancelar la confirmación deja el original intacto.
