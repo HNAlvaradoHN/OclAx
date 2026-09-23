@@ -139,7 +139,10 @@ El runtime nativo:
 - vive en directorios privados de OclAx;
 - no expone su GUI/API fuera de loopback;
 - desactiva auto-upgrade/usage reporting;
-- se construye en CI separada de secretos de firma;
+- se construye en un job CI separado de secretos de firma y se entrega al job Android como artefacto verificado;
+- se empaqueta como librería nativa extraíble y se ejecuta como proceso hijo desde `applicationInfo.nativeLibraryDir`;
+- `SyncthingRuntimeService` es un foreground service `dataSync` on-demand, no un daemon permanente;
+- `SyncthingRestClient` controla salud, privacidad, Device ID y apagado únicamente contra `127.0.0.1:8384`;
 - no filtra conceptos de carpetas Syncthing hacia la UI principal.
 
 OclAx controla:
