@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -28,8 +29,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Android
+import androidx.compose.material.icons.outlined.AudioFile
+import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Image as ImageIcon
+import androidx.compose.material.icons.outlined.InsertDriveFile
+import androidx.compose.material.icons.outlined.Movie
+import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.AlertDialog
@@ -58,15 +67,19 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
+import androidx.core.graphics.drawable.toBitmap
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.model.supportsClipboardCopy
+import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
+import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import java.text.DateFormat
 import java.util.Date
@@ -77,7 +90,9 @@ class MainActivity : ComponentActivity() {
     }
 
     private val store by lazy { ItemStore(applicationContext) }
+    private val installedAppsRepository by lazy { InstalledAppsRepository(applicationContext) }
     private var items by mutableStateOf<List<StoredItem>>(emptyList())
+    private var installedApps by mutableStateOf<List<InstalledAppInfo>>(emptyList())
     private var retentionHours by mutableIntStateOf(24)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -86,6 +101,7 @@ class MainActivity : ComponentActivity() {
             OclAxTheme {
                 OclAxHome(
                     allItems = items,
+                    installedApps = installedApps,
                     retentionHours = retentionHours,
                     onRetentionChange = { hours ->
                         store.setRetentionHours(hours)
@@ -120,6 +136,7 @@ class MainActivity : ComponentActivity() {
     private fun refresh() {
         retentionHours = store.retentionHours()
         items = store.listItems()
+        installedApps = installedAppsRepository.listLaunchableApps()
     }
 
     private fun shareItem(item: StoredItem) {
@@ -211,7 +228,8 @@ private enum class ContentFilter(val label: String) {
     IMAGES("Imágenes"),
     DOCUMENTS("Documentos"),
     PDF("PDF"),
-    APPS("Apps/APK"),
+    APK("APK"),
+    INSTALLED_APPS("Aplicaciones"),
     TEXT("Texto/Código"),
     VIDEO("Video"),
     AUDIO("Audio"),
@@ -221,6 +239,7 @@ private enum class ContentFilter(val label: String) {
 @Composable
 private fun OclAxHome(
     allItems: List<StoredItem>,
+    installedApps: List<InstalledAppInfo>,
     retentionHours: Int,
     onRetentionChange: (Int) -> Unit,
     onPinToggle: (StoredItem) -> Unit,
@@ -234,13 +253,30 @@ private fun OclAxHome(
 
     val visibleItems = remember(query, filter, allItems) {
         val needle = query.trim().lowercase()
-        allItems.filter { item ->
-            matchesFilter(item, filter) &&
-                (
-                    needle.isEmpty() ||
-                        item.displayName.lowercase().contains(needle) ||
-                        item.mimeType.lowercase().contains(needle)
-                    )
+        if (filter == ContentFilter.INSTALLED_APPS) {
+            emptyList()
+        } else {
+            allItems.filter { item ->
+                matchesFilter(item, filter) &&
+                    (
+                        needle.isEmpty() ||
+                            item.displayName.lowercase().contains(needle) ||
+                            item.mimeType.lowercase().contains(needle)
+                        )
+            }
+        }
+    }
+
+    val visibleApps = remember(query, filter, installedApps) {
+        if (filter != ContentFilter.INSTALLED_APPS) {
+            emptyList()
+        } else {
+            val needle = query.trim().lowercase()
+            installedApps.filter { app ->
+                needle.isEmpty() ||
+                    app.label.lowercase().contains(needle) ||
+                    app.packageName.lowercase().contains(needle)
+            }
         }
     }
 
@@ -317,7 +353,23 @@ private fun OclAxHome(
 
             Spacer(Modifier.height(10.dp))
 
-            if (visibleItems.isEmpty()) {
+            if (filter == ContentFilter.INSTALLED_APPS) {
+                if (visibleApps.isEmpty()) {
+                    Text(
+                        "No hay aplicaciones visibles para esa búsqueda.",
+                        style = MaterialTheme.typography.bodyLarge,
+                    )
+                } else {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                    ) {
+                        items(visibleApps, key = { it.packageName }) { app ->
+                            InstalledAppCard(app)
+                        }
+                    }
+                }
+            } else if (visibleItems.isEmpty()) {
                 Text(
                     if (allItems.isEmpty()) {
                         "Todavía no hay elementos. Compartí contenido hacia OclAx."
@@ -402,7 +454,8 @@ private fun matchesFilter(item: StoredItem, filter: ContentFilter): Boolean {
         ContentFilter.PINNED -> item.pinned
         ContentFilter.IMAGES -> type == ContentType.IMAGE
         ContentFilter.PDF -> type == ContentType.PDF
-        ContentFilter.APPS -> type == ContentType.APP
+        ContentFilter.APK -> type == ContentType.APP
+        ContentFilter.INSTALLED_APPS -> false
         ContentFilter.TEXT -> type == ContentType.TEXT
         ContentFilter.VIDEO -> type == ContentType.VIDEO
         ContentFilter.AUDIO -> type == ContentType.AUDIO
@@ -492,16 +545,18 @@ private fun ItemCard(
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
+                    modifier = Modifier.size(34.dp),
                     color = MaterialTheme.colorScheme.primaryContainer,
                     contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
                     shape = MaterialTheme.shapes.small,
                 ) {
-                    Text(
-                        type.glyph,
-                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
-                        style = MaterialTheme.typography.labelMedium,
-                        fontWeight = FontWeight.Bold,
-                    )
+                    Box(contentAlignment = Alignment.Center) {
+                        Icon(
+                            imageVector = contentTypeIcon(type),
+                            contentDescription = type.label,
+                            modifier = Modifier.size(20.dp),
+                        )
+                    }
                 }
 
                 Spacer(Modifier.width(8.dp))
@@ -566,6 +621,55 @@ private fun ItemCard(
             }
         }
     }
+}
+
+@Composable
+private fun InstalledAppCard(app: InstalledAppInfo) {
+    val bitmap = remember(app.packageName) {
+        app.icon.toBitmap(width = 48, height = 48).asImageBitmap()
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Image(
+                bitmap = bitmap,
+                contentDescription = "Icono de ${app.label}",
+                modifier = Modifier.size(38.dp),
+            )
+            Spacer(Modifier.width(10.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    app.label,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                )
+                Text(
+                    "Aplicación instalada",
+                    style = MaterialTheme.typography.labelSmall,
+                )
+            }
+        }
+    }
+}
+
+private fun contentTypeIcon(type: ContentType): ImageVector = when (type) {
+    ContentType.IMAGE -> Icons.Outlined.ImageIcon
+    ContentType.PDF -> Icons.Outlined.PictureAsPdf
+    ContentType.APP -> Icons.Outlined.Android
+    ContentType.DOCUMENT -> Icons.Outlined.Description
+    ContentType.TEXT -> Icons.Outlined.Code
+    ContentType.VIDEO -> Icons.Outlined.Movie
+    ContentType.AUDIO -> Icons.Outlined.AudioFile
+    ContentType.OTHER -> Icons.Outlined.InsertDriveFile
 }
 
 @Composable
