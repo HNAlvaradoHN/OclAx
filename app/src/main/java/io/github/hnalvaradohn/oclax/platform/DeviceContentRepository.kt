@@ -8,6 +8,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import android.webkit.MimeTypeMap
 import io.github.hnalvaradohn.oclax.model.ContentType
@@ -139,19 +140,31 @@ class DeviceContentRepository(context: Context) {
             return DeviceDeleteResult.Failed("OclAx no tiene acceso a los archivos del dispositivo.")
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-            return runCatching {
-                val pendingIntent = MediaStore.createDeleteRequest(
-                    resolver,
-                    listOf(file.uri),
-                )
-                DeviceDeleteResult.NeedsUserConfirmation(pendingIntent.intentSender)
-            }.getOrElse { error ->
-                DeviceDeleteResult.Failed(error.message)
-            }
+        return when {
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.R ->
+                requestDeleteAndroid11Plus(file)
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q ->
+                requestDeleteAndroid10(file)
+            else ->
+                deleteLegacy(file)
+        }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun requestDeleteAndroid11Plus(file: DeviceFileInfo): DeviceDeleteResult =
+        runCatching {
+            val pendingIntent = MediaStore.createDeleteRequest(
+                resolver,
+                listOf(file.uri),
+            )
+            DeviceDeleteResult.NeedsUserConfirmation(pendingIntent.intentSender)
+        }.getOrElse { error ->
+            DeviceDeleteResult.Failed(error.message)
         }
 
-        return try {
+    @RequiresApi(Build.VERSION_CODES.Q)
+    private fun requestDeleteAndroid10(file: DeviceFileInfo): DeviceDeleteResult =
+        try {
             val deleted = resolver.delete(file.uri, null, null)
             if (deleted > 0) {
                 DeviceDeleteResult.Deleted
@@ -167,7 +180,20 @@ class DeviceContentRepository(context: Context) {
         } catch (error: Exception) {
             DeviceDeleteResult.Failed(error.message)
         }
-    }
+
+    private fun deleteLegacy(file: DeviceFileInfo): DeviceDeleteResult =
+        try {
+            val deleted = resolver.delete(file.uri, null, null)
+            if (deleted > 0) {
+                DeviceDeleteResult.Deleted
+            } else {
+                DeviceDeleteResult.Failed("Android no eliminó el archivo.")
+            }
+        } catch (error: SecurityException) {
+            DeviceDeleteResult.Failed(error.message)
+        } catch (error: Exception) {
+            DeviceDeleteResult.Failed(error.message)
+        }
 
     private fun normalizeMimeType(value: String?, displayName: String): String {
         val candidate = value?.trim()?.lowercase().orEmpty()
