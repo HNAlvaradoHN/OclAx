@@ -178,11 +178,17 @@ VERIFICADO en CI aislada:
 - el artefacto es un ELF aarch64 para Android y su SHA-256 coincide con el archivo de verificación generado en el mismo job;
 - el job usa permisos `contents: read` y no recibe secretos de firma de OclAx.
 
-Antes de conectar UX de envío, todavía debe demostrar:
-- el runtime Syncthing core pinneado arranca en Android y entrega un device ID;
+Implementado para la siguiente validación física:
+- APK empaqueta `libsyncthingnative.so` arm64 producido por un job CI sin secretos;
+- debug muestra **Enviar a dispositivo · prueba técnica** con Probar motor/Detener;
+- el probe espera health, fuerza opciones privadas, obtiene Device ID, verifica dirección GUI loopback e intenta comprobar interfaces IPv4 no-loopback;
+- detener usa shutdown REST autenticado y fallback acotado.
+
+Antes de conectar UX de envío, todavía debe demostrar físicamente:
+- el runtime Syncthing core pinneado arranca en Android y entrega un Device ID;
 - REST/GUI responde únicamente por loopback y rechaza acceso desde otra máquina de la LAN;
 - la API exige la key privada generada localmente;
-- auto-upgrade y usage reporting permanecen desactivados;
+- auto-upgrade, usage reporting y crash reporting permanecen desactivados;
 - start/stop/restart no corrompe configuración/base de datos;
 - dos dispositivos emparejados transfieren un archivo pequeño por LAN;
 - un archivo grande puede mostrar progreso sin cargarse completo en memoria;
