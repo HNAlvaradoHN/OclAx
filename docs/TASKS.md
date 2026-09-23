@@ -94,3 +94,19 @@ Objetivo:
 - mínimo de toques desde `+ / Archivos → OclAx`.
 
 No convertir esta tarea en un gestor de archivos completo.
+
+### DATA-001 — Retención segura y Fijados
+**Estado:** IN_PROGRESS  
+**Prioridad:** alta
+
+Implementado en rama de trabajo:
+- política de retención con 24 h por defecto;
+- opciones internas permitidas: 1 h, 24 h, 3 días, 7 días y nunca;
+- exclusión absoluta de elementos fijados de la autolimpieza;
+- borrado limitado a copias privadas bajo `filesDir/oclax/items`;
+- persistencia del estado fijado en metadata propia.
+
+Pendiente:
+- CI verde;
+- controles UI para cambiar retención y fijar/desfijar;
+- validación física de expiración y fijados.
