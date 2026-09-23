@@ -53,3 +53,30 @@ Formato:
 `Ing. OclAx📲 #[NÚMERO]`
 
 Sin handshake válido, la sesión no está autorizada para modificar el proyecto.
+
+
+---
+
+## DEC-007 — Revisores separados de AGENTS.md
+
+**Decisión:** AGENTS.md define cuándo revisar y `docs/REVIEW_ROLES.md` contiene los checklists y responsabilidades detalladas.
+
+**Motivo:** mantener la constitución legible y permitir evolucionar revisores sin inflar el protocolo principal.
+
+---
+
+## DEC-008 — DESIGN.md como fuente de verdad visual
+
+**Decisión:** cuando exista UI, `docs/DESIGN.md` conserva las decisiones visuales y de accesibilidad.
+
+**Motivo:** separar cambios de diseño de lógica, datos e infraestructura.
+
+**Consecuencia:** herramientas visuales externas son auxiliares; las decisiones duraderas vuelven a GitHub.
+
+---
+
+## DEC-009 — Registro de herramientas externas
+
+**Decisión:** `docs/TOOLS.md` registra herramientas externas relevantes, su estado, límites, privacidad y condiciones de uso.
+
+**Motivo:** evitar agregar herramientas por moda o convertirlas accidentalmente en una fuente de verdad paralela.
