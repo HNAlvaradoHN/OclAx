@@ -1,6 +1,7 @@
 package io.github.hnalvaradohn.oclax.platform.transfer
 
 import android.content.Context
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -39,11 +40,40 @@ internal class SyncthingRestClient(
 
     fun enforcePrivateOptions() {
         val options = getJson("/rest/config/options")
+        options.put("listenAddresses", JSONArray().put(SyncthingPrivateConfig.SAFE_LISTEN_ADDRESS))
+        options.put("globalAnnounceEnabled", false)
+        options.put("localAnnounceEnabled", false)
+        options.put("relaysEnabled", false)
+        options.put("natEnabled", false)
+        options.put("startBrowser", false)
         options.put("urAccepted", -1)
         options.put("crashReportingEnabled", false)
         putJson("/rest/config/options", options)
 
         val verified = getJson("/rest/config/options")
+        val listenAddresses = verified.optJSONArray("listenAddresses")
+            ?: error("El motor no devolvió sus direcciones de escucha.")
+        check(
+            listenAddresses.length() == 1 &&
+                listenAddresses.optString(0) == SyncthingPrivateConfig.SAFE_LISTEN_ADDRESS
+        ) {
+            "El motor no confirmó el modo de red aislado."
+        }
+        check(!verified.optBoolean("globalAnnounceEnabled", true)) {
+            "El motor no confirmó que discovery global esté desactivado."
+        }
+        check(!verified.optBoolean("localAnnounceEnabled", true)) {
+            "El motor no confirmó que discovery local esté desactivado."
+        }
+        check(!verified.optBoolean("relaysEnabled", true)) {
+            "El motor no confirmó que relay esté desactivado durante la prueba local."
+        }
+        check(!verified.optBoolean("natEnabled", true)) {
+            "El motor no confirmó que NAT traversal esté desactivado durante la prueba local."
+        }
+        check(!verified.optBoolean("startBrowser", true)) {
+            "El motor no confirmó que el navegador automático esté desactivado."
+        }
         check(verified.optInt("urAccepted", 0) == -1) {
             "El motor no confirmó que la telemetría esté desactivada."
         }
