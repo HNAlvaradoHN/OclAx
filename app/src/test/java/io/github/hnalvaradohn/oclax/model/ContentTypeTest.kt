@@ -1,6 +1,8 @@
 package io.github.hnalvaradohn.oclax.model
 
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class ContentTypeTest {
@@ -20,5 +22,20 @@ class ContentTypeTest {
     fun `classification is case insensitive`() {
         assertEquals(ContentType.PDF, contentTypeFor("APPLICATION/PDF"))
         assertEquals(ContentType.IMAGE, contentTypeFor("IMAGE/PNG"))
+    }
+}
+
+
+class ClipboardCopyTypeTest {
+    @Test
+    fun `clipboard copy is limited to text and images`() {
+        assertTrue(ContentType.TEXT.supportsClipboardCopy())
+        assertTrue(ContentType.IMAGE.supportsClipboardCopy())
+        assertFalse(ContentType.PDF.supportsClipboardCopy())
+        assertFalse(ContentType.APP.supportsClipboardCopy())
+        assertFalse(ContentType.DOCUMENT.supportsClipboardCopy())
+        assertFalse(ContentType.VIDEO.supportsClipboardCopy())
+        assertFalse(ContentType.AUDIO.supportsClipboardCopy())
+        assertFalse(ContentType.OTHER.supportsClipboardCopy())
     }
 }
