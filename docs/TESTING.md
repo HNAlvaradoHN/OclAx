@@ -72,3 +72,19 @@ Pendiente en dispositivo:
 - desinstalar una última vez la instalación antigua firmada con una clave efímera;
 - instalar el primer APK con firma persistente;
 - generar una build posterior y confirmar que Android la instala encima sin conflicto y conserva los datos internos.
+
+
+## Bloque compacto + Copiar
+
+VERIFICADO en CI:
+- tests unitarios verdes;
+- lint verde;
+- assembleDebug verde;
+- test de elegibilidad confirma que Copiar solo está disponible para Texto/Código e Imágenes;
+- build de main generado con la firma persistente de pruebas.
+
+Pendiente en dispositivo:
+- instalar esta build encima de la instalación estable anterior sin desinstalar;
+- comprobar conservación de copias/preferencias internas;
+- probar cierre del menú al seleccionar y al tocar fuera;
+- copiar texto e imagen y pegar en aplicaciones compatibles.
