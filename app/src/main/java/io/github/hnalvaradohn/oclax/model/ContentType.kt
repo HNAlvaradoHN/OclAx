@@ -28,5 +28,6 @@ fun contentTypeFor(mimeType: String): ContentType {
 fun isDocumentMime(mime: String): Boolean =
     mime.contains("msword") ||
         mime.contains("officedocument") ||
+        mime.contains("openxmlformats-officedocument") ||
         mime.contains("opendocument") ||
         mime == "application/rtf"
