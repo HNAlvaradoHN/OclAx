@@ -229,13 +229,14 @@ Investigación verificada — 2026-09-23:
 
 Spike técnico, en orden:
 1. **VERIFICADO:** construir/empaquetar Syncthing core v2.1.5 para Android arm64 en CI aislada y **sin acceso a secretos de firma**; se produjo un ELF Android API 26 con NDK r30 y verificación SHA-256.
-2. **SIGUIENTE:** empaquetar ese runtime dentro de una build de prueba OclAx y arrancarlo en un foreground service mínimo con directorios de configuración/datos privados.
-3. enlazar GUI/API a `127.0.0.1`, generar API key local y confirmar que no es accesible desde la LAN;
-4. desactivar auto-upgrade y usage reporting;
-5. obtener device ID/estado mediante REST y detener/reiniciar limpiamente;
-6. emparejar dos instalaciones de prueba y validar transferencia LAN;
-7. validar conexión Internet directa y relay público como fallback;
-8. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
+2. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** el CI principal construye el runtime en un job sin secretos, verifica SHA-256 y lo empaqueta en el APK como `libsyncthingnative.so`; Gradle fuerza extracción para poder ejecutarlo como proceso hijo.
+3. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** `SyncthingRuntimeService` usa foreground service `dataSync`, almacenamiento privado, API/GUI fija en `127.0.0.1:8384` y API key aleatoria persistida solo en preferencias privadas.
+4. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** auto-upgrade queda deshabilitado por build/flags; al arrancar OclAx fuerza `urAccepted=-1` y `crashReportingEnabled=false` mediante REST local y verifica la respuesta.
+5. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** el probe obtiene `myID`, comprueba configuración loopback, intenta detectar exposición por IPv4 no-loopback y la detención usa `/rest/system/shutdown` con fallback de proceso.
+6. **SIGUIENTE:** instalar la build en teléfono real y validar arranque → Device ID → loopback → detener → arrancar otra vez sin corrupción.
+7. emparejar dos instalaciones de prueba y validar transferencia LAN;
+8. validar conexión Internet directa y relay público como fallback;
+9. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;
