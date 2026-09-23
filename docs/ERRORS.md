@@ -69,3 +69,21 @@ Ninguno registrado actualmente.
 - eliminar la declaración `<queries>` que dejó de ser necesaria.
 
 **Validación pendiente:** confirmar en el mismo teléfono que Apps instaladas muestra iconos/nombres y que Archivos → OclAx presenta carpetas de categorías sin perder acceso directo a recientes.
+
+
+### ERR-006 — Primera CI de Mi dispositivo falló al materializar apps y por lint de visibilidad total
+**Estado:** RESUELTO
+
+**Síntomas:**
+- la primera compilación devolvía `Sequence<InstalledAppInfo>` donde el contrato exigía `List<InstalledAppInfo>`;
+- después de corregirlo, lint bloqueó `QUERY_ALL_PACKAGES` con `QueryAllPackagesPermission`.
+
+**Causa:**
+- faltaba materializar la secuencia ordenada con `.toList()`;
+- lint no puede inferir que la visibilidad completa de paquetes es una decisión explícita y documentada del producto distribuido fuera de Play Store.
+
+**Solución:**
+- materializar explícitamente la lista;
+- mantener `QUERY_ALL_PACKAGES` por decisión DEC-019/DEC-023 y añadir una supresión localizada `tools:ignore="QueryAllPackagesPermission"` únicamente en esa declaración.
+
+**Prevención:** los permisos amplios deben estar justificados en DECISIONS/SECURITY y cualquier supresión de lint debe ser puntual, visible y asociada a una decisión explícita; no desactivar lint globalmente.

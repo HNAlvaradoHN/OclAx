@@ -209,3 +209,21 @@ No mostrar al usuario términos internos como carpetas Syncthing, relay, REST AP
 - La UI debe comunicar de forma natural que la tarjeta es abrible sin añadir un botón grande adicional que vuelva a saturarla.
 - Para imágenes/video se prioriza en el futuro una miniatura real, pero tocar sigue significando “abrir”.
 - APK debe diferenciarse visualmente como instalable/paquete y nunca sugerir instalación automática.
+
+
+## Superficies OclAx / Mi dispositivo
+
+La parte superior incluye un selector compacto de dos orígenes:
+- **OclAx**: bandeja temporal;
+- **Mi dispositivo**: contenido original del teléfono.
+
+Reglas visuales:
+- no mezclar en una misma lista copias OclAx y originales;
+- Mi dispositivo usa su propio selector compacto de categorías;
+- Apps es la categoría inicial de Mi dispositivo para que el usuario pueda comprobar rápidamente la visibilidad instalada;
+- archivos reales muestran nombre, tipo, tamaño y ruta relativa cuando exista;
+- no mostrar Fijar, retención ni Eliminar sobre originales;
+- Compartir y Copiar aparecen solo donde corresponden;
+- tocar el cuerpo abre el elemento.
+
+Si falta el permiso amplio, mostrar una explicación corta y un único botón **Conceder acceso**, sin bloquear la superficie OclAx.

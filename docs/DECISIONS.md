@@ -390,3 +390,36 @@ Aclaración:
 - OclAx no contratará ni desplegará infraestructura con costo sin autorización explícita.
 
 **Motivo:** conseguir una experiencia tipo “enviar y listo” usando primero la ruta más directa y rápida disponible, sin costo obligatorio de servidor.
+
+
+---
+
+## DEC-023 — Mi dispositivo es una superficie separada y de solo uso explícito
+
+**Decisión:** la aplicación principal tiene dos superficies visibles:
+
+1. **OclAx**
+   - copias temporales controladas por ItemStore;
+   - Fijados, retención, Compartir, Copiar y Eliminar;
+   - autolimpieza exclusiva de copias OclAx.
+
+2. **Mi dispositivo**
+   - inventario del contenido real accesible del teléfono;
+   - aplicaciones instaladas;
+   - imágenes, documentos, PDF, APK, texto/código, video, audio y otros archivos;
+   - abrir, compartir y copiar texto/imagen sin crear una copia OclAx automáticamente.
+
+Permisos:
+- `QUERY_ALL_PACKAGES` para inventario completo de aplicaciones;
+- `MANAGE_EXTERNAL_STORAGE` en Android 11+ para acceso amplio a almacenamiento compartido;
+- `READ_EXTERNAL_STORAGE` solo como compatibilidad en Android antiguos;
+- el usuario entra a la pantalla especial de Android para conceder/revocar acceso amplio.
+
+Reglas:
+- negar acceso a archivos no rompe OclAx ni el listado de aplicaciones;
+- Mi dispositivo no expone botón Eliminar en esta fase;
+- tocar una aplicación intenta abrirla si tiene actividad lanzable;
+- tocar un archivo intenta abrirlo con Android;
+- Compartir y Copiar reutilizan URI de contenido existentes, sin duplicar automáticamente el original.
+
+**Motivo:** permitir acceso real al contenido del dispositivo sin mezclar propiedad, retención ni borrado con la bandeja temporal.

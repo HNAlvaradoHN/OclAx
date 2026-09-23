@@ -176,3 +176,30 @@ Reglas:
 - APK usa el mismo principio de apertura explícita; OclAx no instala silenciosamente.
 
 La futura superficie Mi dispositivo reutiliza el mismo caso de uso con URIs externas autorizadas, evitando copias innecesarias.
+
+
+## Implementación Mi dispositivo — 2026-09-23
+
+```text
+MainActivity
+   ↓
+DeviceContentRepository ──→ MediaStore.Files
+   │
+   └─ permisos/capacidad → Environment.isExternalStorageManager()
+
+MainActivity
+   ↓
+InstalledAppsRepository ──→ PackageManager.getInstalledApplications()
+```
+
+Detalles:
+- el índice del dispositivo se carga fuera del hilo principal mediante un executor único;
+- la UI recibe listas ya materializadas y filtra localmente por categoría/búsqueda;
+- `QUERY_ALL_PACKAGES` permite inventario completo de aplicaciones;
+- `MANAGE_EXTERNAL_STORAGE` habilita el índice amplio de archivos compartidos;
+- el acceso al dispositivo es de lectura/uso en esta fase; no existe caso de uso de borrar originales;
+- abrir archivos reutiliza ContentOpener con URI MediaStore;
+- compartir concede lectura temporal al receptor;
+- Copiar se limita a Texto/Código e Imagen igual que en la bandeja.
+
+El ItemStore no participa en Mi dispositivo salvo que una acción futura importe explícitamente un original a la bandeja.
