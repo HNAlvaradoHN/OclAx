@@ -88,10 +88,10 @@
 
 ## En desarrollo
 
-- corrección tras prueba física: portada real de PDF mediante primera página renderizada;
-- corrección del borrado de originales en Android 11+;
-- validación física del bloque Mi dispositivo;
-- prototipo OclAx ↔ OclAx usando Syncthing como motor candidato después de cerrar esta validación.
+- validación física de miniaturas dentro de la bandeja OclAx y del bloque Mi dispositivo;
+- TRANSFER-001 iniciado: spike técnico para Syncthing core v2.x detrás de una capa propia;
+- investigación confirmó que el wrapper Android oficial está archivado, por lo que no se adoptará como dependencia;
+- siguiente objetivo técnico del spike: empaquetar un Syncthing core estable/pinneado en CI aislada de secretos y arrancarlo localmente con REST solo en loopback.
 
 ## Bloqueos
 
@@ -105,5 +105,6 @@
 3. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
 4. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
 5. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
-6. Después de esa validación, prototipar Syncthing como motor de **Enviar a dispositivo** con directo/LAN/Internet y relay público como fallback.
-7. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
+6. En paralelo, completar el spike de empaquetado/arranque local de Syncthing core v2.x sin exponer REST fuera de loopback ni usar secretos de firma.
+7. Después, probar dos dispositivos: LAN directo → Internet directo → relay público como fallback.
+8. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
