@@ -167,6 +167,21 @@ Reglas:
 - no registrar ni transmitir inventarios de archivos/aplicaciones salvo acción explícita del usuario;
 - autolimpieza y eliminación interna nunca alcanzan originales externos.
 
+## Spike de motor Syncthing
+
+Controles obligatorios antes de exponer transferencias reales:
+- no usar el wrapper Android oficial discontinuado como dependencia de producción;
+- fijar versión/commit del core y verificar procedencia/licencia;
+- compilar o preparar binarios nativos en una etapa CI separada que no reciba keystore, contraseñas ni otros secrets de firma;
+- no ejecutar scripts externos no revisados dentro de un job privilegiado;
+- directorios de identidad, certificado, base de datos y API key bajo almacenamiento privado de OclAx;
+- GUI/REST del motor enlazado exclusivamente a `127.0.0.1`; nunca `0.0.0.0`;
+- API key aleatoria por instalación, no hardcodeada, no registrada en logs;
+- auto-upgrade del runtime deshabilitado: OclAx actualiza el motor solo mediante una nueva build revisada;
+- usage reporting deshabilitado;
+- cualquier uso de global discovery/relay se documenta como exposición de metadatos de conexión (IP/device ID), no de contenido en claro;
+- detener el motor limpiamente antes de que Android suspenda/termine el servicio para reducir riesgo de corrupción de su base de datos.
+
 ## Confianza y recepción OclAx ↔ OclAx
 
 - el emparejamiento de dispositivos es explícito;
