@@ -52,6 +52,12 @@ Ninguno conocido para continuar con la configuración del repositorio.
 
 ## Siguiente paso exacto
 
-1. El dueño confirma el alcance MVP propuesto en FEASIBILITY.
-2. Activar manualmente la protección de `main` en GitHub.
-3. Después iniciar la base Android.
+1. Activar manualmente la protección de `main` en GitHub.
+2. Inicializar la base Android mínima.
+3. Construir primero una prueba vertical del flujo principal:
+   - Compartir texto/imagen a OclAx;
+   - guardar en Recientes;
+   - publicar texto/imagen al portapapeles;
+   - exponer Recientes mediante DocumentsProvider;
+   - seleccionar un elemento desde otra app.
+4. Validar ese flujo en dispositivo antes de ampliar UI o funciones.
