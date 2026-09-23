@@ -17,6 +17,7 @@ jobs:
     timeout-minutes: 45
     env:
       SYNCTHING_VERSION: "v2.1.5"
+      SYNCTHING_COMMIT: "2ca95cf1498104113fdfde46df4107f2450a0f71"
       GO_VERSION: "1.27.1"
       NDK_VERSION: "30.0.16248370"
       MIN_ANDROID_API: "26"
@@ -56,10 +57,12 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          git clone --depth 1 --branch "${SYNCTHING_VERSION}"             https://github.com/syncthing/syncthing.git             "${RUNNER_TEMP}/syncthing"
+          git clone --depth 1 --branch "${SYNCTHING_VERSION}" https://github.com/syncthing/syncthing.git "${RUNNER_TEMP}/syncthing"
           cd "${RUNNER_TEMP}/syncthing"
           git describe --tags --exact-match
-          git rev-parse HEAD | tee "${RUNNER_TEMP}/syncthing-commit.txt"
+          ACTUAL_COMMIT="$(git rev-parse HEAD)"
+          test "${ACTUAL_COMMIT}" = "${SYNCTHING_COMMIT}"
+          printf '%s\n' "${ACTUAL_COMMIT}" | tee "${RUNNER_TEMP}/syncthing-commit.txt"
 
       - name: Build Android arm64 Syncthing core
         shell: bash
@@ -72,10 +75,9 @@ jobs:
           export SOURCE_DATE_EPOCH=0
           export EXTRA_LDFLAGS="-checklinkname=0"
 
-          CC="${ANDROID_HOME}/ndk/${NDK_VERSION}/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android${MIN_ANDROID_API}-clang"
           OUTPUT="${RUNNER_TEMP}/libsyncthingnative.so"
 
-          go run build.go             -goos android             -goarch arm64             -cc "${CC}"             -version "${SYNCTHING_VERSION}"             -no-upgrade             -build-out "${OUTPUT}"             build
+          go run build.go -goos android -goarch arm64 -cc "${OCLAX_NDK_CC}" -version "${SYNCTHING_VERSION}" -no-upgrade -build-out "${OUTPUT}" build
 
           test -s "${OUTPUT}"
           chmod 0755 "${OUTPUT}"
