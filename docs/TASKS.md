@@ -52,7 +52,8 @@ Objetivo:
 Alcance central confirmado:
 - OclAx funciona como bandeja temporal universal;
 - entrada rápida y explícita de contenido;
-- salida principal mediante `+ / Archivos → OclAx → Recientes → insertar`;
+- texto/imagen compartidos a OclAx quedan en Recientes y se publican al portapapeles;
+- cualquier archivo queda disponible mediante `+ / Archivos → OclAx → Recientes → insertar`;
 - contenido mixto;
 - DocumentsProvider como pieza central;
 - cero red;
