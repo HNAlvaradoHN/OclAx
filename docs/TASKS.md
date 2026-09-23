@@ -263,12 +263,35 @@ Implementado en la base de emparejamiento:
 - se rechaza agregar el propio Device ID y IDs con formato inválido;
 - los datos se guardan en SharedPreferences privadas de OclAx.
 
+Validado:
+- PR #40 fusionado después de CI verde en tests, lint y build.
+
+Pendiente:
+- validar en dos teléfonos que cada uno puede compartir/agregar el ID del otro;
+- posteriormente añadir QR si mejora el flujo sin dependencia innecesaria.
+
+### TRANSFER-003 — Conexión LAN entre dispositivos emparejados
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Implementado:
+- **Probar LAN** por dispositivo emparejado dentro del panel técnico;
+- OclAx pide al propio Syncthing validar/canonizar el Device ID antes de configurarlo;
+- el peer se crea pausado, sin autoaceptar carpetas y sin funciones de introducer;
+- durante la prueba LAN se habilita únicamente un listener TCP IPv4 y discovery local;
+- global discovery, relay, NAT traversal, usage reporting y crash reporting permanecen apagados;
+- el peer queda limitado a rangos IPv4 privados/link-local; no se permite `0.0.0.0/0`, `::/0` ni CGNAT como red de confianza;
+- Android mantiene un MulticastLock solo mientras la prueba LAN está activa;
+- la conexión solo se considera válida cuando Syncthing informa `connected=true` e `isLocal=true`;
+- **Desconectar LAN** pausa el peer, restaura el motor a modo aislado y libera el MulticastLock;
+- no se comparte ninguna carpeta ni archivo todavía.
+
 Pendiente:
 - CI de esta rama;
-- validar en dos teléfonos que cada uno puede compartir/agregar el ID del otro;
-- conectar la lista local al config REST de Syncthing solo después de validar físicamente el runtime;
-- habilitar red de pares únicamente durante emparejamiento/envío explícito;
-- posteriormente añadir QR si mejora el flujo sin dependencia innecesaria.
+- prueba física con dos teléfonos en la misma Wi‑Fi;
+- confirmar que ambos muestran **Conectado por LAN**;
+- confirmar que desconectar vuelve al modo aislado;
+- solo después crear el canal privado de archivos y progreso.
 
 ### OPEN-001 — Abrir contenido desde la bandeja
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
