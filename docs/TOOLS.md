@@ -24,6 +24,8 @@ GitHub sigue siendo la fuente técnica de verdad. Ninguna herramienta externa re
 
 **Costo:** software libre; los relays públicos no implican un servicio pago de OclAx, pero tampoco son un SLA. No desplegar relay/servidor propio con costo sin autorización.
 
+**Licencia:** Syncthing se distribuye bajo MPL-2.0. Antes de una release estable de OclAx que incluya el binario, revisar y cumplir avisos/atribución y disponibilidad del código fuente cubierto; el repo pinnea versión/commit y no debe tratar la licencia como opcional.
+
 **Privacidad/seguridad:**
 - tráfico entre pares cifrado extremo a extremo por el motor;
 - discovery/relay pueden revelar metadatos de conexión como IP y device ID a esos servicios;
