@@ -29,13 +29,13 @@ Ninguno registrado actualmente.
 
 **Prevención:** elegir la versión mínima actual que satisfaga producto y dependencias; subir compileSdk por necesidad verificada, no por novedad.
 
-### ERR-003 — Clasificador no reconocía documentos OOXML
+### ERR-003 — OOXML se clasificaba como texto por contener `xml`
 **Estado:** RESUELTO
 
-**Síntoma:** Android CI del PR #20 falló en `ContentTypeTest` al clasificar un documento Word `.docx` como `OTHER` en vez de `DOCUMENT`.
+**Síntoma:** Android CI del PR #20 falló en `ContentTypeTest` al clasificar un documento Word `.docx` como `TEXT` en vez de `DOCUMENT`.
 
-**Causa:** el detector buscaba la subcadena `officedocument`, pero el MIME estándar de OOXML contiene `openxmlformats-officedocument` y no esa secuencia contigua.
+**Causa:** la regla genérica de texto (`mime.contains("xml")`) se evaluaba antes que la regla específica de documentos. El MIME OOXML de Word contiene `openxmlformats`, por lo que coincidía prematuramente con texto.
 
-**Solución:** reconocer explícitamente `openxmlformats-officedocument` dentro de los MIME de documentos.
+**Solución:** evaluar MIME de documentos antes de las reglas genéricas JSON/XML.
 
-**Prevención:** mantener pruebas unitarias con MIME reales de formatos representativos antes de reutilizar la clasificación en UI o DocumentsProvider.
+**Prevención:** ordenar clasificadores desde los tipos más específicos hacia los más generales y mantener pruebas con MIME reales representativos.
