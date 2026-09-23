@@ -173,15 +173,18 @@ Pendiente de validación física:
 
 ## Spike de transferencia OclAx ↔ OclAx
 
-VERIFICADO en CI aislada:
+VERIFICADO previamente en CI aislada:
 - Syncthing core v2.1.5 se compiló para Android arm64/API 26 con NDK r30;
-- el artefacto es un ELF aarch64 para Android y su SHA-256 coincide con el archivo de verificación generado en el mismo job;
-- el job usa permisos `contents: read` y no recibe secretos de firma de OclAx.
+- el artefacto fue ELF Android y su SHA-256 coincidió con el archivo de verificación;
+- el job usó permisos `contents: read` y no recibió secretos de firma de OclAx.
 
-Implementado para la siguiente validación física:
-- APK empaqueta `libsyncthingnative.so` arm64 producido por un job CI sin secretos;
+Implementado para CI final y siguiente validación física:
+- CI principal construye y empaqueta `libsyncthingnative.so` para arm64-v8a, armeabi-v7a, x86_64 y x86 desde el tag+commit pinneado;
+- test unitario verifica argumentos seguros de arranque/generación;
+- test unitario endurece un config inseguro y confirma loopback/no-discovery/no-relay/no-NAT/no-reporting; también comprueba rechazo de DOCTYPE/entidades externas;
 - debug muestra **Enviar a dispositivo · prueba técnica** con Probar motor/Detener;
-- el probe espera health, fuerza opciones privadas, obtiene Device ID, verifica dirección GUI loopback e intenta comprobar interfaces IPv4 no-loopback;
+- antes de `serve` se endurece el config; después el servicio vuelve a verificar opciones privadas por REST;
+- el probe espera health, obtiene Device ID, verifica autenticación, dirección GUI loopback e intenta comprobar interfaces IPv4 no-loopback;
 - detener usa shutdown REST autenticado y fallback acotado.
 
 Antes de conectar UX de envío, todavía debe demostrar físicamente:
