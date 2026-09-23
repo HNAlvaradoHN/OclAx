@@ -200,3 +200,12 @@ En ajustes de cada dispositivo emparejado:
 - para dispositivos nuevos/no confiables, el estado inicial es apagado.
 
 No mostrar al usuario términos internos como carpetas Syncthing, relay, REST API o IDs técnicos salvo una pantalla de diagnóstico avanzada.
+
+
+## Tarjetas utilizables — abrir al tocar
+
+- Tocar el cuerpo de una tarjeta abre el contenido con el manejador compatible de Android.
+- Los botones dentro de la tarjeta siguen siendo acciones independientes: Compartir, Copiar cuando aplique, Fijar y Eliminar.
+- La UI debe comunicar de forma natural que la tarjeta es abrible sin añadir un botón grande adicional que vuelva a saturarla.
+- Para imágenes/video se prioriza en el futuro una miniatura real, pero tocar sigue significando “abrir”.
+- APK debe diferenciarse visualmente como instalable/paquete y nunca sugerir instalación automática.
