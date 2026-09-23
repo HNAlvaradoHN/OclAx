@@ -153,3 +153,30 @@ SEC-001: revisar y configurar controles disponibles del repositorio público sin
 - Nombre, paquete e icono se usan localmente para presentación y búsqueda.
 - La lista no se persiste, no se registra en logs y no se transmite.
 - No se añade permiso de Internet ni acceso adicional al almacenamiento.
+
+
+## Acceso amplio a Mi dispositivo
+
+El dueño aprobó una superficie de navegación completa del dispositivo.
+
+Reglas:
+- solicitar solo permisos asociados a funciones reales de OclAx;
+- si se usa `MANAGE_EXTERNAL_STORAGE`, tratarlo como acceso especial y explicar al usuario por qué se solicita;
+- si se usa `QUERY_ALL_PACKAGES`, limitar su uso a inventario/selección de aplicaciones dentro de OclAx;
+- la app debe seguir funcionando en modo reducido si esos accesos se niegan o revocan;
+- nunca interpretar “acceso a todo” como permiso para leer datos privados internos de otras apps que Android no expone;
+- no registrar ni transmitir inventarios de archivos/aplicaciones salvo acción explícita del usuario;
+- autolimpieza y eliminación interna nunca alcanzan originales externos.
+
+## Confianza y recepción OclAx ↔ OclAx
+
+- el emparejamiento de dispositivos es explícito;
+- desconocidos/no emparejados no pueden autoenviar contenido aceptado;
+- recepción automática se configura por dispositivo;
+- el valor seguro por defecto para un dispositivo que no sea marcado confiable es pedir confirmación;
+- “Permitir sin aceptar” solo omite la confirmación de recepción y deposita el archivo en la bandeja privada;
+- APK y otros ejecutables recibidos nunca se ejecutan/instalan automáticamente;
+- nombres/rutas recibidos son no confiables y deben pasar por las mismas reglas de sanitización/aislamiento que otros ingresos;
+- secretos/API keys/configuración privada del motor de transferencia nunca se publican;
+- cualquier API de control local del motor debe estar vinculada localmente y protegida;
+- no se habilita infraestructura paga sin autorización.
