@@ -71,6 +71,7 @@ Ninguno conocido para continuar con la configuración del repositorio.
 
 1. VERIFICADO en dispositivo real: OclAx aparece como fuente en el selector de archivos del sistema.
 2. VERIFICADO en Qwen: el flujo Compartir → OclAx → Pegar funciona.
-3. Validar archivo: Compartir → OclAx → otra app → + / Archivos → OclAx → Recientes → insertar.
-4. Repetir el pegado y la selección de archivos en WhatsApp, Telegram y navegador.
-5. Corregir incompatibilidades reales antes de ampliar UI o funciones.
+3. VERIFICADO en Qwen: los tipos de archivo probados se pueden seleccionar e insertar desde OclAx.
+4. EXCEPCIÓN VERIFICADA: Qwen no acepta APK como adjunto; OclAx sí lo expone, pero la app receptora lo rechaza.
+5. Repetir el pegado y la selección de archivos en WhatsApp, Telegram y navegador.
+6. Corregir incompatibilidades reales antes de ampliar UI o funciones.
