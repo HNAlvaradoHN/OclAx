@@ -91,14 +91,16 @@
 - validación física de miniaturas dentro de la bandeja OclAx y del bloque Mi dispositivo;
 - TRANSFER-001 iniciado: spike técnico para Syncthing core v2.x detrás de una capa propia;
 - investigación confirmó que el wrapper Android oficial está archivado, por lo que no se adoptará como dependencia;
-- **VERIFICADO:** CI aislada construye Syncthing core v2.1.5 para Android arm64/API 26 con NDK r30, sin secretos de firma, y genera SHA-256 verificable;
-- runtime Android integrado en la rama de trabajo: empaquetado desde CI aislado, foreground service on-demand, API REST en loopback, API key privada, telemetría/reportes de fallos desactivados y probe de Device ID/start-stop;
-- pendiente CI de la rama y validación física antes de considerar este tramo verificado.
+- **VERIFICADO:** el spike aislado construyó Syncthing core v2.1.5 para Android arm64/API 26 con NDK r30, sin secretos de firma;
+- runtime Android integrado en la rama de trabajo para arm64-v8a, armeabi-v7a, x86_64 y x86: build nativo en job sin secretos, checksums antes de empaquetar, foreground service on-demand, REST loopback y API key privada;
+- el arranque seguro genera/configura el motor antes de servir: listener de sincronización solo en loopback, discovery global/local, relay y NAT desactivados; telemetría y crash reporting desactivados;
+- el probe valida Device ID, autenticación REST, aislamiento loopback y start/stop;
+- pendiente CI final de la rama y validación física antes de considerar este tramo verificado.
 
 ## Bloqueos
 
-- la build probada físicamente no podía borrar originales: Android rechazaba la URI genérica de MediaStore.Files;
-- la corrección está implementada y debe validarse físicamente antes de avanzar al bloque de transferencia.
+- ninguno técnico conocido en código actual;
+- siguen pendientes validaciones físicas del borrado corregido, miniaturas y runtime de transferencia antes de declarar esos bloques DONE.
 
 ## Siguiente paso exacto
 
