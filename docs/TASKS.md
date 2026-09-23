@@ -140,7 +140,7 @@ Objetivo:
 
 Preparado en código:
 - Gradle acepta firma estable de prueba solo con los cuatro Secrets presentes;
-- GitHub Actions reconstruye el keystore únicamente dentro del runner;
+- GitHub Actions reconstruye el keystore únicamente dentro del runner y solo en pushes a `main`; los PR usan firma debug efímera y no reciben secrets de firma;
 - versionCode de CI usa el número monotónico del workflow;
 - una configuración parcial de Secrets hace fallar el build.
 
