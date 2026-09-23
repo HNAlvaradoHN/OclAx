@@ -55,16 +55,15 @@ Implementado:
 - APK debug como artefacto.
 
 Validado:
-- CI verde en PR;
-- CI verde en main;
+- CI verde en PR y main;
 - APK debug generado;
 - DocumentsProvider visible en el selector de archivos del sistema en dispositivo real;
 - flujo Compartir → OclAx → Pegar validado en Qwen;
 - inserción desde OclAx validada en Qwen para los tipos de archivo probados;
-- APK confirmado como disponible en OclAx pero rechazado por Qwen por política/tipo de adjunto de la app receptora.
+- APK disponible en OclAx pero rechazado por Qwen por política de la app receptora.
 
 Pendiente:
-- validación física completa de compartir, pegar y seleccionar contenido entre aplicaciones.
+- validación física completa entre más aplicaciones.
 
 ### PRODUCT-001 — Formalizar alcance MVP
 **Estado:** DONE
@@ -72,41 +71,39 @@ Pendiente:
 Alcance central confirmado:
 - OclAx funciona como bandeja temporal universal;
 - entrada rápida y explícita de contenido;
-- texto/imagen compartidos a OclAx quedan en Recientes y se publican al portapapeles;
-- cualquier archivo queda disponible mediante `+ / Archivos → OclAx → Recientes → insertar`;
-- contenido mixto;
-- DocumentsProvider como pieza central;
+- texto/imagen compartidos quedan en Recientes y se publican al portapapeles;
+- cualquier archivo queda disponible mediante Archivos → OclAx → Recientes;
 - cero red;
 - autolimpieza y fijado;
 - sin IME/Accessibility/Shizuku en el MVP.
 
-La compatibilidad real se validará posteriormente en dispositivo.
-
 ### PRODUCT-002 — Diseñar selector ordenado de inserción
-**Estado:** PENDING
-
-Objetivo:
-- búsqueda rápida;
-- Recientes;
-- Fijados;
-- filtros por tipo;
-- miniaturas/iconos útiles;
-- mínimo de toques desde `+ / Archivos → OclAx`.
-
-No convertir esta tarea en un gestor de archivos completo.
-
-### DATA-001 — Retención segura y Fijados
-**Estado:** IN_PROGRESS  
-**Prioridad:** alta
+**Estado:** IN_PROGRESS
 
 Implementado en rama de trabajo:
-- política de retención con 24 h por defecto;
-- opciones internas permitidas: 1 h, 24 h, 3 días, 7 días y nunca;
-- exclusión absoluta de elementos fijados de la autolimpieza;
-- borrado limitado a copias privadas bajo `filesDir/oclax/items`;
-- persistencia del estado fijado en metadata propia.
+- búsqueda;
+- filtro Fijados;
+- filtros Todo, Imágenes, Documentos, PDF, Apps/APK, Texto/Código, Video, Audio y Otros;
+- etiquetas visuales por tipo.
 
 Pendiente:
-- CI verde;
+- CI verde del bloque de categorías;
+- iconografía visual final/miniaturas;
+- comprobar qué organización puede exponerse también dentro de DocumentsProvider sin añadir navegación innecesaria;
+- validación física.
+
+### DATA-001 — Retención segura y Fijados
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Implementado en main:
+- política de retención con 24 h por defecto;
+- opciones 1 h, 24 h, 3 días, 7 días y nunca;
+- exclusión absoluta de elementos fijados de la autolimpieza;
+- borrado limitado a copias privadas bajo `filesDir/oclax/items`;
+- persistencia del estado fijado;
 - controles UI para cambiar retención y fijar/desfijar;
+- CI verde antes de fusión.
+
+Pendiente:
 - validación física de expiración y fijados.

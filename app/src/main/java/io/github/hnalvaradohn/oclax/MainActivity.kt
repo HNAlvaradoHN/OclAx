@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,8 +16,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -49,23 +52,14 @@ class MainActivity : ComponentActivity() {
                 OclAxHome(
                     allItems = items,
                     retentionHours = retentionHours,
-                    onRetentionChange = { hours ->
-                        store.setRetentionHours(hours)
-                        refresh()
-                    },
-                    onPinToggle = { item ->
-                        store.setPinned(item.id, !item.pinned)
-                        refresh()
-                    },
+                    onRetentionChange = { hours -> store.setRetentionHours(hours); refresh() },
+                    onPinToggle = { item -> store.setPinned(item.id, !item.pinned); refresh() },
                 )
             }
         }
     }
 
-    override fun onResume() {
-        super.onResume()
-        refresh()
-    }
+    override fun onResume() { super.onResume(); refresh() }
 
     private fun refresh() {
         retentionHours = store.retentionHours()
@@ -73,18 +67,23 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+private enum class ContentFilter(val label: String) {
+    ALL("Todo"), PINNED("Fijados"), IMAGES("Imágenes"), DOCUMENTS("Documentos"),
+    PDF("PDF"), APPS("Apps/APK"), TEXT("Texto/Código"), VIDEO("Video"), AUDIO("Audio"), OTHER("Otros")
+}
+
 @Composable
 private fun OclAxHome(
-    allItems: List<StoredItem>,
-    retentionHours: Int,
-    onRetentionChange: (Int) -> Unit,
-    onPinToggle: (StoredItem) -> Unit,
+    allItems: List<StoredItem>, retentionHours: Int,
+    onRetentionChange: (Int) -> Unit, onPinToggle: (StoredItem) -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
-    val visibleItems = remember(query, allItems) {
+    var filter by remember { mutableStateOf(ContentFilter.ALL) }
+    val visibleItems = remember(query, filter, allItems) {
         val needle = query.trim().lowercase()
-        if (needle.isEmpty()) allItems else allItems.filter {
-            it.displayName.lowercase().contains(needle) || it.mimeType.lowercase().contains(needle)
+        allItems.filter { item ->
+            matchesFilter(item, filter) && (needle.isEmpty() ||
+                item.displayName.lowercase().contains(needle) || item.mimeType.lowercase().contains(needle))
         }
     }
 
@@ -93,27 +92,23 @@ private fun OclAxHome(
             Text("OclAx", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
             Text("Tu contenido, listo donde lo necesitás.", style = MaterialTheme.typography.bodyMedium)
             Spacer(Modifier.height(18.dp))
-
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Buscar en Recientes") },
-            )
+            OutlinedTextField(value = query, onValueChange = { query = it }, modifier = Modifier.fillMaxWidth(),
+                singleLine = true, label = { Text("Buscar") })
+            Spacer(Modifier.height(8.dp))
+            Row(modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                ContentFilter.entries.forEach { option ->
+                    FilterChip(selected = filter == option, onClick = { filter = option }, label = { Text(option.label) })
+                }
+            }
             Spacer(Modifier.height(10.dp))
             RetentionControl(retentionHours, onRetentionChange)
             Spacer(Modifier.height(10.dp))
 
             if (visibleItems.isEmpty()) {
-                Text(
-                    if (allItems.isEmpty()) {
-                        "Todavía no hay elementos. Compartí un texto, imagen o archivo hacia OclAx."
-                    } else {
-                        "No hay resultados para esa búsqueda."
-                    },
-                    style = MaterialTheme.typography.bodyLarge,
-                )
+                Text(if (allItems.isEmpty()) "Todavía no hay elementos. Compartí contenido hacia OclAx."
+                    else "No hay elementos en ${filter.label.lowercase()} para esa búsqueda.",
+                    style = MaterialTheme.typography.bodyLarge)
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(2.dp)) {
                     items(visibleItems, key = { it.id }) { item ->
@@ -126,29 +121,44 @@ private fun OclAxHome(
     }
 }
 
+private fun matchesFilter(item: StoredItem, filter: ContentFilter): Boolean {
+    val mime = item.mimeType.lowercase()
+    return when (filter) {
+        ContentFilter.ALL -> true
+        ContentFilter.PINNED -> item.pinned
+        ContentFilter.IMAGES -> mime.startsWith("image/")
+        ContentFilter.PDF -> mime == "application/pdf"
+        ContentFilter.APPS -> mime == "application/vnd.android.package-archive"
+        ContentFilter.TEXT -> mime.startsWith("text/") || mime.contains("json") || mime.contains("xml")
+        ContentFilter.VIDEO -> mime.startsWith("video/")
+        ContentFilter.AUDIO -> mime.startsWith("audio/")
+        ContentFilter.DOCUMENTS -> isDocumentMime(mime)
+        ContentFilter.OTHER -> !isKnownMime(mime)
+    }
+}
+
+private fun isDocumentMime(mime: String): Boolean = mime.contains("msword") ||
+    mime.contains("officedocument") || mime.contains("opendocument") || mime == "application/rtf"
+
+private fun isKnownMime(mime: String): Boolean = mime.startsWith("image/") || mime == "application/pdf" ||
+    mime == "application/vnd.android.package-archive" || mime.startsWith("video/") || mime.startsWith("audio/") ||
+    mime.startsWith("text/") || mime.contains("json") || mime.contains("xml") || isDocumentMime(mime)
+
 @Composable
 private fun RetentionControl(retentionHours: Int, onRetentionChange: (Int) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     Column {
         Text("Borrar copias de OclAx después de", style = MaterialTheme.typography.labelMedium)
-        OutlinedButton(onClick = { expanded = true }) {
-            Text(retentionLabel(retentionHours))
-        }
+        OutlinedButton(onClick = { expanded = true }) { Text(retentionLabel(retentionHours)) }
         DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
             listOf(1, 24, 72, 168, 0).forEach { hours ->
-                DropdownMenuItem(
-                    text = { Text(retentionLabel(hours)) },
-                    onClick = {
-                        expanded = false
-                        onRetentionChange(hours)
-                    },
-                )
+                DropdownMenuItem(text = { Text(retentionLabel(hours)) }, onClick = {
+                    expanded = false; onRetentionChange(hours)
+                })
             }
         }
-        Text(
-            "Solo elimina copias internas de OclAx; nunca el archivo original del dispositivo.",
-            style = MaterialTheme.typography.bodySmall,
-        )
+        Text("Solo elimina copias internas de OclAx; nunca el archivo original del dispositivo.",
+            style = MaterialTheme.typography.bodySmall)
     }
 }
 
@@ -159,29 +169,28 @@ private fun ItemRow(item: StoredItem, onPinToggle: (StoredItem) -> Unit) {
         Spacer(Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
             Text(item.displayName, style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
-            Text(item.mimeType + " · " + formatBytes(item.byteSize), style = MaterialTheme.typography.bodySmall)
-            Text(
-                DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(item.createdAt)),
-                style = MaterialTheme.typography.labelSmall,
-            )
+            Text(typeLabel(item.mimeType) + " · " + formatBytes(item.byteSize), style = MaterialTheme.typography.bodySmall)
+            Text(DateFormat.getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT).format(Date(item.createdAt)),
+                style = MaterialTheme.typography.labelSmall)
         }
-        Text(
-            if (item.pinned) "★" else "☆",
-            modifier = Modifier
-                .clickable { onPinToggle(item) }
-                .padding(12.dp),
-            style = MaterialTheme.typography.titleLarge,
-        )
+        Text(if (item.pinned) "★" else "☆", modifier = Modifier.clickable { onPinToggle(item) }.padding(12.dp),
+            style = MaterialTheme.typography.titleLarge)
     }
 }
 
 private fun retentionLabel(hours: Int): String = when (hours) {
-    1 -> "1 hora"
-    24 -> "24 horas"
-    72 -> "3 días"
-    168 -> "7 días"
-    0 -> "Nunca"
-    else -> "24 horas"
+    1 -> "1 hora"; 24 -> "24 horas"; 72 -> "3 días"; 168 -> "7 días"; 0 -> "Nunca"; else -> "24 horas"
+}
+
+private fun typeLabel(mimeType: String): String = when {
+    mimeType.startsWith("image/") -> "Imagen"
+    mimeType == "application/pdf" -> "PDF"
+    mimeType == "application/vnd.android.package-archive" -> "Aplicación APK"
+    mimeType.startsWith("video/") -> "Video"
+    mimeType.startsWith("audio/") -> "Audio"
+    mimeType.startsWith("text/") || mimeType.contains("json") || mimeType.contains("xml") -> "Texto/Código"
+    isDocumentMime(mimeType.lowercase()) -> "Documento"
+    else -> "Archivo"
 }
 
 private fun typeGlyph(mimeType: String): String = when {
@@ -190,7 +199,8 @@ private fun typeGlyph(mimeType: String): String = when {
     mimeType == "application/vnd.android.package-archive" -> "APK"
     mimeType.startsWith("video/") -> "▶"
     mimeType.startsWith("audio/") -> "♪"
-    mimeType.startsWith("text/") -> "TXT"
+    mimeType.startsWith("text/") || mimeType.contains("json") || mimeType.contains("xml") -> "TXT"
+    isDocumentMime(mimeType.lowercase()) -> "DOC"
     else -> "FILE"
 }
 
