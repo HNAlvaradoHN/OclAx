@@ -53,3 +53,23 @@ Reglas:
 Cambios no bloqueantes como color, tamaño, espaciado, texto o posición se registran y agrupan para evitar ciclos improductivos.
 
 Los problemas de accesibilidad o de flujo principal sí pueden ser BLOQUEANTES.
+
+
+## Patrón principal — Selector ordenado
+
+Cuando OclAx se abra desde el selector de archivos de otra app, la prioridad visual es encontrar e insertar rápido.
+
+Orden recomendado:
+1. búsqueda visible;
+2. Recientes;
+3. Fijados;
+4. filtros/categorías por tipo;
+5. lista o cuadrícula con miniatura/icono, nombre, tipo y fecha.
+
+Evitar:
+- árbol de carpetas como pantalla inicial;
+- categorías redundantes;
+- controles administrativos que distraigan del acto de insertar;
+- mezclar sin jerarquía capturas, APK, PDF, documentos y otros archivos.
+
+La interfaz debe favorecer reconocer el contenido visualmente y reducir el número de toques.

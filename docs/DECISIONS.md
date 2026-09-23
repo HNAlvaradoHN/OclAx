@@ -123,3 +123,37 @@ PDF, APK, documentos, ZIP, video y demás se guardan en OclAx, pero no se promet
 **Objetivo:** ofrecer dos rutas rápidas sin duplicar la lógica de ingreso:
 - texto/imagen → Compartir a OclAx → queda en Recientes + listo para Pegar;
 - cualquier archivo → Compartir a OclAx → queda en Recientes + listo para seleccionar desde Archivos.
+
+
+---
+
+## DEC-012 — OclAx no será un gestor de archivos completo
+
+**Decisión:** OclAx no intentará reemplazar al gestor de archivos del teléfono.
+
+Su función principal es ser una **fuente ordenada para insertar contenido rápidamente desde otra aplicación**.
+
+**Flujo prioritario:**
+
+`chat/app → + / Adjuntar → Archivos → OclAx → buscar o filtrar → tocar → insertar`
+
+Dentro de OclAx, el usuario debe poder encontrar contenido sin navegar un árbol de carpetas desordenado.
+
+La vista principal del proveedor prioriza:
+- Recientes;
+- búsqueda;
+- Fijados;
+- categorías por tipo cuando ayuden: Imágenes, Documentos, APK, PDF, Video, Audio, Texto/Código y Otros.
+
+**Regla UX:** ordenar para insertar, no administrar almacenamiento.
+
+Por tanto, el MVP no necesita:
+- mover archivos del teléfono entre carpetas;
+- renombrado masivo;
+- compresión/descompresión;
+- análisis de almacenamiento;
+- acceso remoto;
+- papelera general del dispositivo;
+- funciones propias de un gestor de archivos completo.
+
+Los archivos que ya existen fuera de OclAx pueden incorporarse de forma explícita cuando se necesiten, sin convertir a OclAx en explorador total del almacenamiento.
