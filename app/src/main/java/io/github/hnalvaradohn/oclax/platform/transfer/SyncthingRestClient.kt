@@ -150,7 +150,19 @@ internal class SyncthingRestClient(
             "/rest/config/options",
             SyncthingLanPolicy.applyToOptions(options),
         )
-        SyncthingLanPolicy.verifyOptions(
+        SyncthingLanPolicy.verifyDiscoveryOptions(
+            getJson("/rest/config/options"),
+        )
+        checkNoRestartRequired()
+    }
+
+    fun stopLocalDiscoveryKeepLan() {
+        val options = getJson("/rest/config/options")
+        putJson(
+            "/rest/config/options",
+            SyncthingLanPolicy.applyConnectedOptions(options),
+        )
+        SyncthingLanPolicy.verifyConnectedOptions(
             getJson("/rest/config/options"),
         )
         checkNoRestartRequired()
@@ -399,7 +411,10 @@ internal class TransferRuntimeController(context: Context) {
             SyncthingRuntimeService.enableLanDiscovery(appContext)
             client.enableLanOnlyOptions()
             client.resumeDevice(deviceId)
-            client.awaitLanConnection(deviceId, timeoutMillis)
+            val connection = client.awaitLanConnection(deviceId, timeoutMillis)
+            client.stopLocalDiscoveryKeepLan()
+            SyncthingRuntimeService.disableLanDiscovery(appContext)
+            connection
         } catch (error: Exception) {
             runCatching { client.pauseDevice(deviceId) }
             runCatching { client.enforcePrivateOptions() }
