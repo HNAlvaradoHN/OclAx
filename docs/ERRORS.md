@@ -2,7 +2,35 @@
 
 ## Abiertos
 
-Ninguno registrado actualmente.
+### ERR-013 — Runtime Syncthing no responde a tiempo en Android
+**Estado:** CORREGIDO_PENDIENTE_CI_Y_VALIDACION_FISICA
+
+**Síntoma:**
+- en dos teléfonos distintos, `Probar motor` termina con `El motor no respondió a tiempo`;
+- el fallo ocurre antes de obtener Device ID y antes de cualquier prueba LAN.
+
+**Evidencia verificada:**
+- el mismo APK reproduce el fallo en dos dispositivos;
+- la REST local nunca llega a responder dentro del timeout;
+- el wrapper Android comunitario mantenido ejecuta Syncthing con `STMONITORED=1`, evitando el monitor externo que vuelve a ejecutar el binario;
+- OclAx no establecía esa variable y tampoco aportaba el fallback de gateway IPv4 que Syncthing contempla específicamente para Android 14+.
+
+**Causa:**
+- **HIPÓTESIS PRINCIPAL, AÚN NO CONFIRMADA FÍSICAMENTE:** el monitor externo/re-exec de Syncthing no es adecuado para este empaquetado Android y evita que el proceso interno llegue a servir REST correctamente.
+
+**Corrección implementada:**
+- ejecutar el core Android como proceso interno ya supervisado mediante `STMONITORED=yes`;
+- usar `SQLITE_TMPDIR` dentro del cache privado;
+- fijar `STHOMEDIR` al directorio privado ya usado por OclAx;
+- aportar `FALLBACK_NET_GATEWAY_IPV4` obtenido desde las APIs Android cuando exista;
+- añadir test unitario del entorno de arranque.
+
+**Validación requerida:**
+- CI verde;
+- nueva build instalada en ambos teléfonos;
+- `Probar motor` devuelve Device ID y confirma loopback;
+- detener y volver a iniciar funciona sin corrupción.
+
 
 ## Resueltos
 
