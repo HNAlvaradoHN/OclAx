@@ -42,7 +42,7 @@ Ninguno registrado actualmente.
 
 
 ### ERR-004 — APK debug de CI no puede actualizar instalación anterior
-**Estado:** ABIERTO
+**Estado:** RESUELTO_PENDIENTE_VALIDACION_FISICA
 
 **Síntoma:** Android muestra “No se instaló la app debido a un conflicto con un paquete” al intentar instalar un APK debug nuevo sobre una instalación anterior de OclAx.
 
@@ -50,4 +50,6 @@ Ninguno registrado actualmente.
 
 **Impacto:** desinstalar la versión anterior permite instalar la nueva, pero borra las copias privadas y preferencias de OclAx. No afecta archivos originales externos del dispositivo.
 
-**Corrección prevista:** configurar una clave de firma de pruebas estable almacenada únicamente como GitHub Actions Secret, nunca en el repositorio ni en artefactos públicos. Hasta entonces no prometer actualización “encima” entre APK generados por CI.
+**Corrección aplicada:** firma de pruebas persistente almacenada únicamente mediante GitHub Actions Secrets. El workflow reconstruye el keystore en el runner, usa un versionCode monotónico y generó correctamente un APK firmado desde main.
+
+**Validación pendiente:** instalar una vez el APK con la nueva firma y luego comprobar que una build posterior se instala encima sin conflicto. La instalación anterior a esta migración no comparte la nueva firma y debe desinstalarse una última vez.
