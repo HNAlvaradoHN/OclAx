@@ -2,7 +2,7 @@
 
 ## Estado
 
-Fuente de verdad visual inicial. La UI todavía no está implementada.
+Fuente de verdad visual activa. La primera UI Compose ya existe y está evolucionando por bloques verificables.
 
 ## Principio
 
@@ -15,14 +15,27 @@ El diseño debe poder evolucionar sin obligar a reescribir lógica, datos o infr
 - Concepto: contenido local listo para guardar temporalmente, organizar y mover entre aplicaciones.
 - Idea de marca: “Tu contenido, listo donde lo necesitás.”
 
-## Reglas iniciales
+## Paleta aprobada
 
-Todavía no se han aprobado:
-- paleta definitiva;
-- tipografía definitiva;
-- iconografía;
-- componentes;
-- espaciado;
+Preferencia explícita del dueño:
+- modo oscuro: negro/casi negro como base con detalles naranja;
+- modo claro: apariencia clara convencional y limpia, conservando naranja como acento de identidad;
+- seguir por defecto el tema claro/oscuro del sistema.
+
+Implementación inicial:
+- oscuro: fondos `#090909` / `#101010`, superficies elevadas `#1B1B1B`, acento naranja claro `#FFB06A`;
+- claro: fondo/superficie claro, acento naranja `#FF7A00`;
+- no forzar negro puro en todos los componentes si perjudica jerarquía o contraste.
+
+La paleta puede afinarse tras validación física, manteniendo la identidad negro+naranja en oscuro y claro+naranja en día.
+
+## Pendiente visual
+
+Todavía no se consideran definitivos:
+- tipografía;
+- iconografía final;
+- miniaturas;
+- espaciado fino;
 - formas;
 - animaciones.
 
@@ -30,13 +43,13 @@ No inventar decisiones visuales permanentes y presentarlas como aprobadas.
 
 ## Accesibilidad
 
-Cuando exista UI:
 - contraste suficiente;
 - tamaños táctiles adecuados;
 - estados claros;
 - soporte de lector de pantalla cuando aplique;
 - foco/navegación coherentes;
-- textos comprensibles.
+- textos comprensibles;
+- no depender solo del color para comunicar tipo o estado.
 
 ## Herramientas de diseño
 
@@ -54,7 +67,6 @@ Cambios no bloqueantes como color, tamaño, espaciado, texto o posición se regi
 
 Los problemas de accesibilidad o de flujo principal sí pueden ser BLOQUEANTES.
 
-
 ## Patrón principal — Selector ordenado
 
 Cuando OclAx se abra desde el selector de archivos de otra app, la prioridad visual es encontrar e insertar rápido.
@@ -65,6 +77,18 @@ Orden recomendado:
 3. Fijados;
 4. filtros/categorías por tipo;
 5. lista o cuadrícula con miniatura/icono, nombre, tipo y fecha.
+
+Categorías actuales de la app:
+- Todo;
+- Fijados;
+- Imágenes;
+- Documentos;
+- PDF;
+- Apps/APK;
+- Texto/Código;
+- Video;
+- Audio;
+- Otros.
 
 Evitar:
 - árbol de carpetas como pantalla inicial;

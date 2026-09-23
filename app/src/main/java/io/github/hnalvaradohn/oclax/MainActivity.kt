@@ -37,6 +37,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.StoredItem
+import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import java.text.DateFormat
 import java.util.Date
 
@@ -48,7 +49,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MaterialTheme {
+            OclAxTheme {
                 OclAxHome(
                     allItems = items,
                     retentionHours = retentionHours,
