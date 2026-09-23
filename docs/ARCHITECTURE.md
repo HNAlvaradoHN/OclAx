@@ -132,7 +132,26 @@ nombre + Device ID + confianza
 SyncthingAdapter / config REST
 ```
 
-Guardar un dispositivo localmente no modifica todavía el motor ni habilita discovery/relay.
+Guardar un dispositivo localmente no modifica el motor ni habilita discovery/relay.
+
+La siguiente capa usa ese registro únicamente durante una prueba explícita:
+
+```text
+PairedDeviceStore
+        ↓
+TransferRuntimeController.connectLan
+        ↓
+SyncthingLanPolicy
+        ├─ peer pausado + allowedNetworks privadas
+        ├─ global discovery / relay / NAT = off
+        └─ local discovery + TCP listener = on temporal
+        ↓
+Syncthing REST loopback
+        ↓
+/rest/system/connections → connected + isLocal
+```
+
+La prueba no crea carpetas Syncthing ni mueve contenido. Al desconectar, el motor vuelve a `enforcePrivateOptions()` y se libera el MulticastLock.
 
 Syncthing core v2.x es el motor candidato, encapsulado detrás de una capa propia. El wrapper Android oficial discontinuado no forma parte de la arquitectura OclAx.
 
