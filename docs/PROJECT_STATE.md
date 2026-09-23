@@ -37,21 +37,27 @@
 - los tipos de archivo probados pueden seleccionarse e insertarse desde OclAx;
 - Qwen rechaza APK como adjunto aunque OclAx lo expone correctamente: limitación de la app receptora.
 
-## En desarrollo
+## Implementado recientemente
 
 - riel vertical derecho para categorías;
 - acciones por tarjeta: Compartir, Fijar y Eliminar con confirmación;
 - identidad naranja más visible en oscuro y claro;
+- firma persistente de pruebas mediante GitHub Actions Secrets;
+- versionCode monotónico en CI;
+- APK firmado estable generado correctamente en main.
+
+## En desarrollo
+
 - iconografía/miniaturas finales;
 - evaluar una organización opcional por categorías dentro de DocumentsProvider sin sacrificar el acceso directo a Recientes.
 
 ## Bloqueos
 
-- El soporte para firma persistente de pruebas está preparado en código, pero todavía faltan los cuatro GitHub Actions Secrets del dueño. Hasta que se carguen y se genere el primer APK con esa firma, una build nueva puede requerir desinstalar la anterior.
+Ninguno conocido.
 
 ## Siguiente paso exacto
 
-1. Validar por CI el modelo compartido de tipos.
-2. Usar ese modelo como base para iconografía y, si no añade navegación innecesaria, categorías opcionales en DocumentsProvider.
-3. Mantener Recientes accesible directamente desde Archivos.
-4. Validar físicamente retención, Fijados, contraste claro/oscuro y compatibilidad en más aplicaciones.
+1. Instalar físicamente el primer APK con firma estable; esta transición requiere desinstalar la versión antigua una última vez.
+2. Verificar que una build posterior pueda instalarse encima sin conflicto de paquete.
+3. Validar físicamente riel derecho, Compartir, Eliminar con confirmación, retención y Fijados.
+4. Continuar con iconografía/miniaturas y categorías opcionales en DocumentsProvider sin sacrificar Recientes.

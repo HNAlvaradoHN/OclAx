@@ -80,21 +80,19 @@ Alcance central confirmado:
 ### PRODUCT-002 — Diseñar selector ordenado de inserción
 **Estado:** IN_PROGRESS
 
-Implementado en rama de trabajo:
+Implementado en main:
 - búsqueda;
 - filtro Fijados;
 - filtros Todo, Imágenes, Documentos, PDF, Apps/APK, Texto/Código, Video, Audio y Otros;
-- etiquetas visuales por tipo.
-
-Implementado adicionalmente en rama de trabajo:
+- etiquetas visuales por tipo;
 - riel vertical derecho para categorías;
 - identidad naranja más visible;
 - tarjetas con Compartir, Fijar y Eliminar;
 - confirmación obligatoria antes de borrar una copia;
-- compartir hacia Android Sharesheet.
+- compartir hacia Android Sharesheet;
+- CI verde del bloque de acciones/riel.
 
 Pendiente:
-- CI verde del bloque de acciones/riel;
 - iconografía visual final/miniaturas;
 - comprobar qué organización puede exponerse también dentro de DocumentsProvider sin añadir navegación innecesaria;
 - validación física.
@@ -117,7 +115,7 @@ Pendiente:
 
 
 ### RELEASE-001 — Firma estable de APK de pruebas
-**Estado:** BLOCKED_OWNER_SECRET  
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta
 
 Problema:
@@ -136,6 +134,12 @@ Preparado en código:
 - versionCode de CI usa el número monotónico del workflow;
 - una configuración parcial de Secrets hace fallar el build.
 
-Bloqueo actual:
-- requiere que el dueño cargue los cuatro Secrets de firma en GitHub;
-- después debe generarse y probarse un APK firmado establemente.
+Validado en CI:
+- los cuatro Secrets fueron reconocidos y permanecieron enmascarados;
+- el keystore se reconstruyó únicamente dentro del runner;
+- CI verde en PR y main;
+- el primer APK con firma persistente fue generado como artefacto.
+
+Pendiente:
+- instalación física de transición;
+- confirmar con una build posterior que Android permite actualizar encima sin borrar datos.
