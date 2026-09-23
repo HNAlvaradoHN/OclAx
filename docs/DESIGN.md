@@ -206,7 +206,7 @@ En la UX final:
 Mientras siga siendo diagnóstico:
 - cada dispositivo guardado muestra **Probar LAN**;
 - durante búsqueda muestra un estado corto, sin IP ni jerga de Syncthing;
-- éxito se comunica como **Conectado por LAN**;
+- éxito se comunica como **Conectado por LAN** y la búsqueda deja de anunciarse en la red;
 - un único peer puede estar activo a la vez en esta fase;
 - el peer activo muestra **Desconectar LAN**;
 - la pantalla explica que ambos teléfonos deben tener OclAx abierto y probar LAN;
