@@ -277,17 +277,12 @@ class OclAxDocumentsProvider : DocumentsProvider() {
             DocumentsContract.Document.COLUMN_MIME_TYPE,
             DocumentsContract.Document.MIME_TYPE_DIR,
         )
-        val directoryFlags = DocumentsContract.Document.FLAG_DIR_PREFERS_LAST_MODIFIED or
-            if (category.prefersGrid) {
-                DocumentsContract.Document.FLAG_DIR_PREFERS_GRID
-            } else {
-                0
-            }
         put(
             row,
             columns,
             DocumentsContract.Document.COLUMN_FLAGS,
-            directoryFlags,
+            DocumentsContract.Document.FLAG_DIR_PREFERS_GRID or
+                DocumentsContract.Document.FLAG_DIR_PREFERS_LAST_MODIFIED,
         )
         put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, System.currentTimeMillis())
         put(row, columns, DocumentsContract.Document.COLUMN_SIZE, 0L)
@@ -307,12 +302,17 @@ class OclAxDocumentsProvider : DocumentsProvider() {
             DocumentsContract.Document.COLUMN_MIME_TYPE,
             DocumentsContract.Document.MIME_TYPE_DIR,
         )
+        val directoryFlags = DocumentsContract.Document.FLAG_DIR_PREFERS_LAST_MODIFIED or
+            if (category.prefersGrid) {
+                DocumentsContract.Document.FLAG_DIR_PREFERS_GRID
+            } else {
+                0
+            }
         put(
             row,
             columns,
             DocumentsContract.Document.COLUMN_FLAGS,
-            DocumentsContract.Document.FLAG_DIR_PREFERS_GRID or
-                DocumentsContract.Document.FLAG_DIR_PREFERS_LAST_MODIFIED,
+            directoryFlags,
         )
         put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, System.currentTimeMillis())
         put(row, columns, DocumentsContract.Document.COLUMN_SIZE, 0L)
