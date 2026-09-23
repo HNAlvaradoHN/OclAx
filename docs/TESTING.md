@@ -22,18 +22,24 @@ El workflow publica un APK debug solo si las validaciones anteriores terminan co
 - extensiones admitidas;
 - nombres internos de payload.
 
-## Validación física pendiente
+## Validación física
 
 La automatización NO demuestra compatibilidad entre aplicaciones.
 
-Debe probarse en un teléfono real:
-- compartir texto → OclAx → pegar;
-- compartir imagen → OclAx → pegar;
-- compartir PDF/APK/documento → OclAx;
-- otra app → + / Archivos → OclAx → Recientes → seleccionar;
+VERIFICADO en teléfono real:
+- OclAx aparece en el selector de archivos del sistema como una fuente disponible mediante DocumentsProvider;
+- el flujo Compartir → OclAx → Pegar funciona en Qwen;
+- los tipos de archivo probados pueden seleccionarse e insertarse en Qwen desde OclAx;
+- APK queda disponible en OclAx, pero Qwen no lo acepta como adjunto.
+
+Interpretación:
+- el rechazo de APK es una restricción de la app receptora, no un fallo de DocumentsProvider;
+- OclAx no debe prometer que una app externa aceptará todos los MIME types que Android permite exponer.
+
+Pendiente de probar:
 - búsqueda dentro de la raíz OclAx;
 - comportamiento con archivo grande y poco almacenamiento;
-- Qwen, WhatsApp, Telegram y navegador.
+- WhatsApp, Telegram y navegador.
 
 Hasta completar esa validación, APP-001 permanece como:
 `IMPLEMENTED_PENDING_VALIDATION`.

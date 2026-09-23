@@ -3,7 +3,7 @@
 ## Estado
 
 **Fase:** primera prueba vertical Android.  
-**Aplicación:** prueba vertical compilada y validada por CI; pendiente de validación física.  
+**Aplicación:** prueba vertical compilada y validada por CI; validación física iniciada.  
 **Repositorio:** público.  
 **Protocol version:** 2.
 
@@ -45,7 +45,7 @@
 
 ## Qué todavía no existe
 
-- validación física en dispositivo;
+- validación física completa entre aplicaciones;
 - autolimpieza configurable;
 - fijados;
 - categorías visuales completas;
@@ -69,9 +69,9 @@ Ninguno conocido para continuar con la configuración del repositorio.
 
 ## Siguiente paso exacto
 
-1. Instalar el APK debug en un teléfono real.
-2. Validar texto: Compartir → OclAx → Pegar.
-3. Validar imagen: Compartir → OclAx → Pegar.
-4. Validar archivo: Compartir → OclAx → otra app → + / Archivos → OclAx → Recientes → insertar.
-5. Repetir en Qwen, WhatsApp, Telegram y navegador.
+1. VERIFICADO en dispositivo real: OclAx aparece como fuente en el selector de archivos del sistema.
+2. VERIFICADO en Qwen: el flujo Compartir → OclAx → Pegar funciona.
+3. VERIFICADO en Qwen: los tipos de archivo probados se pueden seleccionar e insertar desde OclAx.
+4. EXCEPCIÓN VERIFICADA: Qwen no acepta APK como adjunto; OclAx sí lo expone, pero la app receptora lo rechaza.
+5. Repetir el pegado y la selección de archivos en WhatsApp, Telegram y navegador.
 6. Corregir incompatibilidades reales antes de ampliar UI o funciones.
