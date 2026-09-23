@@ -78,6 +78,7 @@ import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.model.supportsClipboardCopy
+import io.github.hnalvaradohn.oclax.platform.ContentOpener
 import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
@@ -91,6 +92,7 @@ class MainActivity : ComponentActivity() {
 
     private val store by lazy { ItemStore(applicationContext) }
     private val installedAppsRepository by lazy { InstalledAppsRepository(applicationContext) }
+    private val contentOpener by lazy { ContentOpener(this) }
     private var items by mutableStateOf<List<StoredItem>>(emptyList())
     private var installedApps by mutableStateOf<List<InstalledAppInfo>>(emptyList())
     private var retentionHours by mutableIntStateOf(24)
@@ -121,6 +123,7 @@ class MainActivity : ComponentActivity() {
                         }
                         refresh()
                     },
+                    onOpen = ::openItem,
                     onShare = ::shareItem,
                     onCopy = ::copyItem,
                 )
@@ -137,6 +140,25 @@ class MainActivity : ComponentActivity() {
         retentionHours = store.retentionHours()
         items = store.listItems()
         installedApps = installedAppsRepository.listLaunchableApps()
+    }
+
+    private fun openItem(item: StoredItem) {
+        try {
+            val opened = contentOpener.open(item, store.payloadFile(item))
+            if (!opened) {
+                Toast.makeText(
+                    this,
+                    "No hay una aplicación disponible para abrir este tipo de archivo.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        } catch (error: Exception) {
+            Toast.makeText(
+                this,
+                "No se pudo abrir: " + (error.message ?: "error desconocido"),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
     }
 
     private fun shareItem(item: StoredItem) {
@@ -244,6 +266,7 @@ private fun OclAxHome(
     onRetentionChange: (Int) -> Unit,
     onPinToggle: (StoredItem) -> Unit,
     onDelete: (StoredItem) -> Unit,
+    onOpen: (StoredItem) -> Unit,
     onShare: (StoredItem) -> Unit,
     onCopy: (StoredItem) -> Unit,
 ) {
@@ -388,6 +411,7 @@ private fun OclAxHome(
                             item = item,
                             onPinToggle = onPinToggle,
                             onDeleteRequest = { pendingDelete = item },
+                            onOpen = onOpen,
                             onShare = onShare,
                             onCopy = onCopy,
                         )
@@ -527,13 +551,16 @@ private fun ItemCard(
     item: StoredItem,
     onPinToggle: (StoredItem) -> Unit,
     onDeleteRequest: () -> Unit,
+    onOpen: (StoredItem) -> Unit,
     onShare: (StoredItem) -> Unit,
     onCopy: (StoredItem) -> Unit,
 ) {
     val type = contentTypeFor(item.mimeType)
 
     Card(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onOpen(item) },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
