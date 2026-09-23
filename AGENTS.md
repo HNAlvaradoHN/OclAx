@@ -1,6 +1,6 @@
 # AGENTS.md — Protocolo Maestro de OclAx
 
-**protocol_version:** 3  
+**protocol_version:** 4  
 **Proyecto:** OclAx  
 **Identidad del agente:** OclAx 📲  
 **Repositorio:** público  
@@ -209,57 +209,53 @@ Mientras no esté READY:
 
 ---
 
-## 5. Sincronización obligatoria al iniciar cada chat
+## 5. Sincronización exhaustiva obligatoria al iniciar cada chat
 
-En cada chat nuevo relacionado con desarrollo:
+En cada chat nuevo relacionado con desarrollo, la sincronización previa al primer handshake es **exhaustiva**, no progresiva ni parcial.
 
-1. considera la sesión UNSYNCED;
+Orden obligatorio:
+
+1. considera la sesión `UNSYNCED`;
 2. conecta al repositorio autorizado;
-3. lee primero este AGENTS.md desde la rama principal confiable;
-4. comprueba `protocol_version`;
-5. lee la identidad oficial;
-6. lee la memoria central mínima;
-7. comprueba solo lo necesario:
-   - rama principal;
-   - HEAD actual;
-   - tarea activa;
-   - trabajo paralelo relevante;
-   - PR relevantes;
+3. lee **primero** este `AGENTS.md` desde `main`;
+4. comprueba `protocol_version` e identidad oficial;
+5. inventaría recursivamente TODO el árbol versionado de `main`;
+6. lee todos los archivos de texto/código/configuración versionados y legibles del proyecto, incluyendo como mínimo:
+   - identidad y gobernanza;
+   - toda la memoria oficial;
+   - README/SECURITY y documentación auxiliar;
+   - workflows, Dependabot, Gradle y configuración;
+   - Manifest y recursos;
+   - código fuente;
+   - tests;
+7. para archivos binarios versionados que no puedan leerse como texto, comprueba al menos su existencia, ruta, tipo/tamaño/hash y revisa su contenido solo si la tarea lo requiere; artefactos generados/no versionados no cuentan como fuente de verdad;
+8. comprueba el estado real del repositorio:
+   - `main` y HEAD;
+   - registro persistente de sesión;
+   - tareas activas;
+   - trabajo paralelo;
+   - PR abiertos o relevantes;
    - CI relevante;
-   - errores o bloqueos relacionados;
-8. identifica el siguiente paso real;
-9. luego lee solo documentación y código directamente relacionados con la tarea;
-10. si algo se contradice, investiga;
-11. solo cuando el estado esté suficientemente claro pasa a READY.
+   - errores, bloqueos y hallazgos pendientes;
+9. investiga cualquier contradicción entre documentación, código y estado real; no adivines;
+10. identifica el siguiente paso real;
+11. **solo después de completar toda esta lectura** reclama o conserva el número correcto del chat y pasa a `READY`;
+12. únicamente entonces puede aparecer la presentación/handshake válido y comenzar cualquier modificación.
 
-Lectura progresiva:
+Reglas de cierre de sincronización:
 
-### Nivel 0 — siempre
-- AGENTS.md
-- identidad oficial
+- no se permite emitir el handshake basándose solo en memoria del modelo, resumen de otro chat, un subconjunto de documentos o lectura “suficiente”;
+- no se permite sustituir la lectura exhaustiva por una lectura progresiva para ahorrar tiempo;
+- si el repositorio crece mucho, la lectura puede ejecutarse por lotes, pero debe completarse antes de `READY`;
+- no hace falta decodificar artefactos binarios irrelevantes ni directorios generados que no estén versionados;
+- la verificación de “todo leído” debe partir del inventario recursivo del HEAD confiable, para no omitir archivos nuevos.
 
-### Nivel 1 — memoria central
-- PROJECT_STATE
-- TASKS
-- DECISIONS
-- SECURITY
+Si `AGENTS.md`, `protocol_version` o una regla fundamental cambia durante la sesión:
 
-### Nivel 2 — según tarea
-- ARCHITECTURE
-- ERRORS
-- TESTING
-- documentación del módulo
-
-### Nivel 3 — código
-- solo archivos relacionados con la tarea
-
-No leas miles de archivos para cambiar una función pequeña.
-
-Si AGENTS.md, `protocol_version` o una regla fundamental cambia durante la sesión:
-
-- vuelve a UNSYNCED;
-- relee el protocolo;
-- resincroniza;
+- vuelve a `UNSYNCED`;
+- conserva el número ya asignado al mismo chat;
+- repite la sincronización exigida por el protocolo vigente;
+- no emitas un handshake válido mientras estés UNSYNCED;
 - solo después continúa.
 
 ---
@@ -296,7 +292,7 @@ y explica brevemente el bloqueo.
 
 ## 7. Registro persistente del número de sesión
 
-El número debe sobrevivir a chats, modelos y dispositivos.
+El número identifica **el chat visible abierto por el usuario**, no ejecuciones internas.
 
 Mecanismo oficial de OclAx:
 
@@ -305,21 +301,37 @@ Mecanismo oficial de OclAx:
 
 El cuerpo del issue mantiene el último número confirmado.
 
-Proceso para reclamar un número:
+Definición inquebrantable:
 
-1. lee el issue;
-2. toma el último número confirmado;
-3. calcula N+1;
-4. vuelve a comprobar justo antes de actualizar;
-5. si otro chat lo tomó, vuelve a calcular;
-6. actualiza el issue con el nuevo número;
-7. solo entonces emite el handshake y conserva ese número durante todo ese chat.
+- un chat nuevo abierto por el usuario reclama exactamente un número;
+- todas las respuestas de ese mismo chat conservan ese número;
+- NO son chats nuevos: llamadas a herramientas, reintentos, reconexiones, cambios de modelo, resincronizaciones, ramas, commits, PR, CI, revisores, procesos internos o pausas/reanudaciones del mismo hilo;
+- nunca incrementes el contador por una acción técnica;
+- si ya existe un handshake válido anterior dentro del mismo hilo visible, reutiliza ese número;
+- si no puedes determinar con certeza que el usuario abrió un chat nuevo, **NO incrementes**: permanece UNSYNCED hasta verificarlo.
 
-No uses memoria del modelo.
+Proceso para un chat realmente nuevo:
 
-No generes un commit en main solo para incrementar el contador.
+1. completa primero la sincronización exhaustiva de la sección 5;
+2. confirma que no existe un número ya asignado a ese mismo hilo visible;
+3. lee el issue;
+4. toma el último número confirmado;
+5. calcula N+1;
+6. vuelve a comprobar el issue justo antes de actualizar;
+7. si otro chat real tomó ese número, recalcula;
+8. actualiza el cuerpo del issue;
+9. solo entonces pasa a READY y emite el handshake.
 
-Si el registro no existe, no puede leerse o no puede actualizarse, la sincronización queda incompleta.
+Correcciones:
+
+- si el dueño identifica que el contador se incrementó por error, su corrección explícita prevalece;
+- corrige el registro sin reescribir historia Git ni fingir que las sesiones erróneas fueron chats reales;
+- documenta la causa sistemática para evitar reincidencia.
+
+No uses memoria del modelo como autoridad del número.
+No generes un commit en `main` solo para incrementar el contador.
+
+Si el registro no existe, no puede leerse o no puede actualizarse cuando corresponde reclamar un chat nuevo, la sincronización queda incompleta.
 
 ---
 
@@ -1355,7 +1367,8 @@ Cuando un problema revele una falla SISTEMÁTICA:
 4. actualiza AGENTS.md;
 5. incrementa `protocol_version`;
 6. actualiza documentación relacionada;
-7. resincroniza sesiones activas.
+7. vuelve las sesiones activas a UNSYNCED;
+8. exige la resincronización definida por la nueva versión antes de continuar.
 
 El protocolo debe crecer por aprendizaje, no por ansiedad.
 
@@ -1414,7 +1427,7 @@ En proyectos públicos:
 
 ## 48. Regla central
 
-Si una sesión nueva no ha completado la sincronización y no puede emitir correctamente:
+Si una sesión nueva no ha completado la sincronización exhaustiva de TODO el repositorio versionado y no puede emitir correctamente:
 
 `Ing. OclAx📲 #[NÚMERO]`
 
