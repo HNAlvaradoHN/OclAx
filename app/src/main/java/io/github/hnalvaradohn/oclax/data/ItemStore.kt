@@ -71,6 +71,20 @@ class ItemStore(private val context: Context) {
     }
 
     @Synchronized
+    fun deleteItem(id: String): Boolean {
+        if (!isSafeId(id)) return false
+        val directory = File(itemsDir, id)
+        val item = readItem(directory) ?: return false
+        if (item.id != id) return false
+
+        val canonicalRoot = itemsDir.canonicalFile
+        val canonicalDirectory = directory.canonicalFile
+        if (canonicalDirectory.parentFile != canonicalRoot) return false
+
+        return canonicalDirectory.deleteRecursively()
+    }
+
+    @Synchronized
     fun cleanupExpired(nowMillis: Long = System.currentTimeMillis()): Int {
         val retention = retentionHours()
         var deleted = 0
