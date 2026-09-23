@@ -57,10 +57,11 @@ Implementado:
 Validado:
 - CI verde en PR;
 - CI verde en main;
-- APK debug generado.
+- APK debug generado;
+- DocumentsProvider visible en el selector de archivos del sistema en dispositivo real.
 
 Pendiente:
-- validación física en dispositivo.
+- validación física completa de compartir, pegar y seleccionar contenido entre aplicaciones.
 
 ### PRODUCT-001 — Formalizar alcance MVP
 **Estado:** DONE
