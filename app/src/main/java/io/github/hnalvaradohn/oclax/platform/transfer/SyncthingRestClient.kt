@@ -64,9 +64,14 @@ internal class SyncthingRestClient(
             "El motor no devolvió un identificador de dispositivo."
         }
 
+        val unauthenticatedCode = unauthenticatedSystemStatusCode()
+        check(unauthenticatedCode == HttpURLConnection.HTTP_UNAUTHORIZED || unauthenticatedCode == HttpURLConnection.HTTP_FORBIDDEN) {
+            "La API local no exige autenticación."
+        }
+
         val candidates = nonLoopbackIpv4Addresses()
         candidates.forEach { address ->
-            check(!healthRespondsAt(address)) {
+            check(!sameRuntimeRespondsAt(address, deviceId)) {
                 "La API local respondió fuera de loopback."
             }
         }
@@ -174,16 +179,38 @@ internal class SyncthingRestClient(
         return result.toList()
     }
 
-    private fun healthRespondsAt(address: String): Boolean = runCatching {
+    private fun unauthenticatedSystemStatusCode(): Int {
         val connection = (
-            URL("http://$address:${SyncthingRuntimeConfig.GUI_PORT}/rest/noauth/health")
+            URL(SyncthingRuntimeConfig.GUI_ENDPOINT + "/rest/system/status")
+                .openConnection() as HttpURLConnection
+            )
+        return connection.useConnection {
+            connectTimeout = 1_000
+            readTimeout = 1_000
+            requestMethod = "GET"
+            responseCode
+        }
+    }
+
+    private fun sameRuntimeRespondsAt(
+        address: String,
+        expectedDeviceId: String,
+    ): Boolean = runCatching {
+        val connection = (
+            URL("http://$address:${SyncthingRuntimeConfig.GUI_PORT}/rest/system/status")
                 .openConnection() as HttpURLConnection
             )
         connection.useConnection {
-            connectTimeout = 400
-            readTimeout = 400
+            connectTimeout = 500
+            readTimeout = 500
             requestMethod = "GET"
-            responseCode in 200..299
+            setRequestProperty("X-API-Key", config.apiKey())
+
+            if (responseCode !in 200..299) {
+                return@useConnection false
+            }
+            val body = inputStream.use { it.readBytes() }.toString(Charsets.UTF_8)
+            JSONObject(body).optString("myID") == expectedDeviceId
         }
     }.getOrDefault(false)
 
