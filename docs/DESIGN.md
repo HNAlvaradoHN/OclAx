@@ -151,3 +151,17 @@ Accesibilidad:
 - Las aplicaciones se ordenan alfabéticamente y usan tarjetas compactas.
 - Las tarjetas de contenido dejan de depender de siglas como TXT/DOC/APK como señal principal: usan iconos reconocibles por tipo.
 - La acción futura al tocar una aplicación no queda implícita en esta pasada; primero se completa y valida la organización visual.
+
+
+## Corrección tras cuarta prueba física — 2026-09-23
+
+La prueba confirmó que hay dos vistas distintas que no deben confundirse:
+
+- **Apps instaladas** vive dentro de la app OclAx y debe mostrar iconos/nombres reales de aplicaciones lanzables.
+- **Archivos → OclAx** es el selector SAF y solo puede representar archivos/copias de OclAx; allí se organizan por carpetas virtuales de tipo, no por aplicaciones instaladas.
+
+Para evitar confusión:
+- usar las etiquetas **Apps instaladas** y **APK guardados**;
+- mantener recientes visibles directamente en la raíz del proveedor;
+- añadir carpetas Fijados, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros;
+- no hacer pasar una app instalada por un archivo adjuntable.

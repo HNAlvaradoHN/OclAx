@@ -35,7 +35,9 @@
 - OclAx aparece como fuente en el selector de archivos del sistema;
 - en Qwen funciona Compartir → OclAx → Pegar;
 - los tipos de archivo probados pueden seleccionarse e insertarse desde OclAx;
-- Qwen rechaza APK como adjunto aunque OclAx lo expone correctamente: limitación de la app receptora.
+- Qwen rechaza APK como adjunto aunque OclAx lo expone correctamente: limitación de la app receptora;
+- una build posterior se instaló encima de la versión con firma estable sin conflicto;
+- la actualización conservó los datos internos.
 
 ## Implementado recientemente
 
@@ -59,8 +61,9 @@
 
 ## En desarrollo
 
-- miniaturas reales para contenido visual cuando aporten valor;
-- evaluar una organización opcional por categorías dentro de DocumentsProvider sin sacrificar el acceso directo a Recientes.
+- corrección física de Apps instaladas mediante LauncherApps;
+- categorías virtuales en DocumentsProvider, conservando acceso directo a Recientes;
+- miniaturas reales para contenido visual cuando aporten valor.
 
 ## Bloqueos
 
@@ -68,9 +71,7 @@ Ninguno conocido.
 
 ## Siguiente paso exacto
 
-1. Instalar la nueva build sobre la instalación con firma estable, sin desinstalar, para validar actualización real.
-2. Confirmar que Android conserva los datos internos al actualizar encima.
-3. Validar físicamente selector compacto, Copiar texto/imagen, Compartir, Eliminar con confirmación, retención y Fijados.
-4. Validar físicamente el selector de retención compacto, la categoría Aplicaciones y los iconos reales.
-5. Confirmar que APK y Aplicaciones se perciben como categorías distintas.
-6. Continuar con miniaturas y categorías opcionales en DocumentsProvider sin sacrificar Recientes.
+1. Validar físicamente Apps instaladas usando LauncherApps.
+2. Confirmar que Apps instaladas y APK guardados se distinguen con claridad.
+3. Validar carpetas de Fijados, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros dentro de Archivos → OclAx sin perder Recientes directos.
+4. Continuar con miniaturas reales para contenido visual.

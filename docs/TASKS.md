@@ -121,7 +121,7 @@ Pendiente:
 
 
 ### RELEASE-001 — Firma estable de APK de pruebas
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Problema:
@@ -146,9 +146,9 @@ Validado en CI:
 - CI verde en PR y main;
 - el primer APK con firma persistente fue generado como artefacto.
 
-Pendiente:
-- instalación física de transición;
-- confirmar con una build posterior que Android permite actualizar encima sin borrar datos.
+Validación física:
+- actualización posterior instalada encima sin conflicto;
+- datos internos conservados.
 
 
 ### PRODUCT-003 — Aplicaciones instaladas e iconografía real
@@ -169,7 +169,13 @@ Implementado:
 - iconos Material reconocibles por tipo para imágenes, PDF, APK, documentos, texto/código, video, audio y otros;
 - sin `QUERY_ALL_PACKAGES`.
 
+Corrección en curso tras prueba física:
+- listado migrado a LauncherApps para mayor fiabilidad;
+- etiquetas diferenciadas: Apps instaladas / APK guardados;
+- DocumentsProvider organizado por categorías manteniendo acceso directo a recientes.
+
 Pendiente:
-- validación física de visibilidad, orden e iconos;
+- validar físicamente visibilidad, orden e iconos;
+- validar carpetas por categoría dentro de Archivos → OclAx;
 - miniaturas reales para contenido visual cuando aporte valor;
 - decidir más adelante si tocar una app la abre o la convierte en destino directo de compartir.

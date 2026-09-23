@@ -8,13 +8,16 @@ import android.os.StatFs
 import android.provider.DocumentsContract
 import android.provider.DocumentsProvider
 import io.github.hnalvaradohn.oclax.data.ItemStore
+import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
+import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import java.io.FileNotFoundException
 
 class OclAxDocumentsProvider : DocumentsProvider() {
     companion object {
         private const val ROOT_ID = "oclax"
         private const val ROOT_DOCUMENT_ID = "root"
+        private const val CATEGORY_PREFIX = "category:"
 
         private val ROOT_PROJECTION = arrayOf(
             DocumentsContract.Root.COLUMN_ROOT_ID,
@@ -33,6 +36,46 @@ class OclAxDocumentsProvider : DocumentsProvider() {
             DocumentsContract.Document.COLUMN_FLAGS,
             DocumentsContract.Document.COLUMN_SIZE,
         )
+    }
+
+    private enum class Category(
+        val id: String,
+        val label: String,
+    ) {
+        PINNED("pinned", "Fijados"),
+        IMAGES("images", "Imágenes"),
+        DOCUMENTS("documents", "Documentos"),
+        PDF("pdf", "PDF"),
+        APK("apk", "APK"),
+        TEXT("text", "Texto/Código"),
+        VIDEO("video", "Video"),
+        AUDIO("audio", "Audio"),
+        OTHER("other", "Otros"),
+        ;
+
+        val documentId: String
+            get() = CATEGORY_PREFIX + id
+
+        fun matches(item: StoredItem): Boolean {
+            if (this == PINNED) return item.pinned
+
+            return when (this) {
+                IMAGES -> contentTypeFor(item.mimeType) == ContentType.IMAGE
+                DOCUMENTS -> contentTypeFor(item.mimeType) == ContentType.DOCUMENT
+                PDF -> contentTypeFor(item.mimeType) == ContentType.PDF
+                APK -> contentTypeFor(item.mimeType) == ContentType.APP
+                TEXT -> contentTypeFor(item.mimeType) == ContentType.TEXT
+                VIDEO -> contentTypeFor(item.mimeType) == ContentType.VIDEO
+                AUDIO -> contentTypeFor(item.mimeType) == ContentType.AUDIO
+                OTHER -> contentTypeFor(item.mimeType) == ContentType.OTHER
+                PINNED -> item.pinned
+            }
+        }
+
+        companion object {
+            fun fromDocumentId(documentId: String): Category? =
+                entries.firstOrNull { it.documentId == documentId }
+        }
     }
 
     private lateinit var store: ItemStore
@@ -71,15 +114,20 @@ class OclAxDocumentsProvider : DocumentsProvider() {
     override fun queryDocument(documentId: String, projection: Array<out String>?): Cursor {
         val columns = projection ?: DOCUMENT_PROJECTION
         val cursor = MatrixCursor(columns)
-        if (documentId == ROOT_DOCUMENT_ID) {
-            addRootDocument(cursor, columns)
-        } else {
-            addItem(
-                cursor,
-                columns,
-                store.findItem(documentId) ?: throw FileNotFoundException("Documento no encontrado."),
-            )
+
+        when {
+            documentId == ROOT_DOCUMENT_ID -> addRootDocument(cursor, columns)
+            Category.fromDocumentId(documentId) != null ->
+                addCategory(cursor, columns, requireNotNull(Category.fromDocumentId(documentId)))
+            else ->
+                addItem(
+                    cursor,
+                    columns,
+                    store.findItem(documentId)
+                        ?: throw FileNotFoundException("Documento no encontrado."),
+                )
         }
+
         return cursor
     }
 
@@ -88,8 +136,23 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         projection: Array<out String>?,
         sortOrder: String?,
     ): Cursor {
-        if (parentDocumentId != ROOT_DOCUMENT_ID) throw FileNotFoundException("Carpeta no encontrada.")
-        return itemCursor(projection, store.listItems())
+        val columns = projection ?: DOCUMENT_PROJECTION
+        val cursor = MatrixCursor(columns)
+
+        if (parentDocumentId == ROOT_DOCUMENT_ID) {
+            Category.entries.forEach { addCategory(cursor, columns, it) }
+            store.listItems().forEach { addItem(cursor, columns, it) }
+            return cursor
+        }
+
+        val category = Category.fromDocumentId(parentDocumentId)
+            ?: throw FileNotFoundException("Carpeta no encontrada.")
+
+        store.listItems()
+            .filter(category::matches)
+            .forEach { addItem(cursor, columns, it) }
+
+        return cursor
     }
 
     override fun queryRecentDocuments(rootId: String, projection: Array<out String>?): Cursor {
@@ -112,19 +175,33 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         signal: CancellationSignal?,
     ): ParcelFileDescriptor {
         if (mode != "r") throw FileNotFoundException("OclAx expone documentos en modo lectura.")
-        val file = store.payloadFile(documentId) ?: throw FileNotFoundException("Documento no encontrado.")
+        if (documentId == ROOT_DOCUMENT_ID || Category.fromDocumentId(documentId) != null) {
+            throw FileNotFoundException("No se puede abrir una carpeta como archivo.")
+        }
+
+        val file = store.payloadFile(documentId)
+            ?: throw FileNotFoundException("Documento no encontrado.")
         return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
     }
 
     override fun getDocumentType(documentId: String): String =
-        if (documentId == ROOT_DOCUMENT_ID) {
-            DocumentsContract.Document.MIME_TYPE_DIR
-        } else {
-            store.findItem(documentId)?.mimeType ?: throw FileNotFoundException("Documento no encontrado.")
+        when {
+            documentId == ROOT_DOCUMENT_ID -> DocumentsContract.Document.MIME_TYPE_DIR
+            Category.fromDocumentId(documentId) != null -> DocumentsContract.Document.MIME_TYPE_DIR
+            else ->
+                store.findItem(documentId)?.mimeType
+                    ?: throw FileNotFoundException("Documento no encontrado.")
         }
 
-    override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean =
-        parentDocumentId == ROOT_DOCUMENT_ID && store.findItem(documentId) != null
+    override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean {
+        if (parentDocumentId == ROOT_DOCUMENT_ID) {
+            return Category.fromDocumentId(documentId) != null || store.findItem(documentId) != null
+        }
+
+        val category = Category.fromDocumentId(parentDocumentId) ?: return false
+        val item = store.findItem(documentId) ?: return false
+        return category.matches(item)
+    }
 
     private fun itemCursor(projection: Array<out String>?, items: List<StoredItem>): Cursor {
         val columns = projection ?: DOCUMENT_PROJECTION
@@ -137,7 +214,37 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         val row = cursor.newRow()
         put(row, columns, DocumentsContract.Document.COLUMN_DOCUMENT_ID, ROOT_DOCUMENT_ID)
         put(row, columns, DocumentsContract.Document.COLUMN_DISPLAY_NAME, "Recientes")
-        put(row, columns, DocumentsContract.Document.COLUMN_MIME_TYPE, DocumentsContract.Document.MIME_TYPE_DIR)
+        put(
+            row,
+            columns,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.MIME_TYPE_DIR,
+        )
+        put(
+            row,
+            columns,
+            DocumentsContract.Document.COLUMN_FLAGS,
+            DocumentsContract.Document.FLAG_DIR_PREFERS_GRID or
+                DocumentsContract.Document.FLAG_DIR_PREFERS_LAST_MODIFIED,
+        )
+        put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, System.currentTimeMillis())
+        put(row, columns, DocumentsContract.Document.COLUMN_SIZE, 0L)
+    }
+
+    private fun addCategory(
+        cursor: MatrixCursor,
+        columns: Array<out String>,
+        category: Category,
+    ) {
+        val row = cursor.newRow()
+        put(row, columns, DocumentsContract.Document.COLUMN_DOCUMENT_ID, category.documentId)
+        put(row, columns, DocumentsContract.Document.COLUMN_DISPLAY_NAME, category.label)
+        put(
+            row,
+            columns,
+            DocumentsContract.Document.COLUMN_MIME_TYPE,
+            DocumentsContract.Document.MIME_TYPE_DIR,
+        )
         put(
             row,
             columns,
