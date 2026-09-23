@@ -37,11 +37,15 @@
 - los tipos de archivo probados pueden seleccionarse e insertarse desde OclAx;
 - Qwen rechaza APK como adjunto aunque OclAx lo expone correctamente: limitación de la app receptora.
 
-## En desarrollo
+## Implementado recientemente
 
 - riel vertical derecho para categorías;
 - acciones por tarjeta: Compartir, Fijar y Eliminar con confirmación;
 - identidad naranja más visible en oscuro y claro;
+- CI verde en PR y main para este bloque.
+
+## En desarrollo
+
 - iconografía/miniaturas finales;
 - evaluar una organización opcional por categorías dentro de DocumentsProvider sin sacrificar el acceso directo a Recientes.
 
