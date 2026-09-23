@@ -196,7 +196,7 @@ Detalles:
 - la UI recibe listas ya materializadas y filtra localmente por categoría/búsqueda;
 - `QUERY_ALL_PACKAGES` permite inventario completo de aplicaciones;
 - `MANAGE_EXTERNAL_STORAGE` habilita el índice amplio de archivos compartidos;
-- el acceso al dispositivo es de lectura/uso en esta fase; no existe caso de uso de borrar originales;
+- el acceso al dispositivo permite lectura/uso y borrado explícito de originales únicamente desde el caso de uso documentado más abajo;
 - abrir archivos reutiliza ContentOpener con URI MediaStore;
 - compartir concede lectura temporal al receptor;
 - Copiar se limita a Texto/Código e Imagen igual que en la bandeja.
@@ -209,14 +209,14 @@ El ItemStore no participa en Mi dispositivo salvo que una acción futura importe
 DeviceBrowser
    ├─→ ThumbnailLoader ─→ ContentResolver / media decoder
    ├─→ InstalledAppExporter ─→ sourceDir + splitSourceDirs ─→ cache + FileProvider
-   └─→ DeviceContentRepository.requestDelete ─→ MediaStore delete confirmation
+   └─→ DeviceContentRepository.requestDelete ─→ delete directo / confirmación MediaStore cuando aplica
 
 DocumentsProvider
    └─→ ThumbnailLoader ─→ thumbnail cache ─→ openDocumentThumbnail
 ```
 
 Responsabilidades:
-- `ThumbnailLoader` limita decodificación a imágenes/video y mantiene caché de memoria acotada.
+- `ThumbnailLoader` limita miniaturas a imágenes/video/PDF, renderiza solo la primera página de PDF y mantiene caché de memoria acotada.
 - `InstalledAppExporter` prepara copias temporales del código APK; no conoce datos privados de apps.
-- `DeviceContentRepository` crea/ejecuta la solicitud de eliminación; la UI solo confirma intención y lanza autorización del sistema.
+- `DeviceContentRepository` ejecuta el borrado con la URI MediaStore seleccionada; en Android 11+ usa eliminación directa bajo acceso amplio y, si un medio exige confirmación, genera una solicitud con la URI específica de Imagen/Video/Audio.
 - `ViewModePreferences` persiste lista/cuadrícula por categoría sin mezclarlo con reglas de dominio.
