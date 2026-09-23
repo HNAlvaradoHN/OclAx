@@ -160,3 +160,14 @@ Pendiente de validación física:
 - cancelar cualquier confirmación de borrado debe conservar el archivo;
 - tras eliminar, el elemento debe desaparecer del índice sin afectar copias OclAx;
 - autolimpieza debe seguir sin tocar originales.
+
+## Miniaturas dentro de la bandeja OclAx
+
+Pendiente de validación física:
+- una imagen recibida/pegada debe mostrar su miniatura real en la tarjeta de OclAx;
+- un video recibido debe mostrar un fotograma cuando pueda decodificarse;
+- un PDF recibido debe mostrar la primera página cuando pueda renderizarse;
+- texto, APK, audio, documentos y otros deben conservar un icono reconocible;
+- si falla la generación de miniatura, la tarjeta debe seguir siendo utilizable con icono de fallback;
+- desplazar una lista con muchas miniaturas no debe bloquear perceptiblemente la UI.
+

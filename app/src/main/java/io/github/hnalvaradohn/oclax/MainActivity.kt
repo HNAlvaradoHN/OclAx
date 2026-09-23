@@ -67,6 +67,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -74,10 +75,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
@@ -98,6 +101,8 @@ import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
 import java.util.concurrent.Executors
@@ -174,6 +179,15 @@ class MainActivity : ComponentActivity() {
                     onOpen = ::openItem,
                     onShare = ::shareItem,
                     onCopy = ::copyItem,
+                    onLoadItemThumbnail = { item, targetPx ->
+                        runCatching {
+                            thumbnailLoader.loadFile(
+                                store.payloadFile(item),
+                                contentTypeFor(item.mimeType),
+                                targetPx,
+                            )
+                        }.getOrNull()
+                    },
                     onRequestBroadAccess = ::requestBroadFileAccess,
                     onOpenDeviceFile = ::openDeviceFile,
                     onShareDeviceFile = ::shareDeviceFile,
@@ -573,6 +587,7 @@ private fun OclAxHome(
     onOpen: (StoredItem) -> Unit,
     onShare: (StoredItem) -> Unit,
     onCopy: (StoredItem) -> Unit,
+    onLoadItemThumbnail: (StoredItem, Int) -> Bitmap?,
     onRequestBroadAccess: () -> Unit,
     onOpenDeviceFile: (DeviceFileInfo) -> Unit,
     onShareDeviceFile: (DeviceFileInfo) -> Unit,
@@ -720,6 +735,7 @@ private fun OclAxHome(
                                 onOpen = onOpen,
                                 onShare = onShare,
                                 onCopy = onCopy,
+                                onLoadThumbnail = onLoadItemThumbnail,
                             )
                         }
                     }
@@ -892,6 +908,7 @@ private fun ItemCard(
     onOpen: (StoredItem) -> Unit,
     onShare: (StoredItem) -> Unit,
     onCopy: (StoredItem) -> Unit,
+    onLoadThumbnail: (StoredItem, Int) -> Bitmap?,
 ) {
     val type = contentTypeFor(item.mimeType)
 
@@ -909,22 +926,13 @@ private fun ItemCard(
     ) {
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Surface(
-                    modifier = Modifier.size(34.dp),
-                    color = MaterialTheme.colorScheme.primaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
-                    shape = MaterialTheme.shapes.small,
-                ) {
-                    Box(contentAlignment = Alignment.Center) {
-                        Icon(
-                            imageVector = contentTypeIcon(type),
-                            contentDescription = type.label,
-                            modifier = Modifier.size(20.dp),
-                        )
-                    }
-                }
+                StoredItemVisual(
+                    item = item,
+                    type = type,
+                    onLoadThumbnail = onLoadThumbnail,
+                )
 
-                Spacer(Modifier.width(8.dp))
+                Spacer(Modifier.width(10.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
@@ -982,6 +990,57 @@ private fun ItemCard(
                     description = "Eliminar ${item.displayName}",
                     tint = MaterialTheme.colorScheme.error,
                     onClick = onDeleteRequest,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun StoredItemVisual(
+    item: StoredItem,
+    type: ContentType,
+    onLoadThumbnail: (StoredItem, Int) -> Bitmap?,
+) {
+    val supportsThumbnail =
+        type == ContentType.IMAGE || type == ContentType.VIDEO || type == ContentType.PDF
+    val targetPx = if (supportsThumbnail) 192 else 96
+    var thumbnail by remember(item.id, item.createdAt, targetPx) {
+        mutableStateOf<Bitmap?>(null)
+    }
+
+    LaunchedEffect(item.id, item.createdAt, targetPx) {
+        thumbnail = if (supportsThumbnail) {
+            withContext(Dispatchers.IO) {
+                onLoadThumbnail(item, targetPx)
+            }
+        } else {
+            null
+        }
+    }
+
+    val bitmap = thumbnail
+    if (bitmap != null) {
+        Image(
+            bitmap = bitmap.asImageBitmap(),
+            contentDescription = "Miniatura de ${item.displayName}",
+            modifier = Modifier
+                .size(62.dp)
+                .clip(MaterialTheme.shapes.small),
+            contentScale = ContentScale.Crop,
+        )
+    } else {
+        Surface(
+            modifier = Modifier.size(if (supportsThumbnail) 62.dp else 42.dp),
+            color = MaterialTheme.colorScheme.primaryContainer,
+            contentColor = MaterialTheme.colorScheme.onPrimaryContainer,
+            shape = MaterialTheme.shapes.small,
+        ) {
+            Box(contentAlignment = Alignment.Center) {
+                Icon(
+                    imageVector = contentTypeIcon(type),
+                    contentDescription = type.label,
+                    modifier = Modifier.size(if (supportsThumbnail) 28.dp else 22.dp),
                 )
             }
         }

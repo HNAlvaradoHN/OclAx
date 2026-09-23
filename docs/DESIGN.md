@@ -228,6 +228,14 @@ Reglas visuales:
 
 Si falta el permiso amplio, mostrar una explicación corta y un único botón **Conceder acceso**, sin bloquear la superficie OclAx.
 
+## Miniaturas dentro de la bandeja OclAx
+
+- Las copias recibidas/pegadas que sean Imagen, Video o PDF muestran miniatura real también dentro de la pantalla principal de OclAx.
+- Imagen usa la propia copia privada; Video usa un fotograma; PDF usa la primera página renderizada.
+- La carga se hace fuera del hilo principal y reutiliza el mismo `ThumbnailLoader`.
+- Si no puede generarse la miniatura, se conserva el icono por tipo como fallback.
+- Texto/Código, APK, Audio, Documentos y Otros mantienen icono por tipo salvo una decisión visual futura específica.
+
 ## Vistas por categoría y acciones de Mi dispositivo
 
 - Cada categoría de **Mi dispositivo** puede alternar entre **Lista** y **Cuadrícula** de forma independiente.
