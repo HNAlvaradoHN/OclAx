@@ -186,3 +186,21 @@ Los archivos que ya existen fuera de OclAx pueden incorporarse de forma explíci
 **Ejecución inicial:** limpieza oportunista al consultar la bandeja/DocumentProvider, sin WorkManager. Esto mantiene el MVP simple y evita trabajo en segundo plano innecesario; una ejecución periódica solo se añadirá si una necesidad real lo justifica.
 
 **Consecuencia:** borrar una copia OclAx puede hacer que deje de estar disponible desde OclAx, pero no afecta su fuente original externa.
+
+
+---
+
+## DEC-015 — Acciones directas por elemento y riel de categorías
+
+**Decisión:** la bandeja interna de OclAx permite actuar directamente sobre cada copia temporal.
+
+Acciones:
+- Compartir a otra aplicación mediante Android Sharesheet;
+- Fijar / Desfijar;
+- Eliminar manualmente con confirmación obligatoria.
+
+**Borrado manual:** elimina únicamente la copia privada controlada por OclAx. Nunca elimina el archivo original del dispositivo ni usa la URI de origen para borrar.
+
+**Organización:** los filtros Todo, Fijados, Imágenes, Documentos, PDF, Apps/APK, Texto/Código, Video, Audio y Otros se muestran en un riel vertical a la derecha.
+
+**Motivo:** reducir búsqueda y desplazamiento horizontal, y convertir la bandeja en una herramienta bidireccional: recibir contenido y volver a compartirlo rápidamente.
