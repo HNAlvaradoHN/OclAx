@@ -19,8 +19,8 @@ fun contentTypeFor(mimeType: String): ContentType {
         mime == "application/vnd.android.package-archive" -> ContentType.APP
         mime.startsWith("video/") -> ContentType.VIDEO
         mime.startsWith("audio/") -> ContentType.AUDIO
-        mime.startsWith("text/") || mime.contains("json") || mime.contains("xml") -> ContentType.TEXT
         isDocumentMime(mime) -> ContentType.DOCUMENT
+        mime.startsWith("text/") || mime.contains("json") || mime.contains("xml") -> ContentType.TEXT
         else -> ContentType.OTHER
     }
 }
