@@ -3,7 +3,7 @@
 ## Estado
 
 **Fase:** primera prueba vertical Android.  
-**Aplicación:** prueba vertical compilada y validada por CI; validación física iniciada.  
+**Aplicación:** base funcional validada por CI; validación física en progreso.  
 **Repositorio:** público.  
 **Protocol version:** 2.
 
@@ -13,65 +13,43 @@
 - Significado: Open Content, Local Access & eXchange.
 - Identidad del agente: OclAx 📲.
 - Repositorio como fuente técnica de verdad.
-- Handshake obligatorio por chat.
-- Memoria oficial del proyecto.
 - Prioridad máxima a seguridad, privacidad e integridad.
-- Arquitectura separada por responsabilidades.
-- Feedback del usuario clasificado en BLOQUEANTE / NO BLOQUEANTE.
-- Reemplazo real: lo viejo se elimina cuando deja de tener consumidores.
 - Aplicación Android local-first orientada a contenido temporal.
-- OclAx se define como selector/bandeja ordenada para insertar, no como gestor de archivos completo.
+- OclAx es selector/bandeja ordenada para insertar, no gestor de archivos completo.
+- Autolimpieza limitada exclusivamente a copias privadas de OclAx.
+- Retención predeterminada de 24 horas; Fijados nunca expiran mientras sigan fijados.
 
 ## Qué funciona
 
-- Protocolo maestro instalado.
-- Identidad oficial instalada.
-- Estructura de memoria oficial iniciada.
-- Revisores detallados instalados en `docs/REVIEW_ROLES.md`.
-- Memoria visual inicial instalada en `docs/DESIGN.md`.
-- Política de herramientas externas instalada en `docs/TOOLS.md`.
-
-## Qué ya existe en la prueba vertical
-
-- base Android nativa;
 - recepción por Share Sheet;
 - almacenamiento local privado;
 - publicación de texto/imagen al portapapeles;
-- DocumentsProvider de solo lectura;
-- búsqueda básica;
-- tests unitarios;
-- lint/build/CI;
-- generación de APK debug.
+- DocumentsProvider de solo lectura visible en Archivos;
+- búsqueda y filtros por tipo;
+- Fijados y retención configurable;
+- tema Material 3: oscuro negro/naranja y claro con acento naranja;
+- tests unitarios, lint/build/CI y APK debug.
 
-## Qué todavía no existe
+## Validación física confirmada
 
-- validación física completa entre aplicaciones;
-- autolimpieza configurable;
-- fijados;
-- categorías visuales completas;
-- release.
+- OclAx aparece como fuente en el selector de archivos del sistema;
+- en Qwen funciona Compartir → OclAx → Pegar;
+- los tipos de archivo probados pueden seleccionarse e insertarse desde OclAx;
+- Qwen rechaza APK como adjunto aunque OclAx lo expone correctamente: limitación de la app receptora.
+
+## En desarrollo
+
+- modelo único y testeable de clasificación de contenido para evitar que UI y DocumentsProvider diverjan;
+- iconografía/miniaturas finales;
+- evaluar una organización opcional por categorías dentro de DocumentsProvider sin sacrificar el acceso directo a Recientes.
 
 ## Bloqueos
 
-Ninguno conocido para continuar con la configuración del repositorio.
-
-## Investigación reciente
-
-- La viabilidad técnica del concepto está documentada en `docs/FEASIBILITY.md`.
-- El estado de protecciones del repositorio está documentado en `docs/SECURITY_PROTECTIONS.md`.
-- La integración actual no puede cambiar administrativamente branch protection/rulesets.
-
-## Validación automatizada actual
-
-- Android CI verde en `main`.
-- Tests unitarios, lint y build debug completados.
-- APK debug generado como artefacto de CI.
+Ninguno conocido.
 
 ## Siguiente paso exacto
 
-1. VERIFICADO en dispositivo real: OclAx aparece como fuente en el selector de archivos del sistema.
-2. VERIFICADO en Qwen: el flujo Compartir → OclAx → Pegar funciona.
-3. VERIFICADO en Qwen: los tipos de archivo probados se pueden seleccionar e insertar desde OclAx.
-4. EXCEPCIÓN VERIFICADA: Qwen no acepta APK como adjunto; OclAx sí lo expone, pero la app receptora lo rechaza.
-5. Repetir el pegado y la selección de archivos en WhatsApp, Telegram y navegador.
-6. Corregir incompatibilidades reales antes de ampliar UI o funciones.
+1. Validar por CI el modelo compartido de tipos.
+2. Usar ese modelo como base para iconografía y, si no añade navegación innecesaria, categorías opcionales en DocumentsProvider.
+3. Mantener Recientes accesible directamente desde Archivos.
+4. Validar físicamente retención, Fijados, contraste claro/oscuro y compatibilidad en más aplicaciones.
