@@ -6,6 +6,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import androidx.core.content.ContextCompat
 import android.webkit.MimeTypeMap
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
@@ -31,13 +32,21 @@ class DeviceContentRepository(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             Environment.isExternalStorageManager()
         } else {
-            true
+            ContextCompat.checkSelfPermission(
+                appContext,
+                android.Manifest.permission.READ_EXTERNAL_STORAGE,
+            ) == android.content.pm.PackageManager.PERMISSION_GRANTED
         }
 
     fun listFiles(): List<DeviceFileInfo> {
         if (!hasBroadFileAccess()) return emptyList()
 
-        val collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL)
+        val volume = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            MediaStore.VOLUME_EXTERNAL
+        } else {
+            "external"
+        }
+        val collection = MediaStore.Files.getContentUri(volume)
         val projection = buildList {
             add(MediaStore.Files.FileColumns._ID)
             add(MediaStore.Files.FileColumns.DISPLAY_NAME)
