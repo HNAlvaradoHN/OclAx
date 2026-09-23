@@ -33,7 +33,7 @@ La compatibilidad con aplicaciones reales todavía requiere validación física 
 
 ## Desarrollo
 
-Requisitos: JDK 17, Android SDK 37, Build Tools 36.0.0 y Gradle 9.6.0.
+Requisitos: JDK 17, Android SDK 36, Build Tools 36.0.0 y Gradle 9.6.0.
 
 ```bash
 gradle :app:testDebugUnitTest
