@@ -67,6 +67,11 @@ Cambios no bloqueantes como color, tamaño, espaciado, texto o posición se regi
 
 Los problemas de accesibilidad o de flujo principal sí pueden ser BLOQUEANTES.
 
+Feedback registrado — 2026-09-23:
+- en **Mi dispositivo**, mostrar fecha y hora junto a los archivos de forma similar a Recientes para ayudar a reconocer cuál cambió más recientemente;
+- esa fecha debe describirse como fecha/hora de modificación del archivo cuando proviene de MediaStore, no como “recibido” si OclAx no conoce realmente cuándo llegó;
+- para futuras transferencias OclAx ↔ OclAx, conservar además un timestamp propio de recepción permitirá distinguir “modificado” de “recibido”.
+
 ## Patrón principal — Selector ordenado
 
 Cuando OclAx se abra desde el selector de archivos de otra app, la prioridad visual es encontrar e insertar rápido.
