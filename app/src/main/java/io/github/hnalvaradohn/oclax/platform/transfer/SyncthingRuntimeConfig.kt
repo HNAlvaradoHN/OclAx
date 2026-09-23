@@ -4,6 +4,7 @@ import android.content.Context
 import android.util.Base64
 import java.io.File
 import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
 
 internal class SyncthingRuntimeConfig(
     private val context: Context,
@@ -35,6 +36,17 @@ internal class SyncthingRuntimeConfig(
             "--log-max-old-files=1",
             "--log-max-size=1048576",
         )
+
+        internal fun buildGenerateCommand(
+            binaryPath: String,
+            homePath: String,
+        ): List<String> = listOf(
+            binaryPath,
+            "--home",
+            homePath,
+            "generate",
+            "--no-port-probing",
+        )
     }
 
     val homeDir: File
@@ -45,6 +57,9 @@ internal class SyncthingRuntimeConfig(
 
     val logFile: File
         get() = File(homeDir, "syncthing.log")
+
+    val configFile: File
+        get() = File(homeDir, "config.xml")
 
     val binaryFile: File
         get() = File(context.applicationInfo.nativeLibraryDir, BINARY_NAME)
@@ -59,6 +74,15 @@ internal class SyncthingRuntimeConfig(
         check(binaryFile.isFile && binaryFile.canExecute()) {
             "El motor de transferencia no está disponible para este dispositivo."
         }
+
+        if (!configFile.isFile) {
+            generateBaseConfig()
+        }
+
+        SyncthingPrivateConfig.harden(
+            configFile = configFile,
+            apiKey = apiKey(),
+        )
     }
 
     fun apiKey(): String {
@@ -75,6 +99,33 @@ internal class SyncthingRuntimeConfig(
             "No se pudo guardar la credencial local del motor."
         }
         return generated
+    }
+
+    private fun generateBaseConfig() {
+        val builder = ProcessBuilder(
+            buildGenerateCommand(
+                binaryPath = binaryFile.absolutePath,
+                homePath = homeDir.absolutePath,
+            ),
+        )
+            .directory(homeDir)
+            .redirectErrorStream(true)
+            .redirectOutput(ProcessBuilder.Redirect.appendTo(logFile))
+        applyPrivateEnvironment(builder)
+
+        val process = builder.start()
+        val completed = runCatching {
+            process.waitFor(20, TimeUnit.SECONDS)
+        }.getOrDefault(false)
+
+        if (!completed) {
+            process.destroyForcibly()
+            error("El motor tardó demasiado en generar su configuración.")
+        }
+
+        check(process.exitValue() == 0 && configFile.isFile) {
+            "El motor no pudo generar su configuración privada."
+        }
     }
 
     fun command(): List<String> = buildCommand(
