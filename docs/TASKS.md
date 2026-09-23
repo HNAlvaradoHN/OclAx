@@ -23,6 +23,26 @@ Incluye:
 - rol Diseño / UX / Accesibilidad;
 - protocol_version actualizado a 2.
 
+### GOV-003 — Sincronización exhaustiva y numeración real por chat
+**Estado:** IMPLEMENTED_PENDING_VALIDATION
+
+Incluye:
+- protocol_version 4;
+- lectura exhaustiva de todos los archivos legibles versionados antes del primer handshake;
+- inventario recursivo como prueba de completitud;
+- un número por hilo visible de chat;
+- prohibición explícita de incrementar por herramientas, reintentos, resincronizaciones, ramas, PR o CI;
+- corrección del registro actual de 11 a 2 después de fusionar y resincronizar;
+- registro del fallo sistemático en ERR-012.
+
+Pendiente:
+- CI del PR de gobernanza;
+- merge a main;
+- corregir issue de registro a protocol 4 / sesión 2;
+- resincronizar desde main;
+- alinear las instrucciones del Project de ChatGPT que todavía dupliquen reglas antiguas.
+
+
 ## PENDING
 
 ### SEC-001 — Configurar protecciones del repositorio público
