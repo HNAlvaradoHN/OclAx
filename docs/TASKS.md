@@ -149,3 +149,20 @@ Validado en CI:
 Pendiente:
 - instalación física de transición;
 - confirmar con una build posterior que Android permite actualizar encima sin borrar datos.
+
+
+### PRODUCT-003 — Aplicaciones instaladas e iconografía real
+**Estado:** PENDING  
+**Prioridad:** alta
+
+Solicitud confirmada por prueba física:
+- mostrar aplicaciones instaladas del dispositivo de forma ordenada;
+- usar iconos reales de aplicaciones cuando Android los exponga;
+- mejorar iconos/miniaturas de los elementos de OclAx;
+- no confundir APK guardados con aplicaciones instaladas.
+
+Antes de implementar la vista de aplicaciones falta definir una sola interacción principal:
+- si tocar una app debe abrirla;
+- o si debe funcionar como destino para compartir contenido desde OclAx.
+
+La implementación debe evitar permisos amplios innecesarios y respetar las reglas de visibilidad de paquetes de Android.
