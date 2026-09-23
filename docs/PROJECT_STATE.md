@@ -60,14 +60,22 @@
 - iconos reconocibles por tipo en las tarjetas de OclAx;
 - visibilidad de apps sin permiso amplio `QUERY_ALL_PACKAGES`.
 
+## Implementado recientemente
+
+- apertura directa de contenido desde tarjetas mediante aplicaciones del sistema;
+- superficie **Mi dispositivo** separada de la bandeja OclAx;
+- acceso amplio al almacenamiento compartido mediante permiso especial de Android;
+- visibilidad completa de aplicaciones mediante QUERY_ALL_PACKAGES;
+- categorías del dispositivo: Apps, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros;
+- búsqueda, abrir y compartir desde contenido real;
+- Copiar limitado a texto e imágenes también en Mi dispositivo;
+- ningún borrado de originales desde Mi dispositivo.
+
 ## En desarrollo
 
-- corrección física de Apps instaladas mediante LauncherApps;
-- categorías virtuales en DocumentsProvider, conservando acceso directo a Recientes;
-- miniaturas reales para contenido visual cuando aporten valor;
-- diseño e implementación de Mi dispositivo con acceso amplio al contenido real;
-- prototipo OclAx ↔ OclAx usando Syncthing como motor candidato;
-- apertura directa de contenido desde tarjetas mediante aplicaciones del sistema.
+- miniaturas reales para imágenes/video;
+- validación física de Mi dispositivo y permisos;
+- prototipo OclAx ↔ OclAx usando Syncthing como motor candidato.
 
 ## Bloqueos
 
@@ -75,10 +83,9 @@ Ninguno conocido.
 
 ## Siguiente paso exacto
 
-1. Validar físicamente abrir PDF, Word/documentos, imágenes, video, audio y APK desde una tarjeta OclAx.
-2. Implementar **Mi dispositivo** como superficie separada para contenido real: aplicaciones, imágenes, videos, audio, PDF, documentos, APK y otros.
-3. Solicitar únicamente los permisos amplios necesarios para esa superficie y degradar funcionalidad si el usuario los niega/revoca.
-4. Mantener intacto el límite: autolimpieza y borrado interno solo afectan copias OclAx.
-5. Prototipar Syncthing como motor de **Enviar a dispositivo** con directo/LAN/Internet y relay público como fallback, sin exponer sincronización de carpetas al usuario.
+1. Validar físicamente Mi dispositivo: permiso de todos los archivos, apps visibles y categorías con contenido real.
+2. Validar abrir PDF, Word/documentos, imágenes, video, audio y APK tanto desde OclAx como desde Mi dispositivo.
+3. Confirmar que revocar acceso amplio no rompe la bandeja OclAx.
+4. Añadir miniaturas reales para imágenes/video si la prueba física confirma que mejoran reconocimiento sin afectar rendimiento.
+5. Prototipar Syncthing como motor de **Enviar a dispositivo** con directo/LAN/Internet y relay público como fallback.
 6. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
-7. Continuar miniaturas/iconos y validación física.
