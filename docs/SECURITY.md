@@ -208,6 +208,7 @@ Controles obligatorios antes de exponer transferencias reales:
 
 ## Prueba LAN explícita
 
+- El REST de control usa HTTP solo hacia `127.0.0.1`; Android Network Security Config mantiene cleartext bloqueado globalmente y lo permite únicamente para loopback/localhost.
 - `CHANGE_WIFI_MULTICAST_STATE` se usa únicamente para adquirir un MulticastLock durante discovery local iniciado por el usuario.
 - El estado normal del motor sigue aislado: listener de sincronización en loopback, discovery global/local apagado, relay y NAT apagados.
 - **Probar LAN** habilita discovery local únicamente mientras busca al peer y mantiene un listener TCP IPv4 para la sesión; al confirmar una conexión local, discovery se apaga y se libera el MulticastLock. Global discovery, relay y NAT siguen desactivados.
