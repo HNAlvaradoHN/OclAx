@@ -201,6 +201,19 @@ En la UX final:
 - ocultar IDs técnicos detrás de detalles/diagnóstico cuando exista un método más cómodo como QR;
 - el usuario elige por nombre de dispositivo, no por cadenas técnicas.
 
+### Prueba LAN entre dispositivos
+
+Mientras siga siendo diagnóstico:
+- cada dispositivo guardado muestra **Probar LAN**;
+- durante búsqueda muestra un estado corto, sin IP ni jerga de Syncthing;
+- éxito se comunica como **Conectado por LAN** y la búsqueda deja de anunciarse en la red;
+- un único peer puede estar activo a la vez en esta fase;
+- el peer activo muestra **Desconectar LAN**;
+- la pantalla explica que ambos teléfonos deben tener OclAx abierto y probar LAN;
+- esta prueba no debe insinuar que un archivo ya fue enviado.
+
+La UX final eliminará estos controles técnicos cuando el flujo **Enviar → dispositivo → progreso** pueda usar la conexión automáticamente.
+
 ### Transferencia OclAx ↔ OclAx
 
 Flujo visible:

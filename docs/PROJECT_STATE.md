@@ -88,10 +88,10 @@
 
 ## Implementado recientemente
 
-- base local de **Mis dispositivos** para el siguiente paso de OclAx ↔ OclAx;
+- base local de **Mis dispositivos** fusionada en main mediante PR #40;
 - agregar/quitar dispositivo por Device ID, nombre visible y preferencia **Permitir sin aceptar**;
 - Device ID propio compartible de forma explícita desde Android;
-- emparejamiento local todavía no modifica Syncthing ni abre red: queda desacoplado hasta validar el runtime físicamente.
+- el siguiente bloque ya implementa una prueba LAN explícita por peer, pero todavía no comparte carpetas ni archivos.
 
 ## En desarrollo
 
@@ -103,7 +103,8 @@
 - el arranque seguro genera/configura el motor antes de servir: listener de sincronización solo en loopback, discovery global/local, relay y NAT desactivados; telemetría y crash reporting desactivados;
 - el probe valida Device ID, autenticación REST, aislamiento loopback y start/stop;
 - **VERIFICADO EN CI MAIN:** tests, lint, build multi-ABI, presencia de los cuatro runtimes y APK firmado estable terminaron verdes en el run 125;
-- pendiente únicamente validación física del runtime antes de habilitar emparejamiento/red entre dispositivos.
+- conexión LAN-only en desarrollo: peer pausado por defecto, discovery local y listener TCP solo durante **Probar LAN**, restricción a rangos privados, y retorno a modo aislado al desconectar;
+- todavía no existe transferencia de archivos en esta rama.
 
 ## Bloqueos
 
@@ -119,5 +120,7 @@
 5. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
 6. Instalar la build con runtime integrado y usar **Enviar a dispositivo · prueba técnica**: Probar motor → confirmar ID/loopback → Detener → Probar motor otra vez.
 7. En dos dispositivos, compartir/agregar mutuamente los Device ID y validar la lista **Mis dispositivos** + preferencia **Permitir sin aceptar**.
-8. Con el runtime validado, conectar esos pares al motor y probar LAN directo → Internet directo → relay público como fallback.
-9. Aplicar la política de recepción: confiables pueden permitir sin aceptar; los demás preguntan por defecto.
+8. En la misma Wi‑Fi, tocar **Probar LAN** para el peer en ambos teléfonos y confirmar **Conectado por LAN**; después **Desconectar LAN** y comprobar retorno a modo aislado.
+9. Crear el canal privado de transferencia de archivos y progreso solo después de validar esa conexión.
+10. Luego validar Internet directo → relay público como fallback.
+11. Aplicar la política de recepción: confiables pueden permitir sin aceptar; los demás preguntan por defecto.

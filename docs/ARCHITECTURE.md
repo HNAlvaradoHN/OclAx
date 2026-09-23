@@ -132,7 +132,26 @@ nombre + Device ID + confianza
 SyncthingAdapter / config REST
 ```
 
-Guardar un dispositivo localmente no modifica todavía el motor ni habilita discovery/relay.
+Guardar un dispositivo localmente no modifica el motor ni habilita discovery/relay.
+
+La siguiente capa usa ese registro únicamente durante una prueba explícita:
+
+```text
+PairedDeviceStore
+        ↓
+TransferRuntimeController.connectLan
+        ↓
+SyncthingLanPolicy
+        ├─ peer pausado + allowedNetworks privadas
+        ├─ global discovery / relay / NAT = off
+        └─ local discovery + TCP listener = on temporal
+        ↓
+Syncthing REST loopback
+        ↓
+/rest/system/connections → connected + isLocal
+```
+
+La prueba no crea carpetas Syncthing ni mueve contenido. Al confirmar el peer, OclAx apaga discovery local y libera el MulticastLock manteniendo solo la conexión/listener LAN; al desconectar, el motor vuelve a `enforcePrivateOptions()`.
 
 Syncthing core v2.x es el motor candidato, encapsulado detrás de una capa propia. El wrapper Android oficial discontinuado no forma parte de la arquitectura OclAx.
 
@@ -159,6 +178,7 @@ El runtime nativo:
 - `SyncthingPrivateConfig` genera/endurece la configuración antes de arrancar: GUI/API y listener BEP solo loopback; discovery/relay/NAT apagados durante el probe local;
 - `SyncthingRuntimeService` es un foreground service `dataSync` on-demand, no un daemon permanente;
 - `SyncthingRestClient` vuelve a imponer/verificar el perfil privado y controla salud, autenticación, Device ID y apagado únicamente contra `127.0.0.1:8384`;
+- Android Network Security Config permite HTTP cleartext solo para `127.0.0.1`/`localhost`; el resto de destinos conserva cleartext bloqueado;
 - no filtra conceptos de carpetas Syncthing hacia la UI principal.
 
 OclAx controla:

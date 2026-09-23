@@ -8,11 +8,18 @@ import java.net.HttpURLConnection
 import java.net.Inet4Address
 import java.net.NetworkInterface
 import java.net.URL
+import java.net.URLEncoder
 
 internal data class TransferRuntimeProbeResult(
     val deviceId: String,
     val guiAddress: String,
     val nonLoopbackAddressesChecked: Int,
+)
+
+internal data class LanPeerConnectionResult(
+    val deviceId: String,
+    val address: String,
+    val connectionType: String,
 )
 
 internal class SyncthingRestClient(
@@ -113,6 +120,105 @@ internal class SyncthingRestClient(
         )
     }
 
+    fun canonicalDeviceId(rawDeviceId: String): String {
+        val encoded = URLEncoder.encode(rawDeviceId, Charsets.UTF_8.name())
+        val response = getJson("/rest/svc/deviceid?id=$encoded")
+        return response.optString("id")
+            .takeIf { it.isNotBlank() }
+            ?: error("El motor rechazó el ID del dispositivo.")
+    }
+
+    fun configureLanPeer(
+        rawDeviceId: String,
+        name: String,
+    ): String {
+        val deviceId = canonicalDeviceId(rawDeviceId)
+        val template = getJson("/rest/config/defaults/device")
+        val device = SyncthingLanPolicy.applyToDevice(
+            device = template,
+            deviceId = deviceId,
+            name = name,
+        )
+        postJson("/rest/config/devices", device)
+        checkNoRestartRequired()
+        return deviceId
+    }
+
+    fun enableLanOnlyOptions() {
+        val options = getJson("/rest/config/options")
+        putJson(
+            "/rest/config/options",
+            SyncthingLanPolicy.applyToOptions(options),
+        )
+        SyncthingLanPolicy.verifyDiscoveryOptions(
+            getJson("/rest/config/options"),
+        )
+        checkNoRestartRequired()
+    }
+
+    fun stopLocalDiscoveryKeepLan() {
+        val options = getJson("/rest/config/options")
+        putJson(
+            "/rest/config/options",
+            SyncthingLanPolicy.applyConnectedOptions(options),
+        )
+        SyncthingLanPolicy.verifyConnectedOptions(
+            getJson("/rest/config/options"),
+        )
+        checkNoRestartRequired()
+    }
+
+    fun resumeDevice(deviceId: String) {
+        postEmpty(
+            "/rest/system/resume?device=" +
+                URLEncoder.encode(deviceId, Charsets.UTF_8.name()),
+        )
+    }
+
+    fun pauseDevice(deviceId: String) {
+        postEmpty(
+            "/rest/system/pause?device=" +
+                URLEncoder.encode(deviceId, Charsets.UTF_8.name()),
+        )
+    }
+
+    fun awaitLanConnection(
+        deviceId: String,
+        timeoutMillis: Long = 45_000L,
+    ): LanPeerConnectionResult {
+        val deadline = System.currentTimeMillis() + timeoutMillis
+        while (System.currentTimeMillis() < deadline) {
+            val connection = getJson("/rest/system/connections")
+                .optJSONObject("connections")
+                ?.optJSONObject(deviceId)
+
+            if (
+                connection != null &&
+                connection.optBoolean("connected", false) &&
+                connection.optBoolean("isLocal", false)
+            ) {
+                return LanPeerConnectionResult(
+                    deviceId = deviceId,
+                    address = connection.optString("address"),
+                    connectionType = connection.optString("type"),
+                )
+            }
+            Thread.sleep(500L)
+        }
+
+        throw IOException(
+            "No se encontró el otro dispositivo en la red local. " +
+                "Abrí OclAx en ambos teléfonos y probá LAN en los dos.",
+        )
+    }
+
+    private fun checkNoRestartRequired() {
+        val status = getJson("/rest/config/restart-required")
+        check(!status.optBoolean("requiresRestart", false)) {
+            "El motor requiere reinicio para aplicar la red local."
+        }
+    }
+
     fun shutdown() {
         request(
             method = "POST",
@@ -153,6 +259,25 @@ internal class SyncthingRestClient(
             authenticated = true,
             body = body.toString().toByteArray(Charsets.UTF_8),
             contentType = "application/json; charset=utf-8",
+        )
+    }
+
+    private fun postJson(path: String, body: JSONObject) {
+        request(
+            method = "POST",
+            path = path,
+            authenticated = true,
+            body = body.toString().toByteArray(Charsets.UTF_8),
+            contentType = "application/json; charset=utf-8",
+        )
+    }
+
+    private fun postEmpty(path: String) {
+        request(
+            method = "POST",
+            path = path,
+            authenticated = true,
+            body = ByteArray(0),
         )
     }
 
@@ -269,6 +394,56 @@ internal class TransferRuntimeController(context: Context) {
         client.awaitReady(timeoutMillis)
         client.enforcePrivateOptions()
         return client.probe()
+    }
+
+    fun connectLan(
+        rawDeviceId: String,
+        name: String,
+        timeoutMillis: Long = 45_000L,
+    ): LanPeerConnectionResult {
+        start()
+        client.awaitReady()
+        client.enforcePrivateOptions()
+
+        val deviceId = client.configureLanPeer(rawDeviceId, name)
+
+        return try {
+            SyncthingRuntimeService.enableLanDiscovery(appContext)
+            client.enableLanOnlyOptions()
+            client.resumeDevice(deviceId)
+            val connection = client.awaitLanConnection(deviceId, timeoutMillis)
+            client.stopLocalDiscoveryKeepLan()
+            SyncthingRuntimeService.disableLanDiscovery(appContext)
+            connection
+        } catch (error: Exception) {
+            runCatching { client.pauseDevice(deviceId) }
+            val isolated = runCatching {
+                client.enforcePrivateOptions()
+            }.isSuccess
+            runCatching {
+                SyncthingRuntimeService.disableLanDiscovery(appContext)
+            }
+            if (!isolated) {
+                runCatching { stop() }
+            }
+            throw error
+        }
+    }
+
+    fun disconnectLan(deviceId: String) {
+        var isolated = false
+        try {
+            runCatching { client.pauseDevice(deviceId) }
+            client.enforcePrivateOptions()
+            isolated = true
+        } finally {
+            runCatching {
+                SyncthingRuntimeService.disableLanDiscovery(appContext)
+            }
+            if (!isolated) {
+                runCatching { stop() }
+            }
+        }
     }
 
     fun awaitStopped(timeoutMillis: Long = 7_000L): Boolean =

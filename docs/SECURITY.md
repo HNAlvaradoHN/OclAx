@@ -206,6 +206,19 @@ Controles obligatorios antes de exponer transferencias reales:
 - Quitar un par no elimina archivos ni datos de la bandeja.
 - Nunca guardar ni compartir la API key local de Syncthing junto al Device ID.
 
+## Prueba LAN explícita
+
+- El REST de control usa HTTP solo hacia `127.0.0.1`; Android Network Security Config mantiene cleartext bloqueado globalmente y lo permite únicamente para loopback/localhost.
+- `CHANGE_WIFI_MULTICAST_STATE` se usa únicamente para adquirir un MulticastLock durante discovery local iniciado por el usuario.
+- El estado normal del motor sigue aislado: listener de sincronización en loopback, discovery global/local apagado, relay y NAT apagados.
+- **Probar LAN** habilita discovery local únicamente mientras busca al peer y mantiene un listener TCP IPv4 para la sesión; al confirmar una conexión local, discovery se apaga y se libera el MulticastLock. Global discovery, relay y NAT siguen desactivados.
+- El peer se configura inicialmente pausado y solo se reanuda para la prueba elegida por el usuario.
+- `allowedNetworks` restringe conexiones a RFC1918 IPv4 y link-local; no se confía en Internet completo ni en CGNAT.
+- OclAx solo marca éxito si el motor reporta la conexión como local.
+- Al cancelar, fallar o pulsar **Desconectar LAN**, OclAx intenta pausar el peer, restaura las opciones privadas y libera el MulticastLock; si no puede confirmar el retorno al modo aislado, detiene el runtime completo como fail-closed.
+- La prueba LAN no crea carpetas compartidas, no transmite archivos y no cambia **Permitir sin aceptar**.
+- Local discovery puede revelar el Device ID a otros equipos de esa LAN mientras la prueba está activa; por eso nunca se enciende silenciosamente ni de forma permanente.
+
 ## Confianza y recepción OclAx ↔ OclAx
 
 - el emparejamiento de dispositivos es explícito;

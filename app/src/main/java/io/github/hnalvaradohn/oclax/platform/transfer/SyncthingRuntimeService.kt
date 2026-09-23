@@ -7,6 +7,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ServiceInfo
+import android.net.wifi.WifiManager
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
@@ -20,6 +21,8 @@ internal class SyncthingRuntimeService : Service() {
     companion object {
         private const val ACTION_START = "io.github.hnalvaradohn.oclax.transfer.START"
         private const val ACTION_STOP = "io.github.hnalvaradohn.oclax.transfer.STOP"
+        private const val ACTION_ENABLE_LAN = "io.github.hnalvaradohn.oclax.transfer.ENABLE_LAN"
+        private const val ACTION_DISABLE_LAN = "io.github.hnalvaradohn.oclax.transfer.DISABLE_LAN"
         private const val CHANNEL_ID = "oclax_transfer_runtime"
         private const val NOTIFICATION_ID = 12041
 
@@ -34,6 +37,18 @@ internal class SyncthingRuntimeService : Service() {
                 .setAction(ACTION_STOP)
             ContextCompat.startForegroundService(context, intent)
         }
+
+        fun enableLanDiscovery(context: Context) {
+            val intent = Intent(context, SyncthingRuntimeService::class.java)
+                .setAction(ACTION_ENABLE_LAN)
+            ContextCompat.startForegroundService(context, intent)
+        }
+
+        fun disableLanDiscovery(context: Context) {
+            val intent = Intent(context, SyncthingRuntimeService::class.java)
+                .setAction(ACTION_DISABLE_LAN)
+            ContextCompat.startForegroundService(context, intent)
+        }
     }
 
     private val worker = Executors.newSingleThreadExecutor()
@@ -44,6 +59,7 @@ internal class SyncthingRuntimeService : Service() {
     private var stopping = false
 
     private var runtimeProcess: Process? = null
+    private var multicastLock: WifiManager.MulticastLock? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -56,6 +72,21 @@ internal class SyncthingRuntimeService : Service() {
 
         when (intent?.action) {
             ACTION_STOP -> requestStop()
+            ACTION_ENABLE_LAN -> {
+                requestStart()
+                acquireLanDiscovery()
+            }
+            ACTION_DISABLE_LAN -> {
+                releaseLanDiscovery()
+                val running = synchronized(processLock) {
+                    runtimeProcess?.isAlive == true
+                }
+                if (running) {
+                    updateNotification("Motor de envío activo.")
+                } else {
+                    stopForegroundAndSelf()
+                }
+            }
             else -> requestStart()
         }
 
@@ -66,6 +97,7 @@ internal class SyncthingRuntimeService : Service() {
 
     override fun onDestroy() {
         stopping = true
+        releaseLanDiscovery()
         synchronized(processLock) {
             runtimeProcess?.destroyForcibly()
             runtimeProcess = null
@@ -147,6 +179,7 @@ internal class SyncthingRuntimeService : Service() {
 
     private fun requestStop() {
         stopping = true
+        releaseLanDiscovery()
         worker.execute {
             val process = synchronized(processLock) { runtimeProcess }
             if (process != null && process.isAlive) {
@@ -174,6 +207,29 @@ internal class SyncthingRuntimeService : Service() {
             }
             stopForegroundAndSelf()
         }
+    }
+
+    private fun acquireLanDiscovery() {
+        if (multicastLock?.isHeld == true) return
+
+        val wifiManager = applicationContext
+            .getSystemService(Context.WIFI_SERVICE) as? WifiManager
+            ?: return
+
+        multicastLock = wifiManager.createMulticastLock("OclAxLanDiscovery").apply {
+            setReferenceCounted(false)
+            acquire()
+        }
+        updateNotification("Buscando dispositivo en la red local…")
+    }
+
+    private fun releaseLanDiscovery() {
+        multicastLock?.let { lock ->
+            if (lock.isHeld) {
+                runCatching { lock.release() }
+            }
+        }
+        multicastLock = null
     }
 
     private fun startForegroundNotification(text: String) {

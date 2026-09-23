@@ -43,12 +43,17 @@ internal fun TransferDevicesSection(
     busy: Boolean,
     ownDeviceId: String?,
     devices: List<PairedDevice>,
+    lanBusyDeviceId: String?,
+    activeLanDeviceId: String?,
+    lanStatusByDevice: Map<String, String>,
     onProbe: () -> Unit,
     onStop: () -> Unit,
     onShareOwnId: () -> Unit,
     onAddDevice: (name: String, deviceId: String) -> String?,
     onSetAllowWithoutAccept: (deviceId: String, allowed: Boolean) -> Unit,
     onRemoveDevice: (deviceId: String) -> Unit,
+    onTestLan: (PairedDevice) -> Unit,
+    onDisconnectLan: (PairedDevice) -> Unit,
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
 
@@ -78,7 +83,7 @@ internal fun TransferDevicesSection(
             ) {
                 OutlinedButton(
                     onClick = onProbe,
-                    enabled = !busy,
+                    enabled = !busy && activeLanDeviceId == null,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 ) {
                     Text("Probar motor")
@@ -152,11 +157,24 @@ internal fun TransferDevicesSection(
                     style = MaterialTheme.typography.bodySmall,
                 )
             } else {
+                Text(
+                    "Para probar LAN, abrí OclAx en los dos teléfonos y tocá Probar LAN en ambos.",
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
                 devices.forEach { device ->
                     PairedDeviceRow(
                         device = device,
+                        busy = busy,
+                        lanBusy = lanBusyDeviceId == device.deviceId,
+                        active = activeLanDeviceId == device.deviceId,
+                        anotherActive =
+                            activeLanDeviceId != null && activeLanDeviceId != device.deviceId,
+                        status = lanStatusByDevice[device.deviceId],
                         onSetAllowWithoutAccept = onSetAllowWithoutAccept,
                         onRemoveDevice = onRemoveDevice,
+                        onTestLan = onTestLan,
+                        onDisconnectLan = onDisconnectLan,
                     )
                 }
             }
@@ -180,8 +198,15 @@ internal fun TransferDevicesSection(
 @Composable
 private fun PairedDeviceRow(
     device: PairedDevice,
+    busy: Boolean,
+    lanBusy: Boolean,
+    active: Boolean,
+    anotherActive: Boolean,
+    status: String?,
     onSetAllowWithoutAccept: (deviceId: String, allowed: Boolean) -> Unit,
     onRemoveDevice: (deviceId: String) -> Unit,
+    onTestLan: (PairedDevice) -> Unit,
+    onDisconnectLan: (PairedDevice) -> Unit,
 ) {
     Column(
         modifier = Modifier
@@ -205,13 +230,28 @@ private fun PairedDeviceRow(
                     overflow = TextOverflow.Ellipsis,
                 )
             }
-            IconButton(onClick = { onRemoveDevice(device.deviceId) }) {
+            IconButton(
+                onClick = { onRemoveDevice(device.deviceId) },
+                enabled = !lanBusy && !active,
+            ) {
                 Icon(
                     imageVector = Icons.Filled.Delete,
                     contentDescription = "Quitar ${device.name}",
                     tint = MaterialTheme.colorScheme.error,
                 )
             }
+        }
+
+        status?.let { currentStatus ->
+            Text(
+                currentStatus,
+                style = MaterialTheme.typography.labelSmall,
+                color = if (active) {
+                    MaterialTheme.colorScheme.primary
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                },
+            )
         }
 
         Row(
@@ -234,7 +274,31 @@ private fun PairedDeviceRow(
                 onCheckedChange = { allowed ->
                     onSetAllowWithoutAccept(device.deviceId, allowed)
                 },
+                enabled = !busy,
             )
+        }
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            if (active) {
+                OutlinedButton(
+                    onClick = { onDisconnectLan(device) },
+                    enabled = !busy,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                ) {
+                    Text(if (lanBusy) "Desconectando…" else "Desconectar LAN")
+                }
+            } else {
+                OutlinedButton(
+                    onClick = { onTestLan(device) },
+                    enabled = !busy && !anotherActive,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                ) {
+                    Text(if (lanBusy) "Buscando…" else "Probar LAN")
+                }
+            }
         }
     }
 }
