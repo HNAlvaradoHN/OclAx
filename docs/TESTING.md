@@ -54,7 +54,10 @@ Pendiente de probar:
 - naranja vivo y contraste en modo claro/oscuro;
 - tarjetas y acciones compactas en distintos tamaños de pantalla;
 - Copiar texto e imagen desde una tarjeta y pegar en aplicaciones compatibles;
-- verificar que PDF, APK, documentos, video, audio y otros no muestren Copiar.
+- verificar que PDF, APK, documentos, video, audio y otros no muestren Copiar;
+- comprobar que la categoría Aplicaciones muestra apps lanzables con nombre e icono real, ordenadas alfabéticamente;
+- comprobar que APK y Aplicaciones permanecen separadas;
+- comprobar búsqueda por nombre de aplicación.
 
 Hasta completar esa validación, APP-001 permanece como:
 `IMPLEMENTED_PENDING_VALIDATION`.

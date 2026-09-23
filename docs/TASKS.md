@@ -152,7 +152,7 @@ Pendiente:
 
 
 ### PRODUCT-003 — Aplicaciones instaladas e iconografía real
-**Estado:** PENDING  
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta
 
 Solicitud confirmada por prueba física:
@@ -161,8 +161,15 @@ Solicitud confirmada por prueba física:
 - mejorar iconos/miniaturas de los elementos de OclAx;
 - no confundir APK guardados con aplicaciones instaladas.
 
-Antes de implementar la vista de aplicaciones falta definir una sola interacción principal:
-- si tocar una app debe abrirla;
-- o si debe funcionar como destino para compartir contenido desde OclAx.
+Implementado:
+- categoría Aplicaciones separada de APK;
+- listado alfabético de apps lanzables visibles;
+- icono real de cada aplicación;
+- búsqueda por nombre/paquete;
+- iconos Material reconocibles por tipo para imágenes, PDF, APK, documentos, texto/código, video, audio y otros;
+- sin `QUERY_ALL_PACKAGES`.
 
-La implementación debe evitar permisos amplios innecesarios y respetar las reglas de visibilidad de paquetes de Android.
+Pendiente:
+- validación física de visibilidad, orden e iconos;
+- miniaturas reales para contenido visual cuando aporte valor;
+- decidir más adelante si tocar una app la abre o la convierte en destino directo de compartir.
