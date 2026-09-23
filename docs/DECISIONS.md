@@ -252,3 +252,23 @@ Privacidad y plataforma:
 - OclAx sigue sin permiso de Internet.
 
 **Motivo:** completar la parte del flujo visual solicitada por el dueño —aplicaciones del dispositivo ordenadas e identificables— sin ampliar permisos ni mezclar apps instaladas con archivos APK.
+
+
+---
+
+## DEC-018 — Apps instaladas y categorías del DocumentsProvider son vistas distintas
+
+**Decisión:** OclAx diferencia explícitamente dos superficies:
+
+1. **App OclAx → Apps instaladas**
+   - muestra aplicaciones lanzables del perfil actual;
+   - usa LauncherApps;
+   - muestra nombre e icono real;
+   - no representa esas aplicaciones como archivos adjuntables.
+
+2. **Archivos del sistema → OclAx**
+   - muestra exclusivamente copias/archivos controlados por OclAx;
+   - mantiene acceso directo a recientes;
+   - añade carpetas virtuales por tipo: Fijados, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros.
+
+**Motivo:** una aplicación instalada no es un documento SAF. Exponerla como si fuera un archivo produciría un flujo engañoso. La organización del selector debe mejorar sin romper la semántica de DocumentsProvider.
