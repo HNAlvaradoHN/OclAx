@@ -52,6 +52,15 @@ Formato:
 
 `Ing. OclAx📲 #[NÚMERO]`
 
+Regla de uso:
+- TODAS las respuestas del asistente dentro de ese chat comienzan con el mismo handshake mientras la sesión esté READY;
+- el número identifica al chat completo;
+- el número solo cambia cuando el usuario abre otro chat y ese nuevo chat reclama la siguiente sesión persistente;
+- una resincronización dentro del mismo chat conserva el número;
+- mientras una sesión esté temporalmente UNSYNCED no se presenta un handshake válido.
+
+**Motivo:** hacer visible en cada respuesta qué sesión autorizada está operando y evitar confundir continuidad de chat con creación de una sesión nueva.
+
 Sin handshake válido, la sesión no está autorizada para modificar el proyecto.
 
 ---
