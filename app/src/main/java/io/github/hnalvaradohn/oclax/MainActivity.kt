@@ -87,6 +87,8 @@ import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import io.github.hnalvaradohn.oclax.data.ContentViewMode
 import io.github.hnalvaradohn.oclax.data.ItemStore
+import io.github.hnalvaradohn.oclax.data.PairedDevice
+import io.github.hnalvaradohn.oclax.data.PairedDeviceStore
 import io.github.hnalvaradohn.oclax.data.ViewModePreferences
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
@@ -114,6 +116,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private val store by lazy { ItemStore(applicationContext) }
+    private val pairedDeviceStore by lazy { PairedDeviceStore(applicationContext) }
     private val installedAppsRepository by lazy { InstalledAppsRepository(applicationContext) }
     private val installedAppExporter by lazy { InstalledAppExporter(applicationContext) }
     private val deviceContentRepository by lazy { DeviceContentRepository(applicationContext) }
@@ -129,6 +132,8 @@ class MainActivity : ComponentActivity() {
     private var hasBroadFileAccess by mutableStateOf(false)
     private var deviceLoading by mutableStateOf(false)
     private var retentionHours by mutableIntStateOf(24)
+    private var pairedDevices by mutableStateOf<List<PairedDevice>>(emptyList())
+    private var transferDeviceId by mutableStateOf<String?>(null)
     private var transferRuntimeStatus by mutableStateOf("Motor de envío sin probar.")
     private var transferRuntimeBusy by mutableStateOf(false)
     private var pendingSystemDeleteName: String? = null
@@ -205,8 +210,14 @@ class MainActivity : ComponentActivity() {
                     onSaveDeviceViewMode = viewModePreferences::setDeviceMode,
                     transferRuntimeStatus = transferRuntimeStatus,
                     transferRuntimeBusy = transferRuntimeBusy,
+                    transferDeviceId = transferDeviceId,
+                    pairedDevices = pairedDevices,
                     onProbeTransferRuntime = ::probeTransferRuntime,
                     onStopTransferRuntime = ::stopTransferRuntime,
+                    onShareTransferDeviceId = ::shareTransferDeviceId,
+                    onAddPairedDevice = ::addPairedDevice,
+                    onSetAllowWithoutAccept = ::setAllowWithoutAccept,
+                    onRemovePairedDevice = ::removePairedDevice,
                 )
             }
         }
@@ -250,6 +261,7 @@ class MainActivity : ComponentActivity() {
             runOnUiThread {
                 transferRuntimeBusy = false
                 result.onSuccess { probe ->
+                    transferDeviceId = probe.deviceId
                     val shortId = probe.deviceId.take(7)
                     val isolation = if (probe.nonLoopbackAddressesChecked > 0) {
                         "loopback verificado"
@@ -298,8 +310,62 @@ class MainActivity : ComponentActivity() {
     private fun refresh() {
         retentionHours = store.retentionHours()
         items = store.listItems()
+        pairedDevices = pairedDeviceStore.list()
         hasBroadFileAccess = deviceContentRepository.hasBroadFileAccess()
         refreshDeviceContent()
+    }
+
+    private fun addPairedDevice(name: String, rawDeviceId: String): String? {
+        val normalized = PairedDeviceStore.normalizeDeviceId(rawDeviceId)
+            ?: return "El ID del dispositivo no tiene un formato válido."
+
+        if (transferDeviceId != null && normalized == transferDeviceId) {
+            return "Ese ID pertenece a este mismo dispositivo."
+        }
+
+        return pairedDeviceStore.add(name, normalized)
+            .fold(
+                onSuccess = {
+                    pairedDevices = pairedDeviceStore.list()
+                    null
+                },
+                onFailure = { error ->
+                    error.message ?: "No se pudo guardar el dispositivo."
+                },
+            )
+    }
+
+    private fun setAllowWithoutAccept(deviceId: String, allowed: Boolean) {
+        if (pairedDeviceStore.setAllowWithoutAccept(deviceId, allowed)) {
+            pairedDevices = pairedDeviceStore.list()
+        }
+    }
+
+    private fun removePairedDevice(deviceId: String) {
+        if (pairedDeviceStore.remove(deviceId)) {
+            pairedDevices = pairedDeviceStore.list()
+        }
+    }
+
+    private fun shareTransferDeviceId() {
+        val deviceId = transferDeviceId ?: return
+
+        runCatching {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = "text/plain"
+                putExtra(
+                    Intent.EXTRA_TEXT,
+                    "OclAx · ID de dispositivo\n$deviceId",
+                )
+            }
+            startActivity(Intent.createChooser(intent, "Compartir ID de OclAx"))
+        }.onFailure {
+            Toast.makeText(
+                this,
+                "No se pudo compartir el ID del dispositivo.",
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
     }
 
     private fun refreshDeviceContent() {
@@ -682,8 +748,14 @@ private fun OclAxHome(
     onSaveDeviceViewMode: (String, ContentViewMode) -> Unit,
     transferRuntimeStatus: String,
     transferRuntimeBusy: Boolean,
+    transferDeviceId: String?,
+    pairedDevices: List<PairedDevice>,
     onProbeTransferRuntime: () -> Unit,
     onStopTransferRuntime: () -> Unit,
+    onShareTransferDeviceId: () -> Unit,
+    onAddPairedDevice: (String, String) -> String?,
+    onSetAllowWithoutAccept: (String, Boolean) -> Unit,
+    onRemovePairedDevice: (String) -> Unit,
 ) {
     var sourceMode by remember { mutableStateOf(SourceMode.OCLAX) }
     var query by remember { mutableStateOf("") }
@@ -755,11 +827,17 @@ private fun OclAxHome(
             Spacer(Modifier.height(12.dp))
 
             if (BuildConfig.DEBUG && sourceMode == SourceMode.OCLAX) {
-                TransferRuntimeDiagnostics(
+                TransferDevicesSection(
                     status = transferRuntimeStatus,
                     busy = transferRuntimeBusy,
+                    ownDeviceId = transferDeviceId,
+                    devices = pairedDevices,
                     onProbe = onProbeTransferRuntime,
                     onStop = onStopTransferRuntime,
+                    onShareOwnId = onShareTransferDeviceId,
+                    onAddDevice = onAddPairedDevice,
+                    onSetAllowWithoutAccept = onSetAllowWithoutAccept,
+                    onRemoveDevice = onRemovePairedDevice,
                 )
                 Spacer(Modifier.height(12.dp))
             }
@@ -835,50 +913,6 @@ private fun OclAxHome(
                             )
                         }
                     }
-                }
-            }
-        }
-    }
-}
-
-@Composable
-private fun TransferRuntimeDiagnostics(
-    status: String,
-    busy: Boolean,
-    onProbe: () -> Unit,
-    onStop: () -> Unit,
-) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceVariant,
-        ),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-    ) {
-        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
-            Text(
-                "Enviar a dispositivo · prueba técnica",
-                style = MaterialTheme.typography.labelLarge,
-                fontWeight = FontWeight.Medium,
-            )
-            Text(
-                status,
-                style = MaterialTheme.typography.bodySmall,
-            )
-            Spacer(Modifier.height(6.dp))
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(
-                    onClick = onProbe,
-                    enabled = !busy,
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-                ) {
-                    Text("Probar motor")
-                }
-                TextButton(
-                    onClick = onStop,
-                    enabled = !busy,
-                ) {
-                    Text("Detener")
                 }
             }
         }
