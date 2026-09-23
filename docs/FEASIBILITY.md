@@ -52,6 +52,16 @@ Viable:
 - URI grants de lectura al receptor;
 - opcionalmente IME/commitContent en una fase posterior.
 
+### Atajo confirmado para texto e imagen
+
+Cuando el usuario comparta texto o una imagen hacia OclAx, el mismo flujo de ingreso debe:
+- guardar el elemento en Recientes;
+- publicar también una representación compatible en el portapapeles.
+
+Para imágenes, OclAx debe copiar primero los bytes a almacenamiento propio y servir una URI que controle. Esto evita depender de URIs temporales del emisor que pueden expirar antes del pegado.
+
+Para archivos arbitrarios se mantiene DocumentsProvider como ruta principal de inserción.
+
 ## DocumentsProvider
 
 Android permite a proveedores locales o en nube participar en Storage Access Framework mediante DocumentsProvider.
