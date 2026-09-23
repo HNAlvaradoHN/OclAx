@@ -58,7 +58,8 @@ Validado:
 - CI verde en PR;
 - CI verde en main;
 - APK debug generado;
-- DocumentsProvider visible en el selector de archivos del sistema en dispositivo real.
+- DocumentsProvider visible en el selector de archivos del sistema en dispositivo real;
+- flujo Compartir → OclAx → Pegar validado en Qwen.
 
 Pendiente:
 - validación física completa de compartir, pegar y seleccionar contenido entre aplicaciones.
