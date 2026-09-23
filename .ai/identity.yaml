@@ -1,0 +1,5 @@
+protocol_version: 1
+name: "OclAx"
+icon: "📲"
+handshake_format: "Ing. OclAx📲 #[NÚMERO]"
+session_registry: "GitHub issue [SYSTEM] Agent Session Registry — DO NOT CLOSE"
