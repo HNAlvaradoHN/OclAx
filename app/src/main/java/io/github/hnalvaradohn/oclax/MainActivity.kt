@@ -404,17 +404,24 @@ private enum class ContentFilter(val label: String) {
     DOCUMENTS("Documentos"),
     PDF("PDF"),
     APK("APK guardados"),
-    INSTALLED_APPS("Apps instaladas"),
     TEXT("Texto/Código"),
     VIDEO("Video"),
     AUDIO("Audio"),
     OTHER("Otros"),
 }
 
+private enum class SourceMode(val label: String) {
+    OCLAX("OclAx"),
+    DEVICE("Mi dispositivo"),
+}
+
 @Composable
 private fun OclAxHome(
     allItems: List<StoredItem>,
     installedApps: List<InstalledAppInfo>,
+    deviceFiles: List<DeviceFileInfo>,
+    hasBroadFileAccess: Boolean,
+    deviceLoading: Boolean,
     retentionHours: Int,
     onRetentionChange: (Int) -> Unit,
     onPinToggle: (StoredItem) -> Unit,
@@ -422,37 +429,26 @@ private fun OclAxHome(
     onOpen: (StoredItem) -> Unit,
     onShare: (StoredItem) -> Unit,
     onCopy: (StoredItem) -> Unit,
+    onRequestBroadAccess: () -> Unit,
+    onOpenDeviceFile: (DeviceFileInfo) -> Unit,
+    onShareDeviceFile: (DeviceFileInfo) -> Unit,
+    onCopyDeviceFile: (DeviceFileInfo) -> Unit,
+    onOpenApp: (InstalledAppInfo) -> Unit,
 ) {
+    var sourceMode by remember { mutableStateOf(SourceMode.OCLAX) }
     var query by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf(ContentFilter.ALL) }
     var pendingDelete by remember { mutableStateOf<StoredItem?>(null) }
 
     val visibleItems = remember(query, filter, allItems) {
         val needle = query.trim().lowercase()
-        if (filter == ContentFilter.INSTALLED_APPS) {
-            emptyList()
-        } else {
-            allItems.filter { item ->
-                matchesFilter(item, filter) &&
-                    (
-                        needle.isEmpty() ||
-                            item.displayName.lowercase().contains(needle) ||
-                            item.mimeType.lowercase().contains(needle)
-                        )
-            }
-        }
-    }
-
-    val visibleApps = remember(query, filter, installedApps) {
-        if (filter != ContentFilter.INSTALLED_APPS) {
-            emptyList()
-        } else {
-            val needle = query.trim().lowercase()
-            installedApps.filter { app ->
-                needle.isEmpty() ||
-                    app.label.lowercase().contains(needle) ||
-                    app.packageName.lowercase().contains(needle)
-            }
+        allItems.filter { item ->
+            matchesFilter(item, filter) &&
+                (
+                    needle.isEmpty() ||
+                        item.displayName.lowercase().contains(needle) ||
+                        item.mimeType.lowercase().contains(needle)
+                    )
         }
     }
 
@@ -500,75 +496,111 @@ private fun OclAxHome(
                 "Tu contenido, listo donde lo necesitás.",
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Spacer(Modifier.height(14.dp))
+            Spacer(Modifier.height(12.dp))
 
-            OutlinedTextField(
-                value = query,
-                onValueChange = { query = it },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                label = { Text("Buscar") },
+            SourceModeSwitch(
+                selected = sourceMode,
+                onSelect = { sourceMode = it },
             )
-            Spacer(Modifier.height(10.dp))
+            Spacer(Modifier.height(12.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top,
-            ) {
-                ContentFilterMenu(
-                    selected = filter,
-                    onSelect = { filter = it },
+            if (sourceMode == SourceMode.DEVICE) {
+                DeviceBrowser(
+                    files = deviceFiles,
+                    apps = installedApps,
+                    hasBroadFileAccess = hasBroadFileAccess,
+                    isLoading = deviceLoading,
+                    onRequestBroadAccess = onRequestBroadAccess,
+                    onOpenFile = onOpenDeviceFile,
+                    onShareFile = onShareDeviceFile,
+                    onCopyFile = onCopyDeviceFile,
+                    onOpenApp = onOpenApp,
                 )
-                Spacer(Modifier.width(12.dp))
-                RetentionControl(
-                    retentionHours = retentionHours,
-                    onRetentionChange = onRetentionChange,
-                    modifier = Modifier.weight(1f),
+            } else {
+                OutlinedTextField(
+                    value = query,
+                    onValueChange = { query = it },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    label = { Text("Buscar en OclAx") },
                 )
-            }
+                Spacer(Modifier.height(10.dp))
 
-            Spacer(Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.Top,
+                ) {
+                    ContentFilterMenu(
+                        selected = filter,
+                        onSelect = { filter = it },
+                    )
+                    Spacer(Modifier.width(12.dp))
+                    RetentionControl(
+                        retentionHours = retentionHours,
+                        onRetentionChange = onRetentionChange,
+                        modifier = Modifier.weight(1f),
+                    )
+                }
 
-            if (filter == ContentFilter.INSTALLED_APPS) {
-                if (visibleApps.isEmpty()) {
+                Spacer(Modifier.height(10.dp))
+
+                if (visibleItems.isEmpty()) {
                     Text(
-                        "No hay aplicaciones visibles para esa búsqueda.",
+                        if (allItems.isEmpty()) {
+                            "Todavía no hay elementos. Compartí contenido hacia OclAx."
+                        } else {
+                            "No hay elementos en ${filter.label.lowercase()} para esa búsqueda."
+                        },
                         style = MaterialTheme.typography.bodyLarge,
                     )
                 } else {
                     LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
-                        items(visibleApps, key = { it.packageName }) { app ->
-                            InstalledAppCard(app)
+                        items(visibleItems, key = { it.id }) { item ->
+                            ItemCard(
+                                item = item,
+                                onPinToggle = onPinToggle,
+                                onDeleteRequest = { pendingDelete = item },
+                                onOpen = onOpen,
+                                onShare = onShare,
+                                onCopy = onCopy,
+                            )
                         }
                     }
                 }
-            } else if (visibleItems.isEmpty()) {
-                Text(
-                    if (allItems.isEmpty()) {
-                        "Todavía no hay elementos. Compartí contenido hacia OclAx."
-                    } else {
-                        "No hay elementos en ${filter.label.lowercase()} para esa búsqueda."
-                    },
-                    style = MaterialTheme.typography.bodyLarge,
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp),
+            }
+        }
+    }
+}
+
+@Composable
+private fun SourceModeSwitch(
+    selected: SourceMode,
+    onSelect: (SourceMode) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+    ) {
+        SourceMode.entries.forEach { option ->
+            val selectedOption = selected == option
+            if (selectedOption) {
+                Button(
+                    onClick = { onSelect(option) },
+                    modifier = Modifier.weight(1f).height(38.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
                 ) {
-                    items(visibleItems, key = { it.id }) { item ->
-                        ItemCard(
-                            item = item,
-                            onPinToggle = onPinToggle,
-                            onDeleteRequest = { pendingDelete = item },
-                            onOpen = onOpen,
-                            onShare = onShare,
-                            onCopy = onCopy,
-                        )
-                    }
+                    Text(option.label)
+                }
+            } else {
+                OutlinedButton(
+                    onClick = { onSelect(option) },
+                    modifier = Modifier.weight(1f).height(38.dp),
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
+                ) {
+                    Text(option.label)
                 }
             }
         }
@@ -632,7 +664,6 @@ private fun matchesFilter(item: StoredItem, filter: ContentFilter): Boolean {
         ContentFilter.IMAGES -> type == ContentType.IMAGE
         ContentFilter.PDF -> type == ContentType.PDF
         ContentFilter.APK -> type == ContentType.APP
-        ContentFilter.INSTALLED_APPS -> false
         ContentFilter.TEXT -> type == ContentType.TEXT
         ContentFilter.VIDEO -> type == ContentType.VIDEO
         ContentFilter.AUDIO -> type == ContentType.AUDIO
