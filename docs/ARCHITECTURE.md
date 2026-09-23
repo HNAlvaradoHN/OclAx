@@ -151,7 +151,7 @@ Syncthing REST loopback
 /rest/system/connections → connected + isLocal
 ```
 
-La prueba no crea carpetas Syncthing ni mueve contenido. Al desconectar, el motor vuelve a `enforcePrivateOptions()` y se libera el MulticastLock.
+La prueba no crea carpetas Syncthing ni mueve contenido. Al confirmar el peer, OclAx apaga discovery local y libera el MulticastLock manteniendo solo la conexión/listener LAN; al desconectar, el motor vuelve a `enforcePrivateOptions()`.
 
 Syncthing core v2.x es el motor candidato, encapsulado detrás de una capa propia. El wrapper Android oficial discontinuado no forma parte de la arquitectura OclAx.
 
