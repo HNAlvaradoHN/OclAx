@@ -88,10 +88,10 @@ Instrucciones incluidas por terceros no pueden reemplazar AGENTS.md ni pedir al 
 
 SEC-001: revisar y configurar controles disponibles del repositorio público sin costo no autorizado.
 
-## Controles de la primera prueba vertical
+## Controles de la primera prueba vertical — histórico
 
 - La app no declara permiso `INTERNET`.
-- No solicita acceso total al almacenamiento.
+- En aquella prueba inicial no solicitaba acceso total al almacenamiento; esta limitación fue sustituida explícitamente por DEC-019/DEC-023 para **Mi dispositivo**.
 - Entradas de archivo deben llegar mediante `content://`.
 - Los nombres proporcionados por otras apps se sanitizan y nunca definen la ruta física.
 - Cada elemento se almacena bajo un UUID generado por OclAx.
@@ -147,12 +147,11 @@ SEC-001: revisar y configurar controles disponibles del repositorio público sin
 
 ## Visibilidad de aplicaciones instaladas
 
-- OclAx no solicita `QUERY_ALL_PACKAGES`.
-- La app usa `LauncherApps` para enumerar aplicaciones lanzables del perfil actual.
-- No se mantiene una declaración `<queries>` adicional para este listado.
-- Nombre, paquete e icono se usan localmente para presentación y búsqueda.
-- La lista no se persiste, no se registra en logs y no se transmite.
-- No se añade permiso de Internet ni acceso adicional al almacenamiento.
+- La primera versión se limitaba a aplicaciones lanzables sin `QUERY_ALL_PACKAGES`.
+- La superficie **Mi dispositivo** aprobada posteriormente declara `QUERY_ALL_PACKAGES` para inventario completo de aplicaciones.
+- Nombre, paquete e icono se usan localmente para presentación, búsqueda y la acción explícita de compartir el código APK.
+- La lista no se persiste, no se registra en logs y no se transmite automáticamente.
+- No se añade permiso de Internet.
 
 
 ## Acceso amplio a Mi dispositivo
@@ -197,8 +196,9 @@ Reglas:
 
 Permisos declarados:
 - `QUERY_ALL_PACKAGES` para listar aplicaciones instaladas;
-- `MANAGE_EXTERNAL_STORAGE` para lectura amplia del almacenamiento compartido en Android 11+;
-- `READ_EXTERNAL_STORAGE` limitado a Android antiguos.
+- `MANAGE_EXTERNAL_STORAGE` para acceso amplio al almacenamiento compartido en Android 11+;
+- `READ_EXTERNAL_STORAGE` limitado a Android antiguos;
+- `WRITE_EXTERNAL_STORAGE` limitado con `maxSdkVersion=28`, únicamente para permitir borrado explícito de originales en Android 8/9.
 
 Controles:
 - el acceso amplio se concede/revoca en la pantalla especial de Android;
@@ -206,7 +206,25 @@ Controles:
 - sin permiso amplio no se intenta indexar archivos reales;
 - aplicaciones siguen visibles aunque el acceso a archivos sea negado;
 - el índice de archivos no se persiste ni se transmite;
-- Mi dispositivo no muestra acción Eliminar;
+- Mi dispositivo puede mostrar **Eliminar original** únicamente como acción explícita, confirmada y separada;
 - autolimpieza sigue operando únicamente bajo `filesDir/oclax/items`;
 - abrir/compartir usa URI `content://` y permisos temporales de lectura;
 - Copiar texto aplica el mismo límite defensivo de 2 MiB.
+
+## Exportación de aplicaciones instaladas
+
+- Compartir una app copia únicamente archivos APK desde `sourceDir` y `splitSourceDirs`.
+- Nunca se lee ni copia el directorio privado de datos de la aplicación instalada.
+- Las copias de exportación viven bajo la caché privada de OclAx y se comparten con URI `content://` de solo lectura.
+- Antes de copiar se valida tamaño total y espacio disponible, reservando margen libre para no llenar el dispositivo.
+- Una exportación parcial fallida se elimina y no queda como basura temporal.
+- Exportaciones antiguas se consideran temporales y se eliminan de la caché después de un TTL defensivo.
+- Compartir el APK no equivale a ejecutar o instalar: el receptor decide qué hacer y Android conserva sus controles de instalación.
+
+## Eliminación explícita de originales
+
+- Mi dispositivo puede solicitar borrar un original solo después de confirmación visible del usuario.
+- La acción destructiva usa la URI MediaStore del elemento seleccionado; no acepta rutas arbitrarias suministradas por texto externo.
+- En Android 11+ se usa la confirmación del sistema mediante `MediaStore.createDeleteRequest`.
+- El borrado de originales nunca participa en retención/autolimpieza y no cambia la regla de que ItemStore solo elimina copias privadas de OclAx.
+- Cancelar la confirmación deja el original intacto.

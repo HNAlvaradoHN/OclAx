@@ -167,7 +167,7 @@ Implementado:
 - icono real de cada aplicación;
 - búsqueda por nombre/paquete;
 - iconos Material reconocibles por tipo para imágenes, PDF, APK, documentos, texto/código, video, audio y otros;
-- sin `QUERY_ALL_PACKAGES`.
+- inicialmente se evitó `QUERY_ALL_PACKAGES`; esta restricción fue posteriormente sustituida por DEVICE-001/DEC-019 al aprobarse la superficie amplia Mi dispositivo.
 
 Corrección en curso tras prueba física:
 - listado migrado a LauncherApps para mayor fiabilidad;
@@ -252,3 +252,24 @@ Pendiente:
 - validación física con PDF, Word/OOXML, imagen, video, audio y APK;
 - verificar comportamiento con aplicación predeterminada y con selector cuando haya varias opciones;
 - verificar flujo de “instalar apps desconocidas” al primer intento de abrir un APK.
+
+### DEVICE-002 — Miniaturas, compartir apps y borrar originales
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Implementación en PR #34:
+- miniaturas reales para imágenes/video en Mi dispositivo;
+- miniaturas expuestas por DocumentsProvider al selector de Android;
+- lista/cuadrícula persistente por categoría;
+- compartir apps instaladas usando base APK + splits sin datos privados;
+- borrar originales mediante confirmación explícita y autorización MediaStore cuando corresponda.
+
+Validado:
+- tests unitarios, lint y assembleDebug verdes en CI del PR.
+
+Pendiente:
+- validación física en teléfono real;
+- confirmar miniaturas en el selector Android y en Mi dispositivo;
+- confirmar compartir APK único y paquete con splits sin datos privados;
+- confirmar borrado/cancelación sobre originales;
+- confirmar experiencia de recepción/instalación para paquetes con splits antes de declararlo DONE.

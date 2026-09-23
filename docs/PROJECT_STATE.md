@@ -73,7 +73,7 @@
 
 ## En desarrollo
 
-- miniaturas reales para imágenes/video;
+- PR #34 implementado con CI verde: miniaturas reales para imágenes/video, compartir apps instaladas sin datos privados, borrado explícito de originales y vista lista/cuadrícula por categoría;
 - validación física de Mi dispositivo y permisos;
 - prototipo OclAx ↔ OclAx usando Syncthing como motor candidato.
 
@@ -83,9 +83,10 @@ Ninguno conocido.
 
 ## Siguiente paso exacto
 
-1. Validar físicamente Mi dispositivo: permiso de todos los archivos, apps visibles y categorías con contenido real.
-2. Validar abrir PDF, Word/documentos, imágenes, video, audio y APK tanto desde OclAx como desde Mi dispositivo.
-3. Confirmar que revocar acceso amplio no rompe la bandeja OclAx.
-4. Añadir miniaturas reales para imágenes/video si la prueba física confirma que mejoran reconocimiento sin afectar rendimiento.
-5. Prototipar Syncthing como motor de **Enviar a dispositivo** con directo/LAN/Internet y relay público como fallback.
-6. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
+1. Terminar revisión/fusión del PR #34 con CI verde.
+2. Validar físicamente miniaturas en Archivos → OclAx y en Mi dispositivo.
+3. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
+4. Validar borrar/cancelar borrado de un original y comprobar que la bandeja OclAx queda intacta.
+5. Confirmar vista lista/cuadrícula independiente por categoría y persistente.
+6. Prototipar Syncthing como motor de **Enviar a dispositivo** con directo/LAN/Internet y relay público como fallback.
+7. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.

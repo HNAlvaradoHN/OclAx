@@ -2,7 +2,7 @@
 
 ## Estado
 
-Arquitectura conceptual inicial. No hay código todavía.
+Arquitectura Android activa. La implementación real ya incluye bandeja OclAx, DocumentsProvider/FileProvider, Mi dispositivo y las capas de plataforma descritas más abajo.
 
 ## Plataforma
 
@@ -39,8 +39,7 @@ Integraciones con APIs del sistema, selector de archivos, portapapeles, trabajos
 
 ## Tecnología
 
-La selección concreta de librerías y versiones se decidirá y verificará antes de crear la base Android.
-No se considera aprobada una dependencia solo por haber sido mencionada en una conversación.
+Android nativo con Kotlin y Jetpack Compose. Las versiones concretas verificadas del toolchain se registran en DECISIONS y el código Gradle; cualquier dependencia nueva requiere necesidad y validación según AGENTS.md.
 
 
 ## Implementación Android inicial — 2026-09-22
@@ -203,3 +202,21 @@ Detalles:
 - Copiar se limita a Texto/Código e Imagen igual que en la bandeja.
 
 El ItemStore no participa en Mi dispositivo salvo que una acción futura importe explícitamente un original a la bandeja.
+
+## Miniaturas, exportación y borrado — 2026-09-23
+
+```text
+DeviceBrowser
+   ├─→ ThumbnailLoader ─→ ContentResolver / media decoder
+   ├─→ InstalledAppExporter ─→ sourceDir + splitSourceDirs ─→ cache + FileProvider
+   └─→ DeviceContentRepository.requestDelete ─→ MediaStore delete confirmation
+
+DocumentsProvider
+   └─→ ThumbnailLoader ─→ thumbnail cache ─→ openDocumentThumbnail
+```
+
+Responsabilidades:
+- `ThumbnailLoader` limita decodificación a imágenes/video y mantiene caché de memoria acotada.
+- `InstalledAppExporter` prepara copias temporales del código APK; no conoce datos privados de apps.
+- `DeviceContentRepository` crea/ejecuta la solicitud de eliminación; la UI solo confirma intención y lanza autorización del sistema.
+- `ViewModePreferences` persiste lista/cuadrícula por categoría sin mezclarlo con reglas de dominio.

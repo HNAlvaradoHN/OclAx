@@ -87,3 +87,14 @@ Ninguno registrado actualmente.
 - mantener `QUERY_ALL_PACKAGES` por decisión DEC-019/DEC-023 y añadir una supresión localizada `tools:ignore="QueryAllPackagesPermission"` únicamente en esa declaración.
 
 **Prevención:** los permisos amplios deben estar justificados en DECISIONS/SECURITY y cualquier supresión de lint debe ser puntual, visible y asociada a una decisión explícita; no desactivar lint globalmente.
+
+### ERR-007 — Lint bloqueó borrado compatible con Android 10
+**Estado:** RESUELTO
+
+**Síntoma:** la CI del PR #34 compiló, ejecutó tests y generó el APK, pero lint bloqueó el cambio porque `RecoverableSecurityException` requiere API 29 mientras OclAx mantiene minSdk 26.
+
+**Causa:** la primera implementación capturaba directamente una excepción introducida en Android 10 dentro de un método accesible para todas las versiones soportadas.
+
+**Solución:** separar el borrado por versión: Android 11+ usa `MediaStore.createDeleteRequest`; Android 10 usa un método anotado para API 29 que maneja `RecoverableSecurityException`; Android 8/9 usa la ruta legacy.
+
+**Prevención:** encapsular APIs Android introducidas después de minSdk en métodos explícitamente versionados/anotados en lugar de confiar solo en ramas internas.
