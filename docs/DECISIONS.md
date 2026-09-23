@@ -423,3 +423,26 @@ Reglas:
 - Compartir y Copiar reutilizan URI de contenido existentes, sin duplicar automáticamente el original.
 
 **Motivo:** permitir acceso real al contenido del dispositivo sin mezclar propiedad, retención ni borrado con la bandeja temporal.
+
+## DEC-024 — Miniaturas, exportación de apps y borrado explícito
+
+**Decisión:** la superficie **Mi dispositivo** evoluciona para reconocer contenido visual, compartir aplicaciones instaladas y eliminar originales únicamente mediante una acción explícita.
+
+### Miniaturas y vista
+- Imágenes y video usan miniaturas reales cuando Android puede generarlas.
+- El DocumentsProvider marca imágenes/video como compatibles con miniatura y responde a las solicitudes del selector del sistema.
+- Imágenes y Video prefieren cuadrícula como presentación inicial; el selector del sistema conserva la decisión final del usuario.
+- Dentro de Mi dispositivo, lista/cuadrícula se elige y recuerda **por categoría**.
+
+### Compartir una aplicación instalada
+- OclAx comparte únicamente los APK que forman la instalación: base + splits cuando existan.
+- Se leen exclusivamente `ApplicationInfo.sourceDir` y `splitSourceDirs`.
+- Nunca se exporta `dataDir`, preferencias, bases de datos, caché, sesiones, cuentas ni archivos personales de esa app.
+- Los APK se copian temporalmente a caché privada OclAx y se exponen en solo lectura mediante FileProvider.
+- Para instalaciones con splits se comparte el conjunto completo; la instalación posterior sigue siendo decisión del receptor y puede requerir un instalador compatible.
+
+### Eliminar originales
+- **Eliminar del dispositivo** es distinto de **Eliminar de OclAx**.
+- OclAx muestra confirmación explícita indicando que se elimina el original.
+- En Android 11+ se delega la autorización final al diálogo de eliminación de MediaStore.
+- La autolimpieza de OclAx jamás incluye originales del dispositivo.
