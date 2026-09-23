@@ -69,7 +69,7 @@
 - categorías del dispositivo: Apps, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros;
 - búsqueda, abrir y compartir desde contenido real;
 - Copiar limitado a texto e imágenes también en Mi dispositivo;
-- ningún borrado de originales desde Mi dispositivo.
+- en la primera versión de Mi dispositivo no había borrado de originales; DEVICE-002 añadió después **Eliminar original** explícito y confirmado.
 
 ## Implementado recientemente
 
@@ -83,19 +83,22 @@
 
 ## En desarrollo
 
-- validación física de este bloque en teléfono real;
-- prototipo OclAx ↔ OclAx usando Syncthing como motor candidato.
+- corrección tras prueba física: portada real de PDF mediante primera página renderizada;
+- corrección del borrado de originales en Android 11+;
+- validación física del bloque Mi dispositivo;
+- prototipo OclAx ↔ OclAx usando Syncthing como motor candidato después de cerrar esta validación.
 
 ## Bloqueos
 
-Ninguno conocido.
+- la build probada físicamente no podía borrar originales: Android rechazaba la URI genérica de MediaStore.Files;
+- la corrección está implementada y debe validarse físicamente antes de avanzar al bloque de transferencia.
 
 ## Siguiente paso exacto
 
-1. Validar físicamente miniaturas en Archivos → OclAx y en Mi dispositivo.
-2. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
-3. Validar borrar y cancelar borrado de un original, comprobando que la bandeja OclAx queda intacta.
+1. Instalar la build corregida y confirmar portada de PDF en Mi dispositivo y Archivos → OclAx.
+2. Borrar y cancelar borrado de una imagen y de un PDF/documento; confirmar que el original desaparece solo cuando se acepta y que la bandeja OclAx queda intacta.
+3. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
 4. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
-5. Confirmar rendimiento de miniaturas con muchas imágenes/videos.
+5. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
 6. Después de esa validación, prototipar Syncthing como motor de **Enviar a dispositivo** con directo/LAN/Internet y relay público como fallback.
 7. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.

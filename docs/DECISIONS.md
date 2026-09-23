@@ -430,7 +430,8 @@ Reglas:
 
 ### Miniaturas y vista
 - Imágenes y video usan miniaturas reales cuando Android puede generarlas.
-- El DocumentsProvider marca imágenes/video como compatibles con miniatura y responde a las solicitudes del selector del sistema.
+- PDF usa una miniatura renderizada desde su primera página cuando puede abrirse de forma segura.
+- El DocumentsProvider marca imágenes/video/PDF como compatibles con miniatura y responde a las solicitudes del selector del sistema.
 - Imágenes y Video prefieren cuadrícula como presentación inicial; el selector del sistema conserva la decisión final del usuario.
 - Dentro de Mi dispositivo, lista/cuadrícula se elige y recuerda **por categoría**.
 
@@ -444,5 +445,5 @@ Reglas:
 ### Eliminar originales
 - **Eliminar del dispositivo** es distinto de **Eliminar de OclAx**.
 - OclAx muestra confirmación explícita indicando que se elimina el original.
-- En Android 11+ se delega la autorización final al diálogo de eliminación de MediaStore.
+- En Android 11+ y con acceso amplio ya concedido, OclAx intenta eliminar mediante ContentResolver; si Android exige confirmación para un medio, usa `MediaStore.createDeleteRequest` con la URI específica de Imagen/Video/Audio.
 - La autolimpieza de OclAx jamás incluye originales del dispositivo.

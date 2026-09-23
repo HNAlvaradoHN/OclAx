@@ -225,6 +225,8 @@ Controles:
 
 - Mi dispositivo puede solicitar borrar un original solo después de confirmación visible del usuario.
 - La acción destructiva usa la URI MediaStore del elemento seleccionado; no acepta rutas arbitrarias suministradas por texto externo.
-- En Android 11+ se usa la confirmación del sistema mediante `MediaStore.createDeleteRequest`.
+- En Android 11+ y con `MANAGE_EXTERNAL_STORAGE` ya concedido, OclAx intenta primero `ContentResolver.delete` sobre la URI seleccionada.
+- Si Android exige confirmación adicional para Imagen/Video/Audio, OclAx usa `MediaStore.createDeleteRequest` únicamente con una URI de la colección multimedia específica; nunca pasa una URI genérica de `MediaStore.Files` a esa API.
+- PDF/documentos no se disfrazan como contenido multimedia para forzar una confirmación incompatible.
 - El borrado de originales nunca participa en retención/autolimpieza y no cambia la regla de que ItemStore solo elimina copias privadas de OclAx.
-- Cancelar la confirmación deja el original intacto.
+- Cancelar una confirmación deja el original intacto.

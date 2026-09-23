@@ -3,9 +3,12 @@ package io.github.hnalvaradohn.oclax.platform
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Color
+import android.graphics.pdf.PdfRenderer
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
+import android.os.ParcelFileDescriptor
 import android.util.LruCache
 import android.util.Size
 import io.github.hnalvaradohn.oclax.model.ContentType
@@ -23,25 +26,39 @@ class ThumbnailLoader(context: Context) {
     }
 
     fun loadDevice(file: DeviceFileInfo, targetPx: Int = 320): Bitmap? {
-        if (file.type != ContentType.IMAGE && file.type != ContentType.VIDEO) return null
+        if (
+            file.type != ContentType.IMAGE &&
+            file.type != ContentType.VIDEO &&
+            file.type != ContentType.PDF
+        ) {
+            return null
+        }
 
         val safeTarget = targetPx.coerceIn(96, 1024)
         val key = "uri:${file.uri}:${file.modifiedAt}:$safeTarget"
         cache.get(key)?.let { return it }
 
         val bitmap = runCatching {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                resolver.loadThumbnail(file.uri, Size(safeTarget, safeTarget), null)
-            } else {
-                when (file.type) {
-                    ContentType.IMAGE -> decodeSampledImage(safeTarget) {
-                        resolver.openInputStream(file.uri)
-                    }
-                    ContentType.VIDEO -> videoFrame(safeTarget) {
-                        setDataSource(appContext, file.uri)
-                    }
-                    else -> null
+            when (file.type) {
+                ContentType.PDF -> pdfFirstPage(safeTarget) {
+                    resolver.openFileDescriptor(file.uri, "r")
                 }
+                ContentType.IMAGE,
+                ContentType.VIDEO,
+                -> if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    resolver.loadThumbnail(file.uri, Size(safeTarget, safeTarget), null)
+                } else {
+                    when (file.type) {
+                        ContentType.IMAGE -> decodeSampledImage(safeTarget) {
+                            resolver.openInputStream(file.uri)
+                        }
+                        ContentType.VIDEO -> videoFrame(safeTarget) {
+                            setDataSource(appContext, file.uri)
+                        }
+                        else -> null
+                    }
+                }
+                else -> null
             }
         }.getOrNull()
 
@@ -54,7 +71,13 @@ class ThumbnailLoader(context: Context) {
         type: ContentType,
         targetPx: Int = 320,
     ): Bitmap? {
-        if (type != ContentType.IMAGE && type != ContentType.VIDEO) return null
+        if (
+            type != ContentType.IMAGE &&
+            type != ContentType.VIDEO &&
+            type != ContentType.PDF
+        ) {
+            return null
+        }
 
         val safeTarget = targetPx.coerceIn(96, 1024)
         val key = "file:${file.absolutePath}:${file.lastModified()}:$safeTarget"
@@ -67,6 +90,9 @@ class ThumbnailLoader(context: Context) {
                 }
                 ContentType.VIDEO -> videoFrame(safeTarget) {
                     setDataSource(file.absolutePath)
+                }
+                ContentType.PDF -> pdfFirstPage(safeTarget) {
+                    ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
                 }
                 else -> null
             }
@@ -98,6 +124,34 @@ class ThumbnailLoader(context: Context) {
             inPreferredConfig = Bitmap.Config.ARGB_8888
         }
         return streamFactory()?.use { BitmapFactory.decodeStream(it, null, options) }
+    }
+
+    private fun pdfFirstPage(
+        targetPx: Int,
+        descriptorFactory: () -> ParcelFileDescriptor?,
+    ): Bitmap? {
+        val descriptor = descriptorFactory() ?: return null
+        return descriptor.use { parcelFileDescriptor ->
+            PdfRenderer(parcelFileDescriptor).use { renderer ->
+                if (renderer.pageCount <= 0) return@use null
+
+                renderer.openPage(0).use { page ->
+                    val largest = max(page.width, page.height).coerceAtLeast(1)
+                    val scale = targetPx.toFloat() / largest.toFloat()
+                    val width = (page.width * scale).toInt().coerceAtLeast(1)
+                    val height = (page.height * scale).toInt().coerceAtLeast(1)
+                    val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                    bitmap.eraseColor(Color.WHITE)
+                    page.render(
+                        bitmap,
+                        null,
+                        null,
+                        PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY,
+                    )
+                    bitmap
+                }
+            }
+        }
     }
 
     private fun videoFrame(

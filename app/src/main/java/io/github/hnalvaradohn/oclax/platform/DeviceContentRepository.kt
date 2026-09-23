@@ -34,6 +34,7 @@ data class DeviceFileInfo(
     val byteSize: Long,
     val modifiedAt: Long,
     val relativePath: String?,
+    val mediaStoreType: Int = 0,
 ) {
     val type: ContentType
         get() = contentTypeFor(mimeType)
@@ -68,6 +69,7 @@ class DeviceContentRepository(context: Context) {
             add(MediaStore.Files.FileColumns.MIME_TYPE)
             add(MediaStore.Files.FileColumns.SIZE)
             add(MediaStore.Files.FileColumns.DATE_MODIFIED)
+            add(MediaStore.Files.FileColumns.MEDIA_TYPE)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 add(MediaStore.Files.FileColumns.RELATIVE_PATH)
             }
@@ -87,6 +89,7 @@ class DeviceContentRepository(context: Context) {
             val mimeIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE)
             val sizeIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE)
             val dateIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED)
+            val mediaTypeIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE)
             val pathIndex = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 cursor.getColumnIndex(MediaStore.Files.FileColumns.RELATIVE_PATH)
             } else {
@@ -119,6 +122,11 @@ class DeviceContentRepository(context: Context) {
                 } else {
                     null
                 }
+                val mediaStoreType = if (mediaTypeIndex >= 0 && !cursor.isNull(mediaTypeIndex)) {
+                    cursor.getInt(mediaTypeIndex)
+                } else {
+                    0
+                }
 
                 result += DeviceFileInfo(
                     id = id,
@@ -128,6 +136,7 @@ class DeviceContentRepository(context: Context) {
                     byteSize = size,
                     modifiedAt = modifiedAt,
                     relativePath = relativePath,
+                    mediaStoreType = mediaStoreType,
                 )
             }
         }
@@ -151,16 +160,50 @@ class DeviceContentRepository(context: Context) {
     }
 
     @RequiresApi(Build.VERSION_CODES.R)
-    private fun requestDeleteAndroid11Plus(file: DeviceFileInfo): DeviceDeleteResult =
-        runCatching {
+    private fun requestDeleteAndroid11Plus(file: DeviceFileInfo): DeviceDeleteResult {
+        var directDeleteError: Exception? = null
+
+        try {
+            val deleted = resolver.delete(file.uri, null, null)
+            if (deleted > 0) {
+                return DeviceDeleteResult.Deleted
+            }
+        } catch (error: Exception) {
+            directDeleteError = error
+        }
+
+        val confirmationUri = mediaDeleteConfirmationUri(file)
+            ?: return DeviceDeleteResult.Failed(
+                directDeleteError?.message ?: "Android no permitió eliminar el archivo original.",
+            )
+
+        return runCatching {
             val pendingIntent = MediaStore.createDeleteRequest(
                 resolver,
-                listOf(file.uri),
+                listOf(confirmationUri),
             )
             DeviceDeleteResult.NeedsUserConfirmation(pendingIntent.intentSender)
         }.getOrElse { error ->
-            DeviceDeleteResult.Failed(error.message)
+            DeviceDeleteResult.Failed(error.message ?: directDeleteError?.message)
         }
+    }
+
+    @RequiresApi(Build.VERSION_CODES.R)
+    private fun mediaDeleteConfirmationUri(file: DeviceFileInfo): Uri? {
+        val volume = runCatching { MediaStore.getVolumeName(file.uri) }
+            .getOrDefault(MediaStore.VOLUME_EXTERNAL)
+
+        val collection = when (file.mediaStoreType) {
+            MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE ->
+                MediaStore.Images.Media.getContentUri(volume)
+            MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO ->
+                MediaStore.Video.Media.getContentUri(volume)
+            MediaStore.Files.FileColumns.MEDIA_TYPE_AUDIO ->
+                MediaStore.Audio.Media.getContentUri(volume)
+            else -> return null
+        }
+        return ContentUris.withAppendedId(collection, file.id)
+    }
 
     @RequiresApi(Build.VERSION_CODES.Q)
     private fun requestDeleteAndroid10(file: DeviceFileInfo): DeviceDeleteResult =

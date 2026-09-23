@@ -95,6 +95,30 @@ Ninguno registrado actualmente.
 
 **Causa:** la primera implementación capturaba directamente una excepción introducida en Android 10 dentro de un método accesible para todas las versiones soportadas.
 
-**Solución:** separar el borrado por versión: Android 11+ usa `MediaStore.createDeleteRequest`; Android 10 usa un método anotado para API 29 que maneja `RecoverableSecurityException`; Android 8/9 usa la ruta legacy.
+**Solución inicial:** separar el borrado por versión: Android 11+ usaba `MediaStore.createDeleteRequest`; Android 10 usa un método anotado para API 29 que maneja `RecoverableSecurityException`; Android 8/9 usa la ruta legacy.
 
-**Prevención:** encapsular APIs Android introducidas después de minSdk en métodos explícitamente versionados/anotados en lugar de confiar solo en ramas internas.
+**Evolución posterior:** la prueba física reveló que Android 11+ rechaza la URI genérica de `MediaStore.Files` en `createDeleteRequest`. La corrección vigente está documentada en ERR-008.
+
+**Prevención:** encapsular APIs Android introducidas después de minSdk en métodos explícitamente versionados/anotados y validar físicamente los contratos de URI exigidos por cada API.
+
+### ERR-008 — PDF sin portada y borrado de originales rechazado
+**Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
+
+**Síntomas observados en teléfono real:**
+- las miniaturas de imágenes funcionan, pero los PDF siguen mostrando icono genérico;
+- al intentar eliminar un original Android muestra: `All requested items must be Media items`.
+
+**Causa verificada en código:**
+- `ThumbnailLoader`, `DeviceFileVisual` y `DocumentsProvider` habilitaban miniaturas solo para Imagen/Video, excluyendo PDF;
+- Android 11+ recibía una URI de `MediaStore.Files` en `MediaStore.createDeleteRequest`; esa API exige URIs de colecciones de medios y rechaza la URI genérica `Files`.
+
+**Corrección aplicada:**
+- PDF renderiza su primera página con `PdfRenderer` como miniatura, tanto en Mi dispositivo como en el DocumentsProvider;
+- con acceso amplio, Android 11+ intenta primero borrar mediante `ContentResolver.delete`;
+- si Android exige confirmación para Imagen/Video/Audio, OclAx convierte el elemento a la URI específica de su colección MediaStore antes de crear la solicitud del sistema;
+- documentos/PDF no se presentan falsamente como elementos multimedia solo para forzar la confirmación.
+
+**Validación pendiente:** confirmar en el mismo teléfono que PDF muestra portada y que borrar/cancelar funciona para una imagen y un PDF/documento sin afectar la bandeja OclAx.
+
+**Prevención:** no asumir que una URI de `MediaStore.Files` es válida para APIs restringidas a elementos multimedia; conservar pruebas físicas por tipo de contenido.
+

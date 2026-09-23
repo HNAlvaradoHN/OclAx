@@ -138,15 +138,25 @@ Pendiente de validación física:
 
 ## Miniaturas, compartir apps y borrar originales
 
+VERIFICADO en teléfono real:
+- Mi dispositivo muestra miniaturas reales para imágenes en cuadrícula.
+
+FALLOS observados:
+- PDF no mostraba la portada/primera página;
+- borrar un original fallaba con `All requested items must be Media items`.
+
+Corrección a validar:
+- PDF debe mostrar una miniatura generada desde su primera página tanto en Mi dispositivo como en Archivos → OclAx;
+- borrar una imagen debe funcionar o pedir confirmación Android válida sin el error de URI genérica;
+- borrar un PDF/documento debe usar el acceso amplio concedido y no intentar presentarlo como elemento multimedia.
+
 Pendiente de validación física:
-- Archivos → OclAx → Imágenes debe mostrar miniaturas reales en lugar del icono genérico cuando el selector las solicite;
 - Video debe mostrar fotograma/miniatura cuando sea compatible;
 - Mi dispositivo debe mostrar miniaturas en lista y cuadrícula;
 - cambiar vista en una categoría no debe modificar las demás y debe sobrevivir al reinicio;
 - compartir una app de APK único debe enviar un APK instalable sin datos privados del usuario;
 - compartir una app con splits debe enviar base + todos los splits;
 - recepción/instalación debe seguir siendo una decisión explícita del receptor;
-- eliminar original debe mostrar confirmación OclAx y, cuando Android lo requiera, confirmación del sistema;
-- cancelar cualquiera de las confirmaciones debe conservar el archivo;
+- cancelar cualquier confirmación de borrado debe conservar el archivo;
 - tras eliminar, el elemento debe desaparecer del índice sin afectar copias OclAx;
 - autolimpieza debe seguir sin tocar originales.

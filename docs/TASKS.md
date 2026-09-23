@@ -265,11 +265,20 @@ Implementación en PR #34:
 - borrar originales mediante confirmación explícita y autorización MediaStore cuando corresponda.
 
 Validado:
-- tests unitarios, lint y assembleDebug verdes en CI del PR.
+- tests unitarios, lint y assembleDebug verdes en CI del PR;
+- prueba física confirma miniaturas reales para imágenes.
+
+Fallo físico detectado:
+- PDF no mostraba portada porque la ruta de miniaturas excluía PDF;
+- borrar un original fallaba con `All requested items must be Media items` porque Android 11+ recibía una URI genérica de `MediaStore.Files`.
+
+Corrección implementada:
+- primera página del PDF renderizada con `PdfRenderer` para Mi dispositivo y DocumentsProvider;
+- borrado Android 11+ intenta eliminación directa con el acceso amplio ya concedido y usa confirmación MediaStore solo con URI específica para Imagen/Video/Audio cuando sea necesaria.
 
 Pendiente:
-- validación física en teléfono real;
-- confirmar miniaturas en el selector Android y en Mi dispositivo;
+- validar físicamente portada de PDF;
+- validar borrar/cancelar una imagen y un PDF/documento;
 - confirmar compartir APK único y paquete con splits sin datos privados;
-- confirmar borrado/cancelación sobre originales;
+- confirmar persistencia de Lista/Cuadrícula;
 - confirmar experiencia de recepción/instalación para paquetes con splits antes de declararlo DONE.

@@ -207,7 +207,7 @@ No mostrar al usuario términos internos como carpetas Syncthing, relay, REST AP
 - Tocar el cuerpo de una tarjeta abre el contenido con el manejador compatible de Android.
 - Los botones dentro de la tarjeta siguen siendo acciones independientes: Compartir, Copiar cuando aplique, Fijar y Eliminar.
 - La UI debe comunicar de forma natural que la tarjeta es abrible sin añadir un botón grande adicional que vuelva a saturarla.
-- Para imágenes/video se prioriza en el futuro una miniatura real, pero tocar sigue significando “abrir”.
+- Imágenes/video muestran miniaturas reales y PDF muestra su primera página cuando puede renderizarse; tocar sigue significando “abrir”.
 - APK debe diferenciarse visualmente como instalable/paquete y nunca sugerir instalación automática.
 
 
@@ -222,7 +222,7 @@ Reglas visuales:
 - Mi dispositivo usa su propio selector compacto de categorías;
 - Apps es la categoría inicial de Mi dispositivo para que el usuario pueda comprobar rápidamente la visibilidad instalada;
 - archivos reales muestran nombre, tipo, tamaño y ruta relativa cuando exista;
-- no mostrar Fijar, retención ni Eliminar sobre originales;
+- no mostrar Fijar ni retención sobre originales; **Eliminar original** es una acción separada, destructiva y confirmada;
 - Compartir y Copiar aparecen solo donde corresponden;
 - tocar el cuerpo abre el elemento.
 
@@ -234,6 +234,7 @@ Si falta el permiso amplio, mostrar una explicación corta y un único botón **
 - La elección se recuerda por categoría.
 - Apps, Imágenes y Video parten de cuadrícula; documentos y demás tipos parten de lista.
 - Las imágenes/video muestran miniaturas reales cuando estén disponibles.
+- PDF muestra como miniatura la primera página renderizada cuando pueda leerse; si está corrupto, protegido o no puede renderizarse, usa el icono PDF como fallback.
 - Apps instaladas muestran acción **Compartir** además de abrir.
 - Los archivos originales muestran acción destructiva **Eliminar original** en rojo y con confirmación explícita.
 - El texto de confirmación debe dejar claro que no se trata de la autolimpieza de OclAx.
