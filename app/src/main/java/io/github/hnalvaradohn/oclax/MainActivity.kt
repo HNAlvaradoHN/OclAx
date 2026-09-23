@@ -1,11 +1,13 @@
 package io.github.hnalvaradohn.oclax
 
 import android.Manifest
+import android.app.Activity
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -13,6 +15,8 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.result.IntentSenderRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -78,16 +82,21 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
+import io.github.hnalvaradohn.oclax.data.ContentViewMode
 import io.github.hnalvaradohn.oclax.data.ItemStore
+import io.github.hnalvaradohn.oclax.data.ViewModePreferences
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.model.supportsClipboardCopy
 import io.github.hnalvaradohn.oclax.platform.ContentOpener
 import io.github.hnalvaradohn.oclax.platform.DeviceContentRepository
+import io.github.hnalvaradohn.oclax.platform.DeviceDeleteResult
 import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
+import io.github.hnalvaradohn.oclax.platform.InstalledAppExporter
 import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
+import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import java.text.DateFormat
 import java.util.Date
@@ -100,7 +109,10 @@ class MainActivity : ComponentActivity() {
 
     private val store by lazy { ItemStore(applicationContext) }
     private val installedAppsRepository by lazy { InstalledAppsRepository(applicationContext) }
+    private val installedAppExporter by lazy { InstalledAppExporter(applicationContext) }
     private val deviceContentRepository by lazy { DeviceContentRepository(applicationContext) }
+    private val thumbnailLoader by lazy { ThumbnailLoader(applicationContext) }
+    private val viewModePreferences by lazy { ViewModePreferences(applicationContext) }
     private val contentOpener by lazy { ContentOpener(this) }
     private val deviceExecutor = Executors.newSingleThreadExecutor()
     private var items by mutableStateOf<List<StoredItem>>(emptyList())
@@ -109,6 +121,26 @@ class MainActivity : ComponentActivity() {
     private var hasBroadFileAccess by mutableStateOf(false)
     private var deviceLoading by mutableStateOf(false)
     private var retentionHours by mutableIntStateOf(24)
+    private var pendingSystemDeleteName: String? = null
+
+    private val deviceDeleteLauncher = registerForActivityResult(
+        ActivityResultContracts.StartIntentSenderForResult(),
+    ) { result ->
+        val name = pendingSystemDeleteName
+        pendingSystemDeleteName = null
+
+        if (result.resultCode == Activity.RESULT_OK) {
+            Toast.makeText(
+                this,
+                if (name.isNullOrBlank()) "Archivo eliminado." else "Se eliminó “$name”.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            refresh()
+        } else {
+            Toast.makeText(this, "No se eliminó el archivo.", Toast.LENGTH_SHORT).show()
+            refresh()
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -146,7 +178,12 @@ class MainActivity : ComponentActivity() {
                     onOpenDeviceFile = ::openDeviceFile,
                     onShareDeviceFile = ::shareDeviceFile,
                     onCopyDeviceFile = ::copyDeviceFile,
+                    onDeleteDeviceFile = ::deleteDeviceFile,
                     onOpenApp = ::openInstalledApp,
+                    onShareApp = ::shareInstalledApp,
+                    onLoadDeviceThumbnail = thumbnailLoader::loadDevice,
+                    onLoadDeviceViewMode = viewModePreferences::getDeviceMode,
+                    onSaveDeviceViewMode = viewModePreferences::setDeviceMode,
                 )
             }
         }
@@ -275,6 +312,95 @@ class MainActivity : ComponentActivity() {
                 "No se pudo copiar: " + (error.message ?: "error desconocido"),
                 Toast.LENGTH_SHORT,
             ).show()
+        }
+    }
+
+    private fun deleteDeviceFile(file: DeviceFileInfo) {
+        when (val result = deviceContentRepository.requestDelete(file)) {
+            DeviceDeleteResult.Deleted -> {
+                Toast.makeText(this, "Se eliminó “${file.displayName}”.", Toast.LENGTH_SHORT).show()
+                refresh()
+            }
+
+            is DeviceDeleteResult.NeedsUserConfirmation -> {
+                pendingSystemDeleteName = file.displayName
+                val request = IntentSenderRequest.Builder(result.intentSender).build()
+                deviceDeleteLauncher.launch(request)
+            }
+
+            is DeviceDeleteResult.Failed -> {
+                Toast.makeText(
+                    this,
+                    "No se pudo eliminar: " + (result.reason ?: "error desconocido"),
+                    Toast.LENGTH_SHORT,
+                ).show()
+                refresh()
+            }
+        }
+    }
+
+    private fun shareInstalledApp(app: InstalledAppInfo) {
+        Toast.makeText(this, "Preparando ${app.label}…", Toast.LENGTH_SHORT).show()
+        deviceExecutor.execute {
+            val prepared = runCatching { installedAppExporter.prepare(app) }
+
+            runOnUiThread {
+                prepared.onSuccess { exported ->
+                    try {
+                        val sendIntent = if (exported.uris.size == 1) {
+                            Intent(Intent.ACTION_SEND).apply {
+                                type = "application/vnd.android.package-archive"
+                                putExtra(Intent.EXTRA_STREAM, exported.uris.first())
+                            }
+                        } else {
+                            Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                                type = "application/vnd.android.package-archive"
+                                putParcelableArrayListExtra(Intent.EXTRA_STREAM, exported.uris)
+                            }
+                        }
+
+                        val clip = ClipData.newUri(
+                            contentResolver,
+                            exported.label,
+                            exported.uris.first(),
+                        )
+                        exported.uris.drop(1).forEach { uri ->
+                            clip.addItem(ClipData.Item(uri))
+                        }
+                        sendIntent.clipData = clip
+                        sendIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+                        startActivity(
+                            Intent.createChooser(
+                                sendIntent,
+                                "Compartir aplicación instalada",
+                            ),
+                        )
+
+                        Toast.makeText(
+                            this,
+                            if (exported.apkCount == 1) {
+                                "Se comparte solo el APK de instalación; no tus datos."
+                            } else {
+                                "Se comparten ${exported.apkCount} APK del paquete; no tus datos."
+                            },
+                            Toast.LENGTH_LONG,
+                        ).show()
+                    } catch (error: Exception) {
+                        Toast.makeText(
+                            this,
+                            "No se pudo compartir: " + (error.message ?: "error desconocido"),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+                }.onFailure { error ->
+                    Toast.makeText(
+                        this,
+                        "No se pudo preparar la app: " + (error.message ?: "error desconocido"),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
         }
     }
 
@@ -433,7 +559,12 @@ private fun OclAxHome(
     onOpenDeviceFile: (DeviceFileInfo) -> Unit,
     onShareDeviceFile: (DeviceFileInfo) -> Unit,
     onCopyDeviceFile: (DeviceFileInfo) -> Unit,
+    onDeleteDeviceFile: (DeviceFileInfo) -> Unit,
     onOpenApp: (InstalledAppInfo) -> Unit,
+    onShareApp: (InstalledAppInfo) -> Unit,
+    onLoadDeviceThumbnail: (DeviceFileInfo, Int) -> Bitmap?,
+    onLoadDeviceViewMode: (String, ContentViewMode) -> ContentViewMode,
+    onSaveDeviceViewMode: (String, ContentViewMode) -> Unit,
 ) {
     var sourceMode by remember { mutableStateOf(SourceMode.OCLAX) }
     var query by remember { mutableStateOf("") }
@@ -514,7 +645,12 @@ private fun OclAxHome(
                     onOpenFile = onOpenDeviceFile,
                     onShareFile = onShareDeviceFile,
                     onCopyFile = onCopyDeviceFile,
+                    onDeleteFile = onDeleteDeviceFile,
                     onOpenApp = onOpenApp,
+                    onShareApp = onShareApp,
+                    onLoadThumbnail = onLoadDeviceThumbnail,
+                    onLoadViewMode = onLoadDeviceViewMode,
+                    onSaveViewMode = onSaveDeviceViewMode,
                 )
             } else {
                 OutlinedTextField(
