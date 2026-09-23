@@ -281,7 +281,7 @@ Implementado:
 - durante la prueba LAN se habilita únicamente un listener TCP IPv4 y discovery local;
 - global discovery, relay, NAT traversal, usage reporting y crash reporting permanecen apagados;
 - el peer queda limitado a rangos IPv4 privados/link-local; no se permite `0.0.0.0/0`, `::/0` ni CGNAT como red de confianza;
-- Android mantiene un MulticastLock solo mientras la prueba LAN está activa;
+- Android mantiene un MulticastLock solo durante la búsqueda por discovery local y lo libera en cuanto la conexión LAN queda confirmada;
 - la conexión solo se considera válida cuando Syncthing informa `connected=true` e `isLocal=true`;
 - **Desconectar LAN** pausa el peer, restaura el motor a modo aislado y libera el MulticastLock;
 - no se comparte ninguna carpeta ni archivo todavía.
