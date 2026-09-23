@@ -5,7 +5,7 @@
 ## Verificado
 
 - Repositorio público.
-- No hay rulesets configurados actualmente.
+- Ruleset `Protect main` activo para la rama principal.
 - GitHub Secret Scanning se ejecuta automáticamente y gratis en repositorios públicos.
 - GitHub ofrece CodeQL/code scanning gratis para repositorios públicos.
 - Rulesets/branch protections están disponibles para repositorios públicos con GitHub Free.
@@ -16,7 +16,7 @@ El conector de GitHub disponible puede leer el listado de rulesets, pero no disp
 
 El endpoint de branch protection devuelve acceso denegado para la integración administrada.
 
-Por tanto, la configuración de protección de main requiere una acción administrativa manual del dueño en GitHub o una herramienta futura con permiso administrativo explícito.
+La protección de `main` fue activada manualmente por el dueño. La integración sigue sin permiso administrativo para modificarla.
 
 ## Configuración objetivo para main
 

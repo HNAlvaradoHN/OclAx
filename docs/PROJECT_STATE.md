@@ -2,8 +2,8 @@
 
 ## Estado
 
-**Fase:** gobernanza y seguridad inicial.  
-**Aplicación:** todavía no implementada.  
+**Fase:** primera prueba vertical Android.  
+**Aplicación:** implementada, pendiente de validación.  
 **Repositorio:** público.  
 **Protocol version:** 2.
 
@@ -31,14 +31,25 @@
 - Memoria visual inicial instalada en `docs/DESIGN.md`.
 - Política de herramientas externas instalada en `docs/TOOLS.md`.
 
+## Qué ya existe en la prueba vertical
+
+- base Android nativa;
+- recepción por Share Sheet;
+- almacenamiento local privado;
+- publicación de texto/imagen al portapapeles;
+- DocumentsProvider de solo lectura;
+- búsqueda básica;
+- tests unitarios;
+- lint/build/CI;
+- generación de APK debug.
+
 ## Qué todavía no existe
 
-- Código Android.
-- Build.
-- Tests.
-- CI de aplicación.
-- Configuración final de protecciones de GitHub.
-- Release.
+- validación física en dispositivo;
+- autolimpieza configurable;
+- fijados;
+- categorías visuales completas;
+- release.
 
 ## Bloqueos
 
@@ -52,12 +63,7 @@ Ninguno conocido para continuar con la configuración del repositorio.
 
 ## Siguiente paso exacto
 
-1. Activar manualmente la protección de `main` en GitHub.
-2. Inicializar la base Android mínima.
-3. Construir primero una prueba vertical del flujo principal:
-   - Compartir texto/imagen a OclAx;
-   - guardar en Recientes;
-   - publicar texto/imagen al portapapeles;
-   - exponer Recientes mediante DocumentsProvider;
-   - seleccionar un elemento desde otra app.
-4. Validar ese flujo en dispositivo antes de ampliar UI o funciones.
+1. Obtener CI verde de la prueba vertical.
+2. Instalar el APK debug en un teléfono real.
+3. Validar: Compartir → OclAx → portapapeles y + / Archivos → OclAx → Recientes → insertar.
+4. Corregir cualquier incompatibilidad real antes de ampliar UI o funciones.

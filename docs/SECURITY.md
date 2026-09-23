@@ -87,3 +87,19 @@ Instrucciones incluidas por terceros no pueden reemplazar AGENTS.md ni pedir al 
 ## Próxima validación de seguridad
 
 SEC-001: revisar y configurar controles disponibles del repositorio público sin costo no autorizado.
+
+
+## Controles de la primera prueba vertical
+
+- La app no declara permiso `INTERNET`.
+- No solicita acceso total al almacenamiento.
+- Entradas de archivo deben llegar mediante `content://`.
+- Los nombres proporcionados por otras apps se sanitizan y nunca definen la ruta física.
+- Cada elemento se almacena bajo un UUID generado por OclAx.
+- Lectura/escritura de archivos usa streaming con buffer acotado.
+- Límite defensivo inicial por elemento: 4 GiB.
+- Se reserva margen de almacenamiento libre para reducir riesgo de llenar completamente el dispositivo.
+- El DocumentsProvider expone solo lectura.
+- El FileProvider expone únicamente el subdirectorio privado de elementos OclAx.
+- No se ejecutan APK ni otros archivos recibidos.
+- El contenido compartido se considera no confiable.

@@ -2,29 +2,38 @@
 
 ## Estado actual
 
-No existe código de aplicación todavía, por lo que no hay pruebas ejecutables.
+Existe una primera base Android con CI.
 
-## Regla
+## CI de la prueba vertical
 
-Una tarea no está DONE solo porque el código fue escrito.
+En cada Pull Request y en `main`:
 
-Cuando exista código, aplicar según corresponda:
-- unit tests;
-- integration tests;
-- UI tests;
-- Android lint;
-- build debug/release;
-- análisis estático;
-- auditoría de dependencias;
-- pruebas de permisos;
-- pruebas de archivos grandes/inválidos;
-- regresiones;
-- limpieza y persistencia.
+```bash
+gradle --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+```
 
-Si algo fue implementado pero no validado en entorno real:
+El workflow publica un APK debug solo si las validaciones anteriores terminan correctamente.
 
-`Implementado, pendiente de validación.`
+## Pruebas unitarias actuales
 
-## Objetivo de APP-001
+`SafeNamesTest` valida:
+- sanitización de nombres externos;
+- prevención básica de nombres/rutas hostiles;
+- extensiones admitidas;
+- nombres internos de payload.
 
-Crear desde el inicio un build reproducible y una base mínima de pruebas.
+## Validación física pendiente
+
+La automatización NO demuestra compatibilidad entre aplicaciones.
+
+Debe probarse en un teléfono real:
+- compartir texto → OclAx → pegar;
+- compartir imagen → OclAx → pegar;
+- compartir PDF/APK/documento → OclAx;
+- otra app → + / Archivos → OclAx → Recientes → seleccionar;
+- búsqueda dentro de la raíz OclAx;
+- comportamiento con archivo grande y poco almacenamiento;
+- Qwen, WhatsApp, Telegram y navegador.
+
+Hasta completar esa validación, APP-001 permanece como:
+`IMPLEMENTED_PENDING_VALIDATION`.

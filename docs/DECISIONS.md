@@ -157,3 +157,21 @@ Por tanto, el MVP no necesita:
 - funciones propias de un gestor de archivos completo.
 
 Los archivos que ya existen fuera de OclAx pueden incorporarse de forma explícita cuando se necesiten, sin convertir a OclAx en explorador total del almacenamiento.
+
+
+---
+
+## DEC-013 — Base técnica Android de la prueba vertical
+
+**Decisión:** iniciar OclAx como aplicación Android nativa Kotlin con Jetpack Compose para la UI, almacenamiento privado propio, FileProvider y DocumentsProvider.
+
+**Toolchain verificado al 2026-09-22:**
+- Android Gradle Plugin 9.4.0;
+- Gradle 9.6.0;
+- JDK 17;
+- compileSdk/targetSdk 36;
+- Compose BOM 2026.09.00.
+
+**Motivo:** usar APIs nativas y mínimas para demostrar el flujo central antes de añadir persistencia compleja, IME, accesibilidad, nube o permisos amplios.
+
+**Consecuencia:** no se añade Room ni WorkManager hasta que exista una necesidad demostrada.
