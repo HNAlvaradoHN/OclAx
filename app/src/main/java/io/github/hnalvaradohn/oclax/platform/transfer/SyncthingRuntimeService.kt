@@ -78,7 +78,14 @@ internal class SyncthingRuntimeService : Service() {
             }
             ACTION_DISABLE_LAN -> {
                 releaseLanDiscovery()
-                updateNotification("Motor de envío aislado.")
+                val running = synchronized(processLock) {
+                    runtimeProcess?.isAlive == true
+                }
+                if (running) {
+                    updateNotification("Motor de envío activo.")
+                } else {
+                    stopForegroundAndSelf()
+                }
             }
             else -> requestStart()
         }
