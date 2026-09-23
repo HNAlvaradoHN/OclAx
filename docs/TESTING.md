@@ -242,5 +242,6 @@ Pendiente de validación física con dos teléfonos:
 5. ambos deben llegar a **Conectado por LAN** y discovery local/MulticastLock deben quedar apagados después de conectar;
 6. no debe transferirse ningún archivo en esta prueba;
 7. tocar **Desconectar LAN** y confirmar que vuelve a modo aislado;
-8. repetir con un peer incorrecto/no presente y confirmar timeout seguro sin quedar discovery/MulticastLock activos.
+8. repetir con un peer incorrecto/no presente y confirmar timeout seguro sin quedar discovery/MulticastLock activos;
+9. simular/forzar fallo al restaurar configuración y comprobar que el runtime se detiene en vez de dejar el listener LAN abierto.
 
