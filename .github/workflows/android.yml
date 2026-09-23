@@ -151,6 +151,7 @@ jobs:
           gradle-version: "9.6.0"
 
       - name: Prepare stable test signing
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           KEYSTORE_BASE64: ${{ secrets.OCLAX_TEST_KEYSTORE_BASE64 }}
           KEYSTORE_PASSWORD: ${{ secrets.OCLAX_TEST_KEYSTORE_PASSWORD }}
@@ -169,7 +170,12 @@ jobs:
           printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/oclax-test.jks"
           echo "OCLAX_TEST_KEYSTORE_FILE=$RUNNER_TEMP/oclax-test.jks" >> "$GITHUB_ENV"
 
-      - name: Test, lint and build
+      - name: Test, lint and build (pull request)
+        if: github.event_name == 'pull_request'
+        run: gradle --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+
+      - name: Test, lint and build (main)
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
           OCLAX_TEST_KEYSTORE_PASSWORD: ${{ secrets.OCLAX_TEST_KEYSTORE_PASSWORD }}
           OCLAX_TEST_KEY_ALIAS: ${{ secrets.OCLAX_TEST_KEY_ALIAS }}
