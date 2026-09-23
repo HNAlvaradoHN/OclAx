@@ -16,10 +16,10 @@ GitHub sigue siendo la fuente técnica de verdad. Ninguna herramienta externa re
 
 ## Syncthing
 
-**Estado:** candidato técnico en spike; compilación Android arm64 verificada, runtime aún no integrado.  
+**Estado:** candidato técnico integrado para prueba local; pendiente validación física antes de adopción final.  
 **Uso previsto:** motor de transporte OclAx ↔ OclAx detrás de una capa propia, sin exponer al usuario carpetas/sincronización internas.  
-**Versión estable verificada para el spike (2026-09-23):** v2.1.5.  
-**Build verificada:** CI aislada produce un ELF Android arm64/API 26 con NDK r30 y SHA-256; no usa secretos de firma de OclAx.  
+**Versión fijada para el spike (2026-09-23):** v2.1.5, commit verificado.  
+**Build:** el CI de OclAx construye Android arm64-v8a, armeabi-v7a, x86_64 y x86 en un job sin secretos de firma, genera/verifica SHA-256 y solo después entrega los binarios al job que compila/firma el APK.  
 **Referencia Android:** el wrapper oficial `syncthing/syncthing-android` está archivado; `researchxxl/syncthing-android` mantiene un fork comunitario activo y sirve solo como referencia de empaquetado/foreground service, no como dependencia automática.
 
 **Costo:** software libre; los relays públicos no implican un servicio pago de OclAx, pero tampoco son un SLA. No desplegar relay/servidor propio con costo sin autorización.
@@ -29,7 +29,7 @@ GitHub sigue siendo la fuente técnica de verdad. Ninguna herramienta externa re
 - discovery/relay pueden revelar metadatos de conexión como IP y device ID a esos servicios;
 - API/GUI local debe quedar enlazada únicamente a loopback;
 - API key local generada por instalación y almacenada de forma privada;
-- auto-upgrade y usage reporting deben permanecer desactivados en el runtime empaquetado por OclAx;
+- el modo de prueba arranca aislado: listener de sincronización solo en loopback; discovery global/local, relay, NAT, auto-upgrade, usage reporting y crash reporting desactivados;
 - binarios nativos deben fijarse por versión, verificarse y construirse en CI aislada de secretos privilegiados.
 
 ## Google Stitch

@@ -140,7 +140,7 @@ Objetivo:
 
 Preparado en código:
 - Gradle acepta firma estable de prueba solo con los cuatro Secrets presentes;
-- GitHub Actions reconstruye el keystore únicamente dentro del runner;
+- GitHub Actions reconstruye el keystore únicamente dentro del runner y solo en pushes a `main`; los PR usan firma debug efímera y no reciben secrets de firma;
 - versionCode de CI usa el número monotónico del workflow;
 - una configuración parcial de Secrets hace fallar el build.
 
@@ -228,14 +228,15 @@ Investigación verificada — 2026-09-23:
 - el runtime debe controlarse exclusivamente por loopback con API key privada.
 
 Spike técnico, en orden:
-1. **VERIFICADO:** construir/empaquetar Syncthing core v2.1.5 para Android arm64 en CI aislada y **sin acceso a secretos de firma**; se produjo un ELF Android API 26 con NDK r30 y verificación SHA-256.
-2. **SIGUIENTE:** empaquetar ese runtime dentro de una build de prueba OclAx y arrancarlo en un foreground service mínimo con directorios de configuración/datos privados.
-3. enlazar GUI/API a `127.0.0.1`, generar API key local y confirmar que no es accesible desde la LAN;
-4. desactivar auto-upgrade y usage reporting;
-5. obtener device ID/estado mediante REST y detener/reiniciar limpiamente;
-6. emparejar dos instalaciones de prueba y validar transferencia LAN;
-7. validar conexión Internet directa y relay público como fallback;
-8. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
+1. **VERIFICADO:** construir/empaquetar Syncthing core v2.1.5 para Android arm64 en CI aislada y **sin acceso a secretos de firma**; se produjo un ELF Android API 26 con verificación SHA-256.
+2. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** el CI principal construye runtimes pinneados para arm64-v8a, armeabi-v7a, x86_64 y x86 en un job sin secretos, verifica cada SHA-256 y los empaqueta en el APK; Gradle fuerza extracción para ejecutarlos como proceso hijo.
+3. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** antes de iniciar `serve`, OclAx genera la configuración local si hace falta y la endurece: GUI/API `127.0.0.1:8384`, API key privada, listener BEP solo loopback y discovery global/local, relay y NAT desactivados.
+4. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** `SyncthingRuntimeService` usa foreground service `dataSync` on-demand y vuelve a aplicar/verificar por REST el modo aislado, `urAccepted=-1` y `crashReportingEnabled=false` antes de marcar el motor activo.
+5. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** el probe obtiene `myID`, comprueba que REST exige API key, valida dirección GUI loopback, intenta detectar el mismo runtime por IPv4 no-loopback y la detención usa `/rest/system/shutdown` con fallback acotado.
+6. **SIGUIENTE:** instalar la build en teléfono real y validar arranque → Device ID → loopback → detener → arrancar otra vez sin corrupción.
+7. emparejar dos instalaciones de prueba y validar transferencia LAN;
+8. validar conexión Internet directa y relay público como fallback;
+9. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;

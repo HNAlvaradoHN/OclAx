@@ -46,6 +46,7 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         compose = true
     }
 
@@ -55,6 +56,10 @@ android {
     }
 
     packaging {
+        jniLibs {
+            // Syncthing runs as a child process, so Android must extract the executable .so.
+            useLegacyPackaging = true
+        }
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
         }
