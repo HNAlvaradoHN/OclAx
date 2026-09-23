@@ -227,3 +227,14 @@ Reglas visuales:
 - tocar el cuerpo abre el elemento.
 
 Si falta el permiso amplio, mostrar una explicación corta y un único botón **Conceder acceso**, sin bloquear la superficie OclAx.
+
+## Vistas por categoría y acciones de Mi dispositivo
+
+- Cada categoría de **Mi dispositivo** puede alternar entre **Lista** y **Cuadrícula** de forma independiente.
+- La elección se recuerda por categoría.
+- Apps, Imágenes y Video parten de cuadrícula; documentos y demás tipos parten de lista.
+- Las imágenes/video muestran miniaturas reales cuando estén disponibles.
+- Apps instaladas muestran acción **Compartir** además de abrir.
+- Los archivos originales muestran acción destructiva **Eliminar original** en rojo y con confirmación explícita.
+- El texto de confirmación debe dejar claro que no se trata de la autolimpieza de OclAx.
+- Dentro del selector de archivos de Android, OclAx ofrece miniaturas y una preferencia inicial; los controles de vista del selector pertenecen al sistema y el usuario conserva la decisión final.
