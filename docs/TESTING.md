@@ -163,7 +163,7 @@ Pendiente de validación física:
 
 ## Miniaturas dentro de la bandeja OclAx
 
-**Validación física confirmada — 2026-09-23:** las miniaturas en Recientes/OclAx se muestran correctamente en dispositivo real.
+**Validación física confirmada — 2026-09-23:** las miniaturas de imagen en Recientes/OclAx se muestran correctamente en dispositivo real.
 
 Pendiente de validación física:
 - una imagen recibida/pegada debe mostrar su miniatura real en la tarjeta de OclAx;
