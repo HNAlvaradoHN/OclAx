@@ -2,6 +2,8 @@ package io.github.hnalvaradohn.oclax.platform
 
 import android.content.ContentUris
 import android.content.Context
+import android.content.IntentSender
+import android.app.RecoverableSecurityException
 import android.net.Uri
 import android.os.Build
 import android.os.Environment
@@ -10,6 +12,18 @@ import androidx.core.content.ContextCompat
 import android.webkit.MimeTypeMap
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
+
+sealed interface DeviceDeleteResult {
+    data object Deleted : DeviceDeleteResult
+
+    data class NeedsUserConfirmation(
+        val intentSender: IntentSender,
+    ) : DeviceDeleteResult
+
+    data class Failed(
+        val reason: String?,
+    ) : DeviceDeleteResult
+}
 
 data class DeviceFileInfo(
     val id: Long,
@@ -118,6 +132,41 @@ class DeviceContentRepository(context: Context) {
         }
 
         return result
+    }
+
+    fun requestDelete(file: DeviceFileInfo): DeviceDeleteResult {
+        if (!hasBroadFileAccess()) {
+            return DeviceDeleteResult.Failed("OclAx no tiene acceso a los archivos del dispositivo.")
+        }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            return runCatching {
+                val pendingIntent = MediaStore.createDeleteRequest(
+                    resolver,
+                    listOf(file.uri),
+                )
+                DeviceDeleteResult.NeedsUserConfirmation(pendingIntent.intentSender)
+            }.getOrElse { error ->
+                DeviceDeleteResult.Failed(error.message)
+            }
+        }
+
+        return try {
+            val deleted = resolver.delete(file.uri, null, null)
+            if (deleted > 0) {
+                DeviceDeleteResult.Deleted
+            } else {
+                DeviceDeleteResult.Failed("Android no eliminó el archivo.")
+            }
+        } catch (error: RecoverableSecurityException) {
+            DeviceDeleteResult.NeedsUserConfirmation(
+                error.userAction.actionIntent.intentSender,
+            )
+        } catch (error: SecurityException) {
+            DeviceDeleteResult.Failed(error.message)
+        } catch (error: Exception) {
+            DeviceDeleteResult.Failed(error.message)
+        }
     }
 
     private fun normalizeMimeType(value: String?, displayName: String): String {
