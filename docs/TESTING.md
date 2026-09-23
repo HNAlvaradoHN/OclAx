@@ -120,3 +120,18 @@ Pendiente de validación física:
 - comprobar que Android respeta una app predeterminada o muestra resolución cuando corresponda;
 - comprobar mensaje seguro cuando no existe manejador compatible;
 - confirmar que ninguna apertura concede escritura ni modifica la copia OclAx.
+
+
+## Mi dispositivo
+
+Pendiente de validación física:
+- entrar a Mi dispositivo y comprobar que Apps lista aplicaciones instaladas reales, incluidas las que antes no eran visibles;
+- seleccionar Imágenes/Documentos/PDF/APK/Texto-Código/Video/Audio/Otros y comprobar solicitud de acceso amplio;
+- conceder acceso desde Ajustes y volver a OclAx;
+- comprobar que las categorías muestran contenido real del almacenamiento;
+- buscar por nombre/ruta;
+- abrir y compartir archivos reales;
+- copiar texto e imágenes;
+- revocar acceso amplio y confirmar que OclAx conserva su bandeja y que Mi dispositivo vuelve a pedir permiso;
+- confirmar que no existe una acción de borrado de originales;
+- observar tiempo de carga y fluidez con un dispositivo con muchos archivos.
