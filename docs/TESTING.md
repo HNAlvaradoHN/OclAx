@@ -27,7 +27,8 @@ El workflow publica un APK debug solo si las validaciones anteriores terminan co
 La automatización NO demuestra compatibilidad entre aplicaciones.
 
 VERIFICADO en teléfono real:
-- OclAx aparece en el selector de archivos del sistema como una fuente disponible mediante DocumentsProvider.
+- OclAx aparece en el selector de archivos del sistema como una fuente disponible mediante DocumentsProvider;
+- el flujo Compartir → OclAx → Pegar funciona en Qwen.
 
 Pendiente de probar:
 - compartir texto → OclAx → pegar;
