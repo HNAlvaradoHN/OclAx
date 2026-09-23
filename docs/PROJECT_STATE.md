@@ -39,9 +39,11 @@
 
 ## Implementado recientemente
 
-- riel vertical derecho para categorías;
-- acciones por tarjeta: Compartir, Fijar y Eliminar con confirmación;
-- identidad naranja más visible en oscuro y claro;
+- rama de trabajo con selector compacto de categorías a la izquierda;
+- Copiar limitado a Texto/Código e Imágenes;
+- tarjetas y acciones más compactas;
+- naranja más vivo en oscuro y claro;
+- acciones por tarjeta: Compartir, Copiar cuando aplique, Fijar y Eliminar con confirmación;
 - firma persistente de pruebas mediante GitHub Actions Secrets;
 - versionCode monotónico en CI;
 - APK firmado estable generado correctamente en main.
@@ -59,5 +61,5 @@ Ninguno conocido.
 
 1. Instalar físicamente el primer APK con firma estable; esta transición requiere desinstalar la versión antigua una última vez.
 2. Verificar que una build posterior pueda instalarse encima sin conflicto de paquete.
-3. Validar físicamente riel derecho, Compartir, Eliminar con confirmación, retención y Fijados.
+3. Validar físicamente selector compacto, Copiar texto/imagen, Compartir, Eliminar con confirmación, retención y Fijados.
 4. Continuar con iconografía/miniaturas y categorías opcionales en DocumentsProvider sin sacrificar Recientes.
