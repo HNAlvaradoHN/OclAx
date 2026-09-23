@@ -286,12 +286,26 @@ Implementado:
 - **Desconectar LAN** pausa el peer, restaura el motor a modo aislado y libera el MulticastLock; si la restauración falla, el runtime se detiene por seguridad;
 - no se comparte ninguna carpeta ni archivo todavía.
 
+Validado:
+- PR #42 fusionado;
+- CI final de main (run 150) verde en tests, lint, build multi-ABI, verificación de runtimes y APK debug.
+
 Pendiente:
-- CI de esta rama;
 - prueba física con dos teléfonos en la misma Wi‑Fi;
 - confirmar que ambos muestran **Conectado por LAN**;
 - confirmar que desconectar vuelve al modo aislado;
 - solo después crear el canal privado de archivos y progreso.
+
+### PLATFORM-001 — Compatibilidad de permisos de red local Android 17
+**Estado:** PENDING  
+**Prioridad:** media  
+**No bloquea:** validación actual con targetSdk 36.
+
+Hallazgo de revisión de Plataforma:
+- OclAx apunta actualmente a Android 16 / API 36;
+- Android 17 / API 37 introduce `ACCESS_LOCAL_NETWORK` como permiso runtime para acceso LAN al apuntar a API 37;
+- antes de subir targetSdk a 37 o publicar una release que lo haga, implementar el flujo de permiso local o un selector de sistema compatible;
+- probar rechazo/revocación del permiso y mantener Internet normal independiente del LAN.
 
 ### OPEN-001 — Abrir contenido desde la bandeja
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
