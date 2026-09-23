@@ -167,6 +167,17 @@ Reglas:
 - no registrar ni transmitir inventarios de archivos/aplicaciones salvo acción explícita del usuario;
 - autolimpieza y eliminación interna nunca alcanzan originales externos.
 
+## Runtime de transferencia Android
+
+- `INTERNET` se añade únicamente para transporte OclAx ↔ OclAx; no convierte la bandeja ni **Mi dispositivo** en servicios de nube.
+- El motor se inicia solo por una acción explícita de prueba/envío y usa foreground service `dataSync`; no arranca al boot.
+- El binario v2.1.5 se compila en un job CI que no recibe secretos de firma; el job posterior verifica SHA-256 antes de empaquetarlo.
+- La API key se genera con `SecureRandom`, se guarda en `SharedPreferences` privadas y se pasa al proceso por entorno, no por argumento visible ni por repo.
+- GUI/REST se fuerza a `127.0.0.1:8384`; el probe rechaza una configuración distinta e intenta detectar respuesta en interfaces IPv4 no-loopback.
+- `urAccepted=-1` y `crashReportingEnabled=false` se aplican y verifican por REST local al iniciar el probe.
+- El apagado usa primero la API autenticada de Syncthing y solo fuerza el proceso si no termina dentro del límite.
+- El log del motor queda en almacenamiento privado y con rotación/tamaño acotados; no se sube a GitHub automáticamente.
+
 ## Spike de motor Syncthing
 
 Controles obligatorios antes de exponer transferencias reales:
