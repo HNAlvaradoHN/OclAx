@@ -143,3 +143,13 @@ SEC-001: revisar y configurar controles disponibles del repositorio público sin
 - Imagen usa el FileProvider propio de OclAx y una URI de contenido controlada por la app.
 - Copiar no usa la URI de origen externa ni obtiene permisos adicionales.
 - PDF, APK, documentos, video, audio y otros tipos no exponen la acción Copiar.
+
+
+## Visibilidad de aplicaciones instaladas
+
+- OclAx no solicita `QUERY_ALL_PACKAGES`.
+- El manifest declara únicamente una consulta de visibilidad para actividades `MAIN + LAUNCHER`.
+- La app enumera solo aplicaciones lanzables que Android haga visibles mediante esa consulta.
+- Nombre, paquete e icono se usan localmente para presentación y búsqueda.
+- La lista no se persiste, no se registra en logs y no se transmite.
+- No se añade permiso de Internet ni acceso adicional al almacenamiento.
