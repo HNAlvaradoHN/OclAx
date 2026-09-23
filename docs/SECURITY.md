@@ -148,8 +148,8 @@ SEC-001: revisar y configurar controles disponibles del repositorio público sin
 ## Visibilidad de aplicaciones instaladas
 
 - OclAx no solicita `QUERY_ALL_PACKAGES`.
-- El manifest declara únicamente una consulta de visibilidad para actividades `MAIN + LAUNCHER`.
-- La app enumera solo aplicaciones lanzables que Android haga visibles mediante esa consulta.
+- La app usa `LauncherApps` para enumerar aplicaciones lanzables del perfil actual.
+- No se mantiene una declaración `<queries>` adicional para este listado.
 - Nombre, paquete e icono se usan localmente para presentación y búsqueda.
 - La lista no se persiste, no se registra en logs y no se transmite.
 - No se añade permiso de Internet ni acceso adicional al almacenamiento.
