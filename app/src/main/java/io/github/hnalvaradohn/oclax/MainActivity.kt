@@ -1,6 +1,8 @@
 package io.github.hnalvaradohn.oclax
 
 import android.content.ClipData
+import android.content.ClipDescription
+import android.content.ClipboardManager
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Toast
@@ -8,23 +10,24 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.StarBorder
@@ -52,19 +55,25 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.FileProvider
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
+import io.github.hnalvaradohn.oclax.model.supportsClipboardCopy
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import java.text.DateFormat
 import java.util.Date
 
 class MainActivity : ComponentActivity() {
+    companion object {
+        private const val MAX_CLIPBOARD_TEXT_BYTES = 2L * 1024L * 1024L
+    }
+
     private val store by lazy { ItemStore(applicationContext) }
     private var items by mutableStateOf<List<StoredItem>>(emptyList())
     private var retentionHours by mutableIntStateOf(24)
@@ -86,11 +95,16 @@ class MainActivity : ComponentActivity() {
                     },
                     onDelete = { item ->
                         if (!store.deleteItem(item.id)) {
-                            Toast.makeText(this, "No se pudo eliminar la copia de OclAx.", Toast.LENGTH_SHORT).show()
+                            Toast.makeText(
+                                this,
+                                "No se pudo eliminar la copia de OclAx.",
+                                Toast.LENGTH_SHORT,
+                            ).show()
                         }
                         refresh()
                     },
                     onShare = ::shareItem,
+                    onCopy = ::copyItem,
                 )
             }
         }
@@ -137,6 +151,56 @@ class MainActivity : ComponentActivity() {
             ).show()
         }
     }
+
+    private fun copyItem(item: StoredItem) {
+        val type = contentTypeFor(item.mimeType)
+        if (!type.supportsClipboardCopy()) return
+
+        try {
+            val clipboard = getSystemService(ClipboardManager::class.java)
+            val file = store.payloadFile(item)
+
+            when (type) {
+                ContentType.TEXT -> {
+                    if (item.byteSize > MAX_CLIPBOARD_TEXT_BYTES) {
+                        Toast.makeText(
+                            this,
+                            "Ese texto es demasiado grande para copiarlo al portapapeles.",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        return
+                    }
+                    clipboard.setPrimaryClip(
+                        ClipData.newPlainText(item.displayName, file.readText(Charsets.UTF_8)),
+                    )
+                }
+
+                ContentType.IMAGE -> {
+                    val uri = FileProvider.getUriForFile(
+                        this,
+                        packageName + ".fileprovider",
+                        file,
+                    )
+                    clipboard.setPrimaryClip(
+                        ClipData(
+                            ClipDescription(item.displayName, arrayOf(item.mimeType)),
+                            ClipData.Item(uri),
+                        ),
+                    )
+                }
+
+                else -> return
+            }
+
+            Toast.makeText(this, "Copiado al portapapeles.", Toast.LENGTH_SHORT).show()
+        } catch (error: Exception) {
+            Toast.makeText(
+                this,
+                "No se pudo copiar: " + (error.message ?: "error desconocido"),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
 }
 
 private enum class ContentFilter(val label: String) {
@@ -160,6 +224,7 @@ private fun OclAxHome(
     onPinToggle: (StoredItem) -> Unit,
     onDelete: (StoredItem) -> Unit,
     onShare: (StoredItem) -> Unit,
+    onCopy: (StoredItem) -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf(ContentFilter.ALL) }
@@ -209,7 +274,7 @@ private fun OclAxHome(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(start = 20.dp, top = 20.dp, end = 12.dp, bottom = 20.dp),
+                .padding(horizontal = 16.dp, vertical = 18.dp),
         ) {
             Text(
                 "OclAx",
@@ -221,7 +286,7 @@ private fun OclAxHome(
                 "Tu contenido, listo donde lo necesitás.",
                 style = MaterialTheme.typography.bodyMedium,
             )
-            Spacer(Modifier.height(18.dp))
+            Spacer(Modifier.height(14.dp))
 
             OutlinedTextField(
                 value = query,
@@ -230,105 +295,99 @@ private fun OclAxHome(
                 singleLine = true,
                 label = { Text("Buscar") },
             )
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(10.dp))
 
-            Row(modifier = Modifier.fillMaxSize()) {
-                Column(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxHeight()
-                        .padding(end = 10.dp),
-                ) {
-                    RetentionControl(retentionHours, onRetentionChange)
-                    Spacer(Modifier.height(12.dp))
-
-                    if (visibleItems.isEmpty()) {
-                        Text(
-                            if (allItems.isEmpty()) {
-                                "Todavía no hay elementos. Compartí contenido hacia OclAx."
-                            } else {
-                                "No hay elementos en ${filter.label.lowercase()} para esa búsqueda."
-                            },
-                            style = MaterialTheme.typography.bodyLarge,
-                        )
-                    } else {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            verticalArrangement = Arrangement.spacedBy(10.dp),
-                        ) {
-                            items(visibleItems, key = { it.id }) { item ->
-                                ItemCard(
-                                    item = item,
-                                    onPinToggle = onPinToggle,
-                                    onDeleteRequest = { pendingDelete = item },
-                                    onShare = onShare,
-                                )
-                            }
-                        }
-                    }
-                }
-
-                ContentFilterRail(
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top,
+            ) {
+                ContentFilterMenu(
                     selected = filter,
                     onSelect = { filter = it },
-                    modifier = Modifier
-                        .width(112.dp)
-                        .fillMaxHeight(),
                 )
+                Spacer(Modifier.width(12.dp))
+                RetentionControl(
+                    retentionHours = retentionHours,
+                    onRetentionChange = onRetentionChange,
+                    modifier = Modifier.weight(1f),
+                )
+            }
+
+            Spacer(Modifier.height(10.dp))
+
+            if (visibleItems.isEmpty()) {
+                Text(
+                    if (allItems.isEmpty()) {
+                        "Todavía no hay elementos. Compartí contenido hacia OclAx."
+                    } else {
+                        "No hay elementos en ${filter.label.lowercase()} para esa búsqueda."
+                    },
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(visibleItems, key = { it.id }) { item ->
+                        ItemCard(
+                            item = item,
+                            onPinToggle = onPinToggle,
+                            onDeleteRequest = { pendingDelete = item },
+                            onShare = onShare,
+                            onCopy = onCopy,
+                        )
+                    }
+                }
             }
         }
     }
 }
 
 @Composable
-private fun ContentFilterRail(
+private fun ContentFilterMenu(
     selected: ContentFilter,
     onSelect: (ContentFilter) -> Unit,
-    modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(6.dp),
-    ) {
-        ContentFilter.entries.forEach { option ->
-            if (selected == option) {
-                Button(
-                    onClick = { onSelect(option) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp),
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = MaterialTheme.colorScheme.primary,
-                        contentColor = MaterialTheme.colorScheme.onPrimary,
-                    ),
-                ) {
-                    Text(
-                        option.label,
-                        style = MaterialTheme.typography.labelMedium,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                    )
-                }
-            } else {
-                OutlinedButton(
-                    onClick = { onSelect(option) },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .heightIn(min = 48.dp),
-                    contentPadding = PaddingValues(horizontal = 6.dp, vertical = 4.dp),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onSurface,
-                    ),
-                ) {
-                    Text(
-                        option.label,
-                        style = MaterialTheme.typography.labelMedium,
-                        textAlign = TextAlign.Center,
-                        maxLines = 2,
-                    )
-                }
+    var expanded by remember { mutableStateOf(false) }
+
+    Box {
+        Button(
+            onClick = { expanded = true },
+            modifier = Modifier
+                .widthIn(min = 104.dp, max = 132.dp)
+                .height(40.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+            colors = ButtonDefaults.buttonColors(
+                containerColor = MaterialTheme.colorScheme.primary,
+                contentColor = MaterialTheme.colorScheme.onPrimary,
+            ),
+        ) {
+            Text(
+                selected.label,
+                style = MaterialTheme.typography.labelLarge,
+                maxLines = 1,
+            )
+            Spacer(Modifier.width(2.dp))
+            Icon(
+                imageVector = Icons.Filled.ArrowDropDown,
+                contentDescription = "Abrir categorías",
+                modifier = Modifier.size(18.dp),
+            )
+        }
+
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false },
+        ) {
+            ContentFilter.entries.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.label) },
+                    onClick = {
+                        onSelect(option)
+                        expanded = false
+                    },
+                )
             }
         }
     }
@@ -354,16 +413,19 @@ private fun matchesFilter(item: StoredItem, filter: ContentFilter): Boolean {
 private fun RetentionControl(
     retentionHours: Int,
     onRetentionChange: (Int) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     var expanded by remember { mutableStateOf(false) }
 
-    Column {
+    Column(modifier = modifier) {
         Text(
-            "Borrar copias de OclAx después de",
+            "Autolimpieza",
             style = MaterialTheme.typography.labelMedium,
         )
         OutlinedButton(
             onClick = { expanded = true },
+            modifier = Modifier.height(40.dp),
+            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
             colors = ButtonDefaults.outlinedButtonColors(
                 contentColor = MaterialTheme.colorScheme.primary,
@@ -386,8 +448,8 @@ private fun RetentionControl(
             }
         }
         Text(
-            "Solo elimina copias internas de OclAx; nunca el archivo original del dispositivo.",
-            style = MaterialTheme.typography.bodySmall,
+            "Solo borra copias de OclAx; nunca el archivo original.",
+            style = MaterialTheme.typography.labelSmall,
         )
     }
 }
@@ -398,6 +460,7 @@ private fun ItemCard(
     onPinToggle: (StoredItem) -> Unit,
     onDeleteRequest: () -> Unit,
     onShare: (StoredItem) -> Unit,
+    onCopy: (StoredItem) -> Unit,
 ) {
     val type = contentTypeFor(item.mimeType)
 
@@ -411,7 +474,7 @@ private fun ItemCard(
             if (item.pinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
         ),
     ) {
-        Column(modifier = Modifier.padding(12.dp)) {
+        Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Surface(
                     color = MaterialTheme.colorScheme.primaryContainer,
@@ -420,18 +483,18 @@ private fun ItemCard(
                 ) {
                     Text(
                         type.glyph,
-                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 6.dp),
-                        style = MaterialTheme.typography.labelLarge,
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 4.dp),
+                        style = MaterialTheme.typography.labelMedium,
                         fontWeight = FontWeight.Bold,
                     )
                 }
 
-                Spacer(Modifier.width(10.dp))
+                Spacer(Modifier.width(8.dp))
 
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         item.displayName,
-                        style = MaterialTheme.typography.bodyLarge,
+                        style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.Medium,
                     )
                     Text(
@@ -455,33 +518,58 @@ private fun ItemCard(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                IconButton(onClick = { onShare(item) }) {
-                    Icon(
-                        imageVector = Icons.Outlined.Share,
-                        contentDescription = "Compartir ${item.displayName}",
-                        tint = MaterialTheme.colorScheme.primary,
+                CompactActionButton(
+                    icon = Icons.Outlined.Share,
+                    description = "Compartir ${item.displayName}",
+                    onClick = { onShare(item) },
+                )
+
+                if (type.supportsClipboardCopy()) {
+                    CompactActionButton(
+                        icon = Icons.Outlined.ContentCopy,
+                        description = "Copiar ${item.displayName}",
+                        onClick = { onCopy(item) },
                     )
                 }
-                IconButton(onClick = { onPinToggle(item) }) {
-                    Icon(
-                        imageVector = if (item.pinned) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                        contentDescription = if (item.pinned) {
-                            "Desfijar ${item.displayName}"
-                        } else {
-                            "Fijar ${item.displayName}"
-                        },
-                        tint = MaterialTheme.colorScheme.primary,
-                    )
-                }
-                IconButton(onClick = onDeleteRequest) {
-                    Icon(
-                        imageVector = Icons.Outlined.Delete,
-                        contentDescription = "Eliminar ${item.displayName}",
-                        tint = MaterialTheme.colorScheme.error,
-                    )
-                }
+
+                CompactActionButton(
+                    icon = if (item.pinned) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                    description = if (item.pinned) {
+                        "Desfijar ${item.displayName}"
+                    } else {
+                        "Fijar ${item.displayName}"
+                    },
+                    onClick = { onPinToggle(item) },
+                )
+
+                CompactActionButton(
+                    icon = Icons.Outlined.Delete,
+                    description = "Eliminar ${item.displayName}",
+                    tint = MaterialTheme.colorScheme.error,
+                    onClick = onDeleteRequest,
+                )
             }
         }
+    }
+}
+
+@Composable
+private fun CompactActionButton(
+    icon: ImageVector,
+    description: String,
+    onClick: () -> Unit,
+    tint: Color? = null,
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(48.dp),
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = description,
+            tint = tint ?: MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(20.dp),
+        )
     }
 }
 

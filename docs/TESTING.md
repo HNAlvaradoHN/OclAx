@@ -50,7 +50,11 @@ Pendiente de probar:
 - Fijados y cambio de retención desde UI;
 - borrado manual con confirmación y comprobación de que el original externo sobrevive;
 - compartir desde una tarjeta hacia otra aplicación;
-- riel derecho completo y usable en modo claro/oscuro y en pantallas de distinta altura.
+- selector compacto de categorías alineado a la izquierda: abrir, seleccionar, cierre automático y cierre al tocar fuera;
+- naranja vivo y contraste en modo claro/oscuro;
+- tarjetas y acciones compactas en distintos tamaños de pantalla;
+- Copiar texto e imagen desde una tarjeta y pegar en aplicaciones compatibles;
+- verificar que PDF, APK, documentos, video, audio y otros no muestren Copiar.
 
 Hasta completar esa validación, APP-001 permanece como:
 `IMPLEMENTED_PENDING_VALIDATION`.
