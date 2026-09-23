@@ -216,6 +216,8 @@ Controles:
 - Compartir una app copia únicamente archivos APK desde `sourceDir` y `splitSourceDirs`.
 - Nunca se lee ni copia el directorio privado de datos de la aplicación instalada.
 - Las copias de exportación viven bajo la caché privada de OclAx y se comparten con URI `content://` de solo lectura.
+- Antes de copiar se valida tamaño total y espacio disponible, reservando margen libre para no llenar el dispositivo.
+- Una exportación parcial fallida se elimina y no queda como basura temporal.
 - Exportaciones antiguas se consideran temporales y se eliminan de la caché después de un TTL defensivo.
 - Compartir el APK no equivale a ejecutar o instalar: el receptor decide qué hacer y Android conserva sus controles de instalación.
 
