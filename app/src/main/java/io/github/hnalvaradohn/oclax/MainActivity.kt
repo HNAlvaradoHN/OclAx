@@ -33,21 +33,27 @@ import java.text.DateFormat
 import java.util.Date
 
 class MainActivity : ComponentActivity() {
+    private val store by lazy { ItemStore(applicationContext) }
+    private var items by mutableStateOf<List<StoredItem>>(emptyList())
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val store = ItemStore(applicationContext)
         setContent {
             MaterialTheme {
-                OclAxHome(store)
+                OclAxHome(items)
             }
         }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        items = store.listItems()
     }
 }
 
 @Composable
-private fun OclAxHome(store: ItemStore) {
+private fun OclAxHome(allItems: List<StoredItem>) {
     var query by remember { mutableStateOf("") }
-    val allItems = remember { store.listItems() }
     val visibleItems = remember(query, allItems) {
         val needle = query.trim().lowercase()
         if (needle.isEmpty()) allItems else allItems.filter {
