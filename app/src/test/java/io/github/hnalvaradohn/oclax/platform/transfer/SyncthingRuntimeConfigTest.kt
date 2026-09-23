@@ -21,4 +21,17 @@ class SyncthingRuntimeConfigTest {
         assertFalse(command.any { it.contains("0.0.0.0") })
         assertFalse(command.any { it.contains("api", ignoreCase = true) && it.contains("key", ignoreCase = true) })
     }
+
+    @Test
+    fun generateCommandCreatesConfigWithoutStartingServeMode() {
+        val command = SyncthingRuntimeConfig.buildGenerateCommand(
+            binaryPath = "/private/libsyncthingnative.so",
+            homePath = "/private/home",
+        )
+
+        assertTrue(command.contains("generate"))
+        assertTrue(command.contains("--no-port-probing"))
+        assertFalse(command.contains("serve"))
+        assertFalse(command.any { it.contains("0.0.0.0") })
+    }
 }
