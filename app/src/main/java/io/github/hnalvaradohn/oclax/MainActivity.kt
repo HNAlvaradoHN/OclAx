@@ -9,6 +9,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -56,6 +57,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -422,16 +424,29 @@ private fun RetentionControl(
             "Autolimpieza",
             style = MaterialTheme.typography.labelMedium,
         )
-        OutlinedButton(
-            onClick = { expanded = true },
-            modifier = Modifier.height(40.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-            border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
-            colors = ButtonDefaults.outlinedButtonColors(
-                contentColor = MaterialTheme.colorScheme.primary,
-            ),
+        Box(
+            modifier = Modifier
+                .height(48.dp)
+                .clickable { expanded = true },
+            contentAlignment = Alignment.CenterStart,
         ) {
-            Text(retentionLabel(retentionHours))
+            Surface(
+                modifier = Modifier.height(30.dp),
+                shape = RoundedCornerShape(50),
+                color = Color.Transparent,
+                contentColor = MaterialTheme.colorScheme.primary,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+            ) {
+                Box(
+                    modifier = Modifier.padding(horizontal = 10.dp),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        retentionCompactLabel(retentionHours),
+                        style = MaterialTheme.typography.labelMedium,
+                    )
+                }
+            }
         }
         DropdownMenu(
             expanded = expanded,
@@ -571,6 +586,15 @@ private fun CompactActionButton(
             modifier = Modifier.size(20.dp),
         )
     }
+}
+
+private fun retentionCompactLabel(hours: Int): String = when (hours) {
+    1 -> "1 h"
+    24 -> "24 h"
+    72 -> "3 d"
+    168 -> "7 d"
+    0 -> "Nunca"
+    else -> "24 h"
 }
 
 private fun retentionLabel(hours: Int): String = when (hours) {
