@@ -299,7 +299,7 @@ Mecanismo oficial de OclAx:
 - issue administrativo bloqueado titulado:
   `[SYSTEM] Agent Session Registry — DO NOT CLOSE`
 
-El cuerpo del issue mantiene el último número confirmado.
+El cuerpo del issue mantiene el contador canónico `last_confirmed_chat`. El antiguo nombre `last_confirmed_session` queda retirado porque era ambiguo.
 
 Definición inquebrantable:
 
@@ -315,7 +315,7 @@ Proceso para un chat realmente nuevo:
 1. completa primero la sincronización exhaustiva de la sección 5;
 2. confirma que no existe un número ya asignado a ese mismo hilo visible;
 3. lee el issue;
-4. toma el último número confirmado;
+4. toma `last_confirmed_chat`;
 5. calcula N+1;
 6. vuelve a comprobar el issue justo antes de actualizar;
 7. si otro chat real tomó ese número, recalcula;
