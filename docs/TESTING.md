@@ -226,6 +226,9 @@ Pendiente de validación física:
 
 ## Conexión LAN entre pares
 
+Precondición de plataforma:
+- la Network Security Config debe permitir el REST HTTP únicamente en `127.0.0.1`/`localhost`; no habilitar cleartext global.
+
 Automático:
 - la política LAN permite solo `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` y `169.254.0.0/16`;
 - no acepta `0.0.0.0/0`, `::/0` ni `100.64.0.0/10`;
