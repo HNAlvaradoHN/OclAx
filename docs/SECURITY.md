@@ -122,3 +122,15 @@ SEC-001: revisar y configurar controles disponibles del repositorio público sin
 - El borrado manual no usa la URI de origen y no puede alcanzar archivos externos.
 - Compartir reutiliza FileProvider para exponer temporalmente una URI de solo lectura a la app elegida.
 - Para texto plano, OclAx comparte el texto mediante `ACTION_SEND` sin acceso adicional al almacenamiento.
+
+
+## Firma estable de builds de prueba
+
+- La clave privada de pruebas no vive en Git ni en archivos del repositorio.
+- El keystore se entrega a GitHub Actions únicamente mediante `OCLAX_TEST_KEYSTORE_BASE64`.
+- Contraseña, alias y contraseña de clave se almacenan en GitHub Actions Secrets separados.
+- El workflow reconstruye el keystore dentro de `RUNNER_TEMP` y nunca lo publica como artefacto.
+- Si no existen los cuatro Secrets, CI conserva la firma debug efímera para poder validar PRs sin bloquear.
+- Si existe una configuración parcial, CI falla para evitar builds ambiguos.
+- Esta firma es exclusivamente para pruebas internas y nunca será la clave de release/publicación.
+- Los APK de CI usan `GITHUB_RUN_NUMBER` como `versionCode` para permitir actualizaciones sucesivas.

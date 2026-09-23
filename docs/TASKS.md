@@ -130,5 +130,12 @@ Objetivo:
 - nunca committear keystore, contraseña ni clave privada;
 - mantener separada cualquier futura clave de release.
 
-Bloqueo:
-- requiere que el dueño cree/cargue los secretos de firma en GitHub.
+Preparado en código:
+- Gradle acepta firma estable de prueba solo con los cuatro Secrets presentes;
+- GitHub Actions reconstruye el keystore únicamente dentro del runner;
+- versionCode de CI usa el número monotónico del workflow;
+- una configuración parcial de Secrets hace fallar el build.
+
+Bloqueo actual:
+- requiere que el dueño cargue los cuatro Secrets de firma en GitHub;
+- después debe generarse y probarse un APK firmado establemente.
