@@ -204,3 +204,27 @@ Acciones:
 **Organización:** los filtros Todo, Fijados, Imágenes, Documentos, PDF, Apps/APK, Texto/Código, Video, Audio y Otros se muestran en un riel vertical a la derecha.
 
 **Motivo:** reducir búsqueda y desplazamiento horizontal, y convertir la bandeja en una herramienta bidireccional: recibir contenido y volver a compartirlo rápidamente.
+
+
+---
+
+## DEC-016 — Selector compacto a la izquierda y copia limitada
+
+**Decisión:** la organización por categorías deja de usar un riel vertical permanente.
+
+La UI de la app muestra un único control compacto de categoría, alineado a la izquierda. Por defecto muestra **Todo**. Al tocarlo abre un menú desplegable con Fijados, Imágenes, Documentos, PDF, Apps/APK, Texto/Código, Video, Audio y Otros.
+
+El menú:
+- se cierra al elegir una categoría;
+- se cierra al tocar fuera;
+- muestra como control principal la categoría actualmente seleccionada.
+
+Esta decisión **sustituye únicamente la parte de organización visual del riel derecho de DEC-015**. Las acciones directas por elemento de DEC-015 siguen vigentes.
+
+**Copiar:** la acción Copiar solo se ofrece para:
+- Texto/Código: publica texto plano al portapapeles, con un límite defensivo de tamaño;
+- Imágenes: publica una URI propia de OclAx mediante FileProvider al portapapeles.
+
+PDF, APK, documentos, video, audio y otros archivos no muestran Copiar; mantienen Compartir como salida principal.
+
+**Motivo:** ahorrar pantalla, devolver ancho a las tarjetas y evitar prometer una semántica de portapapeles que otras aplicaciones no manejan de forma consistente para archivos arbitrarios.
