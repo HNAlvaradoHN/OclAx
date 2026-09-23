@@ -409,9 +409,12 @@ internal class TransferRuntimeController(context: Context) {
     }
 
     fun disconnectLan(deviceId: String) {
-        runCatching { client.pauseDevice(deviceId) }
-        client.enforcePrivateOptions()
-        SyncthingRuntimeService.disableLanDiscovery(appContext)
+        try {
+            runCatching { client.pauseDevice(deviceId) }
+            client.enforcePrivateOptions()
+        } finally {
+            SyncthingRuntimeService.disableLanDiscovery(appContext)
+        }
     }
 
     fun awaitStopped(timeoutMillis: Long = 7_000L): Boolean =
