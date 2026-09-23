@@ -43,6 +43,14 @@
 
 Ninguno conocido para continuar con la configuración del repositorio.
 
+## Investigación reciente
+
+- La viabilidad técnica del concepto está documentada en `docs/FEASIBILITY.md`.
+- El estado de protecciones del repositorio está documentado en `docs/SECURITY_PROTECTIONS.md`.
+- La integración actual no puede cambiar administrativamente branch protection/rulesets.
+
 ## Siguiente paso exacto
 
-Configurar y verificar las protecciones gratuitas/aprobadas del repositorio público antes de iniciar el código Android.
+1. El dueño confirma el alcance MVP propuesto en FEASIBILITY.
+2. Activar manualmente la protección de `main` en GitHub.
+3. Después iniciar la base Android.
