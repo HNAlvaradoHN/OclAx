@@ -173,19 +173,20 @@ internal class SyncthingRuntimeConfig(
         )
     }
 
-    private fun defaultGatewayIpv4(): String? {
+    private fun defaultGatewayIpv4(): String? = runCatching {
         val connectivityManager = context
             .getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-            ?: return null
-        val network = connectivityManager.activeNetwork ?: return null
-        val properties = connectivityManager.getLinkProperties(network) ?: return null
+            ?: return@runCatching null
+        val network = connectivityManager.activeNetwork ?: return@runCatching null
+        val properties = connectivityManager.getLinkProperties(network)
+            ?: return@runCatching null
 
-        return properties.routes
+        properties.routes
             .asSequence()
             .filter { it.isDefaultRoute }
             .mapNotNull { it.gateway }
             .filterIsInstance<Inet4Address>()
             .mapNotNull { it.hostAddress }
             .firstOrNull()
-    }
+    }.getOrNull()
 }
