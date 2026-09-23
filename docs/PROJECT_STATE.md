@@ -91,7 +91,8 @@
 - validación física de miniaturas dentro de la bandeja OclAx y del bloque Mi dispositivo;
 - TRANSFER-001 iniciado: spike técnico para Syncthing core v2.x detrás de una capa propia;
 - investigación confirmó que el wrapper Android oficial está archivado, por lo que no se adoptará como dependencia;
-- siguiente objetivo técnico del spike: empaquetar un Syncthing core estable/pinneado en CI aislada de secretos y arrancarlo localmente con REST solo en loopback.
+- **VERIFICADO:** CI aislada construye Syncthing core v2.1.5 para Android arm64/API 26 con NDK r30, sin secretos de firma, y genera SHA-256 verificable;
+- siguiente objetivo técnico: empaquetar ese runtime en una build de prueba OclAx y arrancarlo mediante foreground service con configuración privada y REST solo en loopback.
 
 ## Bloqueos
 
@@ -105,6 +106,6 @@
 3. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
 4. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
 5. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
-6. En paralelo, completar el spike de empaquetado/arranque local de Syncthing core v2.x sin exponer REST fuera de loopback ni usar secretos de firma.
+6. Empaquetar el runtime arm64 ya compilado dentro de una build de prueba y validar arranque/parada + REST en `127.0.0.1`.
 7. Después, probar dos dispositivos: LAN directo → Internet directo → relay público como fallback.
 8. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
