@@ -42,7 +42,7 @@ Ninguno registrado actualmente.
 
 
 ### ERR-004 — APK debug de CI no puede actualizar instalación anterior
-**Estado:** RESUELTO_PENDIENTE_VALIDACION_FISICA
+**Estado:** RESUELTO
 
 **Síntoma:** Android muestra “No se instaló la app debido a un conflicto con un paquete” al intentar instalar un APK debug nuevo sobre una instalación anterior de OclAx.
 
@@ -52,4 +52,20 @@ Ninguno registrado actualmente.
 
 **Corrección aplicada:** firma de pruebas persistente almacenada únicamente mediante GitHub Actions Secrets. El workflow reconstruye el keystore en el runner, usa un versionCode monotónico y generó correctamente un APK firmado desde main.
 
-**Validación pendiente:** instalar una vez el APK con la nueva firma y luego comprobar que una build posterior se instala encima sin conflicto. La instalación anterior a esta migración no comparte la nueva firma y debe desinstalarse una última vez.
+**Validación física:** el dueño instaló una build posterior encima de la instalación firmada establemente y confirmó que Android permitió la actualización y conservó los datos internos.
+
+
+### ERR-005 — Aplicaciones instaladas no visibles tras primera implementación
+**Estado:** RESUELTO_PENDIENTE_VALIDACION_FISICA
+
+**Síntoma:** tras actualizar físicamente, la categoría de apps instaladas no mostró las aplicaciones esperadas y el selector de archivos del sistema siguió mostrando únicamente elementos recientes sin organización por categorías.
+
+**Causa probable verificada en implementación:** la primera versión consultaba actividades lanzables mediante PackageManager y el DocumentsProvider seguía plano. La UI además usaba etiquetas demasiado parecidas entre APK y aplicaciones instaladas.
+
+**Corrección aplicada:**
+- usar `LauncherApps.getActivityList()` para obtener actividades lanzables del perfil actual;
+- separar visualmente `Apps instaladas` y `APK guardados`;
+- añadir carpetas virtuales por categoría en DocumentsProvider manteniendo también los elementos recientes directos;
+- eliminar la declaración `<queries>` que dejó de ser necesaria.
+
+**Validación pendiente:** confirmar en el mismo teléfono que Apps instaladas muestra iconos/nombres y que Archivos → OclAx presenta carpetas de categorías sin perder acceso directo a recientes.
