@@ -29,12 +29,17 @@ Incluye:
 **Estado:** IN_PROGRESS  
 **Prioridad:** alta
 
-Objetivo:
-- revisar Secret Scanning / Push Protection disponibles;
-- revisar Dependabot;
-- definir protección de main / PR;
-- preparar CI mínimo cuando exista código;
-- usar únicamente opciones sin costo salvo autorización.
+Completado:
+- ruleset activo en main;
+- PR obligatorio;
+- borrado y force-push bloqueados;
+- Secret Scanning/Push Protection revisados para repo público;
+- Dependabot configurado;
+- CI mínimo Android instalado.
+
+Pendiente:
+- CodeQL/code scanning antes de release estable;
+- mantener solo opciones sin costo salvo autorización.
 
 ### APP-001 — Inicializar base Android
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
@@ -49,8 +54,12 @@ Implementado:
 - tests/lint/build en CI;
 - APK debug como artefacto.
 
+Validado:
+- CI verde en PR;
+- CI verde en main;
+- APK debug generado.
+
 Pendiente:
-- CI verde del PR actual;
 - validación física en dispositivo.
 
 ### PRODUCT-001 — Formalizar alcance MVP

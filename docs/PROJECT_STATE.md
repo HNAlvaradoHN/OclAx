@@ -3,7 +3,7 @@
 ## Estado
 
 **Fase:** primera prueba vertical Android.  
-**Aplicación:** implementada, pendiente de validación.  
+**Aplicación:** prueba vertical compilada y validada por CI; pendiente de validación física.  
 **Repositorio:** público.  
 **Protocol version:** 2.
 
@@ -61,9 +61,17 @@ Ninguno conocido para continuar con la configuración del repositorio.
 - El estado de protecciones del repositorio está documentado en `docs/SECURITY_PROTECTIONS.md`.
 - La integración actual no puede cambiar administrativamente branch protection/rulesets.
 
+## Validación automatizada actual
+
+- Android CI verde en `main`.
+- Tests unitarios, lint y build debug completados.
+- APK debug generado como artefacto de CI.
+
 ## Siguiente paso exacto
 
-1. Obtener CI verde de la prueba vertical.
-2. Instalar el APK debug en un teléfono real.
-3. Validar: Compartir → OclAx → portapapeles y + / Archivos → OclAx → Recientes → insertar.
-4. Corregir cualquier incompatibilidad real antes de ampliar UI o funciones.
+1. Instalar el APK debug en un teléfono real.
+2. Validar texto: Compartir → OclAx → Pegar.
+3. Validar imagen: Compartir → OclAx → Pegar.
+4. Validar archivo: Compartir → OclAx → otra app → + / Archivos → OclAx → Recientes → insertar.
+5. Repetir en Qwen, WhatsApp, Telegram y navegador.
+6. Corregir incompatibilidades reales antes de ampliar UI o funciones.
