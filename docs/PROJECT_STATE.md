@@ -5,7 +5,7 @@
 **Fase:** gobernanza y seguridad inicial.  
 **Aplicación:** todavía no implementada.  
 **Repositorio:** público.  
-**Protocol version:** 1.
+**Protocol version:** 2.
 
 ## Qué ya está definido
 
@@ -26,6 +26,9 @@
 - Protocolo maestro instalado.
 - Identidad oficial instalada.
 - Estructura de memoria oficial iniciada.
+- Revisores detallados instalados en `docs/REVIEW_ROLES.md`.
+- Memoria visual inicial instalada en `docs/DESIGN.md`.
+- Política de herramientas externas instalada en `docs/TOOLS.md`.
 
 ## Qué todavía no existe
 
