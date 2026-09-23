@@ -394,6 +394,8 @@ Orden conceptual:
 3. relay público de Syncthing cuando no sea posible una conexión directa.
 
 Aclaración:
+- la primera implementación de la etapa 1 es una **prueba LAN explícita**: solo local discovery + TCP, con peer limitado a redes privadas; global discovery, relay y NAT permanecen apagados;
+- esa prueba no comparte carpetas ni archivos y vuelve a modo aislado al desconectar;
 - el relay no es almacenamiento en nube ni “sube el archivo para después”; reenvía tráfico entre los dos dispositivos;
 - la sesión entre dispositivos permanece cifrada extremo a extremo;
 - el relay puede conocer metadatos de conexión como IP/device ID y volumen de tráfico;
