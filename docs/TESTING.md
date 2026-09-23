@@ -22,6 +22,12 @@ El workflow publica un APK debug solo si las validaciones anteriores terminan co
 - extensiones admitidas;
 - nombres internos de payload.
 
+`RetentionPolicyTest` valida:
+- expiración de elementos no fijados al superar la retención;
+- exclusión de Fijados;
+- opción `nunca`;
+- fallback seguro a 24 horas ante un valor no admitido.
+
 ## Validación física
 
 La automatización NO demuestra compatibilidad entre aplicaciones.
@@ -39,7 +45,9 @@ Interpretación:
 Pendiente de probar:
 - búsqueda dentro de la raíz OclAx;
 - comportamiento con archivo grande y poco almacenamiento;
-- WhatsApp, Telegram y navegador.
+- WhatsApp, Telegram y navegador;
+- expiración física de copias OclAx y supervivencia del archivo original;
+- Fijados y cambio de retención desde UI cuando esos controles estén disponibles.
 
 Hasta completar esa validación, APP-001 permanece como:
 `IMPLEMENTED_PENDING_VALIDATION`.

@@ -16,6 +16,8 @@ import java.util.UUID
 class ItemStore(private val context: Context) {
     companion object {
         private const val META_FILE = "meta.json"
+        private const val PREFS_FILE = "oclax_retention"
+        private const val PREF_RETENTION_HOURS = "retention_hours"
         private const val MAX_TEXT_CHARS = 2_000_000
         const val MAX_ITEM_BYTES: Long = 4L * 1024L * 1024L * 1024L
         private const val RESERVED_FREE_BYTES: Long = 64L * 1024L * 1024L
@@ -23,16 +25,14 @@ class ItemStore(private val context: Context) {
     }
 
     private val itemsDir = File(context.filesDir, "oclax/items").apply { mkdirs() }
+    private val preferences = context.getSharedPreferences(PREFS_FILE, Context.MODE_PRIVATE)
 
     @Synchronized
-    fun listItems(): List<StoredItem> =
-        itemsDir.listFiles()
-            .orEmpty()
-            .asSequence()
-            .filter { it.isDirectory && !it.name.startsWith(".tmp-") }
-            .mapNotNull(::readItem)
+    fun listItems(): List<StoredItem> {
+        cleanupExpired()
+        return rawItems()
             .sortedWith(compareByDescending<StoredItem> { it.pinned }.thenByDescending { it.createdAt })
-            .toList()
+    }
 
     @Synchronized
     fun findItem(id: String): StoredItem? {
@@ -47,6 +47,40 @@ class ItemStore(private val context: Context) {
             it.displayName.lowercase().contains(needle) ||
                 it.mimeType.lowercase().contains(needle)
         }
+    }
+
+    fun retentionHours(): Int = RetentionPolicy.normalizeHours(
+        preferences.getInt(PREF_RETENTION_HOURS, RetentionPolicy.DEFAULT_HOURS),
+    )
+
+    @Synchronized
+    fun setRetentionHours(hours: Int) {
+        val normalized = RetentionPolicy.normalizeHours(hours)
+        preferences.edit().putInt(PREF_RETENTION_HOURS, normalized).apply()
+        cleanupExpired()
+    }
+
+    @Synchronized
+    fun setPinned(id: String, pinned: Boolean): StoredItem? {
+        if (!isSafeId(id)) return null
+        val directory = File(itemsDir, id)
+        val current = readItem(directory) ?: return null
+        val updated = current.copy(pinned = pinned)
+        writeMeta(directory, updated)
+        return updated
+    }
+
+    @Synchronized
+    fun cleanupExpired(nowMillis: Long = System.currentTimeMillis()): Int {
+        val retention = retentionHours()
+        var deleted = 0
+        rawItems().forEach { item ->
+            if (RetentionPolicy.shouldExpire(item, nowMillis, retention)) {
+                val directory = File(itemsDir, item.id)
+                if (directory.parentFile == itemsDir && directory.deleteRecursively()) deleted++
+            }
+        }
+        return deleted
     }
 
     @Synchronized
@@ -123,6 +157,14 @@ class ItemStore(private val context: Context) {
         val item = findItem(id) ?: return null
         return payloadFile(item).takeIf { it.isFile }
     }
+
+    private fun rawItems(): List<StoredItem> =
+        itemsDir.listFiles()
+            .orEmpty()
+            .asSequence()
+            .filter { it.isDirectory && !it.name.startsWith(".tmp-") }
+            .mapNotNull(::readItem)
+            .toList()
 
     private fun writeNewItem(
         displayName: String,

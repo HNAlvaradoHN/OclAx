@@ -54,7 +54,6 @@ Formato:
 
 Sin handshake válido, la sesión no está autorizada para modificar el proyecto.
 
-
 ---
 
 ## DEC-007 — Revisores separados de AGENTS.md
@@ -81,7 +80,6 @@ Sin handshake válido, la sesión no está autorizada para modificar el proyecto
 
 **Motivo:** evitar agregar herramientas por moda o convertirlas accidentalmente en una fuente de verdad paralela.
 
-
 ---
 
 ## DEC-010 — Flujo principal de inserción
@@ -97,7 +95,6 @@ La raíz de OclAx debe priorizar **Recientes** y mostrar contenido mixto en un s
 **Regla de producto:** insertar debe requerir el mínimo de pasos posible. OclAx no debe obligar al usuario a navegar carpetas internas ni organizar manualmente antes de usar un elemento.
 
 **Limitación Android:** OclAx no puede capturar universalmente todo lo copiado en segundo plano. Por eso el ingreso al estante debe usar acciones explícitas y rápidas (Compartir a OclAx, importar, guardar selección/texto, o mecanismos equivalentes compatibles con Android). IME/Accessibility/Shizuku no forman parte del MVP salvo decisión posterior.
-
 
 ---
 
@@ -123,7 +120,6 @@ PDF, APK, documentos, ZIP, video y demás se guardan en OclAx, pero no se promet
 **Objetivo:** ofrecer dos rutas rápidas sin duplicar la lógica de ingreso:
 - texto/imagen → Compartir a OclAx → queda en Recientes + listo para Pegar;
 - cualquier archivo → Compartir a OclAx → queda en Recientes + listo para seleccionar desde Archivos.
-
 
 ---
 
@@ -158,7 +154,6 @@ Por tanto, el MVP no necesita:
 
 Los archivos que ya existen fuera de OclAx pueden incorporarse de forma explícita cuando se necesiten, sin convertir a OclAx en explorador total del almacenamiento.
 
-
 ---
 
 ## DEC-013 — Base técnica Android de la prueba vertical
@@ -175,3 +170,19 @@ Los archivos que ya existen fuera de OclAx pueden incorporarse de forma explíci
 **Motivo:** usar APIs nativas y mínimas para demostrar el flujo central antes de añadir persistencia compleja, IME, accesibilidad, nube o permisos amplios.
 
 **Consecuencia:** no se añade Room ni WorkManager hasta que exista una necesidad demostrada.
+
+---
+
+## DEC-014 — Retención y límite de propiedad
+
+**Decisión:** la autolimpieza solo puede eliminar copias creadas y controladas por OclAx dentro de su almacenamiento privado. Nunca debe eliminar, mover ni modificar el archivo original del dispositivo o de otra aplicación.
+
+**Retención predeterminada:** 24 horas para elementos no fijados.
+
+**Opciones previstas:** 1 hora, 24 horas, 3 días, 7 días y nunca. Un valor persistido inválido vuelve de forma segura a 24 horas.
+
+**Fijados:** un elemento fijado queda excluido de la autolimpieza hasta que el usuario lo desfije.
+
+**Ejecución inicial:** limpieza oportunista al consultar la bandeja/DocumentProvider, sin WorkManager. Esto mantiene el MVP simple y evita trabajo en segundo plano innecesario; una ejecución periódica solo se añadirá si una necesidad real lo justifica.
+
+**Consecuencia:** borrar una copia OclAx puede hacer que deje de estar disponible desde OclAx, pero no afecta su fuente original externa.
