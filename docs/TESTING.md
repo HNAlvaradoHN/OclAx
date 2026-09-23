@@ -135,3 +135,18 @@ Pendiente de validación física:
 - revocar acceso amplio y confirmar que OclAx conserva su bandeja y que Mi dispositivo vuelve a pedir permiso;
 - confirmar que no existe una acción de borrado de originales;
 - observar tiempo de carga y fluidez con un dispositivo con muchos archivos.
+
+## Miniaturas, compartir apps y borrar originales
+
+Pendiente de validación física:
+- Archivos → OclAx → Imágenes debe mostrar miniaturas reales en lugar del icono genérico cuando el selector las solicite;
+- Video debe mostrar fotograma/miniatura cuando sea compatible;
+- Mi dispositivo debe mostrar miniaturas en lista y cuadrícula;
+- cambiar vista en una categoría no debe modificar las demás y debe sobrevivir al reinicio;
+- compartir una app de APK único debe enviar un APK instalable sin datos privados del usuario;
+- compartir una app con splits debe enviar base + todos los splits;
+- recepción/instalación debe seguir siendo una decisión explícita del receptor;
+- eliminar original debe mostrar confirmación OclAx y, cuando Android lo requiera, confirmación del sistema;
+- cancelar cualquiera de las confirmaciones debe conservar el archivo;
+- tras eliminar, el elemento debe desaparecer del índice sin afectar copias OclAx;
+- autolimpieza debe seguir sin tocar originales.
