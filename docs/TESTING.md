@@ -171,3 +171,18 @@ Pendiente de validación física:
 - si falla la generación de miniatura, la tarjeta debe seguir siendo utilizable con icono de fallback;
 - desplazar una lista con muchas miniaturas no debe bloquear perceptiblemente la UI.
 
+## Spike de transferencia OclAx ↔ OclAx
+
+Antes de conectar UX de envío, el spike debe demostrar:
+- el runtime Syncthing core pinneado arranca en Android y entrega un device ID;
+- REST/GUI responde únicamente por loopback y rechaza acceso desde otra máquina de la LAN;
+- la API exige la key privada generada localmente;
+- auto-upgrade y usage reporting permanecen desactivados;
+- start/stop/restart no corrompe configuración/base de datos;
+- dos dispositivos emparejados transfieren un archivo pequeño por LAN;
+- un archivo grande puede mostrar progreso sin cargarse completo en memoria;
+- cancelación/reintento dejan estados consistentes;
+- sin ruta directa, relay funciona como fallback manteniendo contenido cifrado extremo a extremo;
+- contenido recibido aterriza en área privada OclAx y no se abre/instala automáticamente;
+- CI de construcción nativa no recibe secretos de firma de la app.
+
