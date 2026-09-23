@@ -1,8 +1,10 @@
 package io.github.hnalvaradohn.oclax.platform.transfer
 
 import android.content.Context
+import android.net.ConnectivityManager
 import android.util.Base64
 import java.io.File
+import java.net.Inet4Address
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
@@ -48,6 +50,31 @@ internal class SyncthingRuntimeConfig(
             "generate",
             "--no-port-probing",
         )
+
+        internal fun privateEnvironmentOverrides(
+            homePath: String,
+            tempPath: String,
+            apiKey: String,
+            gatewayIpv4: String?,
+        ): Map<String, String> = buildMap {
+            put("HOME", homePath)
+            put("TMPDIR", tempPath)
+            put("SQLITE_TMPDIR", tempPath)
+            put("STHOMEDIR", homePath)
+            put("STGUIAPIKEY", apiKey)
+            put("STGUIADDRESS", "$LOOPBACK_ADDRESS:$GUI_PORT")
+            put("STNOBROWSER", "yes")
+            put("STNORESTART", "yes")
+            put("STNOUPGRADE", "yes")
+
+            // Syncthing's outer monitor re-execs the binary. Android wrappers run the
+            // core directly as the already-monitored child process instead.
+            put("STMONITORED", "yes")
+
+            gatewayIpv4?.takeIf { it.isNotBlank() }?.let {
+                put("FALLBACK_NET_GATEWAY_IPV4", it)
+            }
+        }
     }
 
     val homeDir: File
@@ -136,13 +163,29 @@ internal class SyncthingRuntimeConfig(
     )
 
     fun applyPrivateEnvironment(builder: ProcessBuilder) {
-        val environment = builder.environment()
-        environment["HOME"] = homeDir.absolutePath
-        environment["TMPDIR"] = tempDir.absolutePath
-        environment["STGUIAPIKEY"] = apiKey()
-        environment["STGUIADDRESS"] = "$LOOPBACK_ADDRESS:$GUI_PORT"
-        environment["STNOBROWSER"] = "yes"
-        environment["STNORESTART"] = "yes"
-        environment["STNOUPGRADE"] = "yes"
+        builder.environment().putAll(
+            privateEnvironmentOverrides(
+                homePath = homeDir.absolutePath,
+                tempPath = tempDir.absolutePath,
+                apiKey = apiKey(),
+                gatewayIpv4 = defaultGatewayIpv4(),
+            ),
+        )
+    }
+
+    private fun defaultGatewayIpv4(): String? {
+        val connectivityManager = context
+            .getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
+            ?: return null
+        val network = connectivityManager.activeNetwork ?: return null
+        val properties = connectivityManager.getLinkProperties(network) ?: return null
+
+        return properties.routes
+            .asSequence()
+            .filter { it.isDefaultRoute }
+            .mapNotNull { it.gateway }
+            .filterIsInstance<Inet4Address>()
+            .mapNotNull { it.hostAddress }
+            .firstOrNull()
     }
 }
