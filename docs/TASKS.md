@@ -37,14 +37,21 @@ Objetivo:
 - usar únicamente opciones sin costo salvo autorización.
 
 ### APP-001 — Inicializar base Android
-**Estado:** PENDING  
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Dependencia:** SEC-001
 
-Objetivo:
-- crear proyecto Android mínimo;
-- separar UI/theme/domain/data/platform desde el inicio;
-- mantener cero secretos;
-- establecer build y pruebas básicas.
+Implementado:
+- proyecto Android mínimo;
+- separación entre UI, almacenamiento, compartir y provider;
+- Share Sheet para contenido mixto;
+- portapapeles para texto e imagen;
+- DocumentsProvider para Recientes;
+- tests/lint/build en CI;
+- APK debug como artefacto.
+
+Pendiente:
+- CI verde del PR actual;
+- validación física en dispositivo.
 
 ### PRODUCT-001 — Formalizar alcance MVP
 **Estado:** DONE

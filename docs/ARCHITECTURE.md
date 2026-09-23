@@ -41,3 +41,36 @@ Integraciones con APIs del sistema, selector de archivos, portapapeles, trabajos
 
 La selección concreta de librerías y versiones se decidirá y verificará antes de crear la base Android.
 No se considera aprobada una dependencia solo por haber sido mencionada en una conversación.
+
+
+## Implementación Android inicial — 2026-09-22
+
+La primera prueba vertical usa una sola aplicación Android nativa.
+
+```text
+ShareReceiverActivity
+        ↓
+   ShareIngestor
+        ↓
+     ItemStore
+      ↙     ↘
+FileProvider  DocumentsProvider
+clipboard       selector Android
+
+MainActivity (Compose)
+        ↓
+     ItemStore
+```
+
+Reglas vigentes:
+- almacenamiento en directorio privado de la app;
+- cada elemento vive en un directorio opaco generado por UUID;
+- nombre visible y MIME se guardan como metadata, nunca controlan rutas;
+- archivos se copian por streaming, no se cargan completos en RAM;
+- FileProvider se usa para URI de portapapeles;
+- DocumentsProvider se usa como fuente del selector del sistema;
+- no existe permiso de Internet;
+- no existe acceso total al almacenamiento del teléfono;
+- la UI no posee la lógica de importación ni del provider.
+
+El escaneo simple del directorio es deliberado para esta prueba vertical. Si el volumen real lo exige, la indexación podrá evolucionar después sin cambiar los contratos de ShareIngestor/DocumentsProvider.
