@@ -28,3 +28,14 @@ Ninguno registrado actualmente.
 **Solución:** usar API 36, ya disponible y suficiente para el MVP, junto con Compose BOM 2026.04.01 (Compose 1.11), y dejar que el runner use su SDK estable.
 
 **Prevención:** elegir la versión mínima actual que satisfaga producto y dependencias; subir compileSdk por necesidad verificada, no por novedad.
+
+### ERR-003 — Clasificador no reconocía documentos OOXML
+**Estado:** RESUELTO
+
+**Síntoma:** Android CI del PR #20 falló en `ContentTypeTest` al clasificar un documento Word `.docx` como `OTHER` en vez de `DOCUMENT`.
+
+**Causa:** el detector buscaba la subcadena `officedocument`, pero el MIME estándar de OOXML contiene `openxmlformats-officedocument` y no esa secuencia contigua.
+
+**Solución:** reconocer explícitamente `openxmlformats-officedocument` dentro de los MIME de documentos.
+
+**Prevención:** mantener pruebas unitarias con MIME reales de formatos representativos antes de reutilizar la clasificación en UI o DocumentsProvider.
