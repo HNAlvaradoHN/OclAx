@@ -91,3 +91,19 @@ Pendiente en dispositivo:
 - comprobar conservación de copias/preferencias internas;
 - probar cierre del menú al seleccionar y al tocar fuera;
 - copiar texto e imagen y pegar en aplicaciones compatibles.
+
+
+## Validación física — actualización estable y apps
+
+VERIFICADO por el dueño:
+- la APK nueva se instaló encima de la anterior sin conflicto;
+- los datos internos se conservaron.
+
+FALLO observado:
+- la primera implementación de Aplicaciones no mostró las apps esperadas;
+- Archivos → OclAx continuó mostrando una raíz plana de recientes.
+
+Corrección a validar:
+- Apps instaladas mediante LauncherApps;
+- etiquetas Apps instaladas / APK guardados;
+- carpetas virtuales por categoría dentro de DocumentsProvider manteniendo recientes directos.
