@@ -61,3 +61,16 @@ Alcance central confirmado:
 - sin IME/Accessibility/Shizuku en el MVP.
 
 La compatibilidad real se validará posteriormente en dispositivo.
+
+### PRODUCT-002 — Diseñar selector ordenado de inserción
+**Estado:** PENDING
+
+Objetivo:
+- búsqueda rápida;
+- Recientes;
+- Fijados;
+- filtros por tipo;
+- miniaturas/iconos útiles;
+- mínimo de toques desde `+ / Archivos → OclAx`.
+
+No convertir esta tarea en un gestor de archivos completo.
