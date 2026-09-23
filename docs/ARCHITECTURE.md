@@ -74,3 +74,25 @@ Reglas vigentes:
 - la UI no posee la lógica de importación ni del provider.
 
 El escaneo simple del directorio es deliberado para esta prueba vertical. Si el volumen real lo exige, la indexación podrá evolucionar después sin cambiar los contratos de ShareIngestor/DocumentsProvider.
+
+
+## Aplicaciones instaladas — bloque visual
+
+La consulta de aplicaciones instaladas pertenece a Plataforma/Android y se encapsula en `InstalledAppsRepository`.
+
+```text
+MainActivity (Compose)
+        ↓
+InstalledAppsRepository
+        ↓
+PackageManager
+        ↓
+MAIN + LAUNCHER visibles
+```
+
+Reglas:
+- la UI no consulta PackageManager directamente;
+- no se solicita visibilidad total de paquetes;
+- se muestran solo apps lanzables visibles mediante la consulta declarada en manifest;
+- la lista no se persiste ni se transmite;
+- los archivos APK de OclAx continúan usando el modelo de contenido existente y no se mezclan con apps instaladas.
