@@ -215,7 +215,7 @@ Controles obligatorios antes de exponer transferencias reales:
 - El peer se configura inicialmente pausado y solo se reanuda para la prueba elegida por el usuario.
 - `allowedNetworks` restringe conexiones a RFC1918 IPv4 y link-local; no se confía en Internet completo ni en CGNAT.
 - OclAx solo marca éxito si el motor reporta la conexión como local.
-- Al cancelar, fallar o pulsar **Desconectar LAN**, OclAx pausa el peer, restaura las opciones privadas y libera el MulticastLock incluso si una llamada REST falla.
+- Al cancelar, fallar o pulsar **Desconectar LAN**, OclAx intenta pausar el peer, restaura las opciones privadas y libera el MulticastLock; si no puede confirmar el retorno al modo aislado, detiene el runtime completo como fail-closed.
 - La prueba LAN no crea carpetas compartidas, no transmite archivos y no cambia **Permitir sin aceptar**.
 - Local discovery puede revelar el Device ID a otros equipos de esa LAN mientras la prueba está activa; por eso nunca se enciende silenciosamente ni de forma permanente.
 
