@@ -15,4 +15,4 @@ Ninguno registrado actualmente.
 
 **Solución:** permitir un bootstrap limitado exclusivamente a instalar gobernanza, identidad y memoria oficial. Durante bootstrap no se desarrolla código de producto.
 
-**Prevención:** los futuros paquetes maestros deben incluir esta excepción de bootstrap.
+**Prevención:** protocol_version 2 incorpora explícitamente la excepción limitada de bootstrap en AGENTS.md y en el paquete maestro.
