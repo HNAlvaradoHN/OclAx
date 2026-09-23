@@ -7,7 +7,7 @@ Ninguno registrado actualmente.
 ## Resueltos
 
 ### ERR-012 — Contador de chat derivó a 11 y el handshake no probaba lectura completa
-**Estado:** CORREGIDO_PENDIENTE_VALIDACION
+**Estado:** RESUELTO
 
 **Síntomas:**
 - el registro persistente terminó en 11 aunque el dueño confirmó que el hilo actual es el chat 2;
@@ -29,9 +29,9 @@ Ninguno registrado actualmente.
 
 **Prevención:**
 - GitHub conserva la regla canónica;
-- evitar duplicar detalles mutables del protocolo fuera del repo;
+- las instrucciones del Project de ChatGPT delegan a AGENTS.md las reglas mutables de sincronización, numeración y handshake;
 - comprobar el inventario completo antes de READY;
-- corregir el registro administrativo cuando protocol v4 quede fusionado.
+- el registro administrativo ya usa `last_confirmed_chat` y quedó corregido a chat 2 bajo protocol v4.
 
 ### ERR-001 — Ciclo de bootstrap sin AGENTS.md
 **Estado:** RESUELTO
