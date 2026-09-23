@@ -228,3 +228,27 @@ Esta decisión **sustituye únicamente la parte de organización visual del riel
 PDF, APK, documentos, video, audio y otros archivos no muestran Copiar; mantienen Compartir como salida principal.
 
 **Motivo:** ahorrar pantalla, devolver ancho a las tarjetas y evitar prometer una semántica de portapapeles que otras aplicaciones no manejan de forma consistente para archivos arbitrarios.
+
+
+---
+
+## DEC-017 — Aplicaciones instaladas visibles sin permiso amplio
+
+**Decisión:** OclAx incorpora una categoría separada **Aplicaciones** para mostrar aplicaciones instaladas que Android expone como lanzables mediante `MAIN + LAUNCHER`.
+
+Reglas:
+- **Aplicaciones** y **APK** son categorías distintas;
+- APK representa archivos APK guardados en la bandeja OclAx;
+- Aplicaciones representa apps instaladas visibles para el launcher;
+- se usa el icono real y nombre visible de cada app;
+- la lista se ordena alfabéticamente;
+- la búsqueda filtra por nombre o paquete;
+- esta primera versión de la vista es informativa/visual: no redefine todavía abrir una app ni usarla como destino de transferencia.
+
+Privacidad y plataforma:
+- no se solicita `QUERY_ALL_PACKAGES`;
+- solo se declara una consulta de visibilidad para apps con actividad de launcher;
+- la lista permanece local y no se envía a ningún servicio;
+- OclAx sigue sin permiso de Internet.
+
+**Motivo:** completar la parte del flujo visual solicitada por el dueño —aplicaciones del dispositivo ordenadas e identificables— sin ampliar permisos ni mezclar apps instaladas con archivos APK.
