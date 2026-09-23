@@ -58,7 +58,7 @@
 - categoría Aplicaciones separada de APK;
 - aplicaciones lanzables del dispositivo ordenadas alfabéticamente con iconos reales;
 - iconos reconocibles por tipo en las tarjetas de OclAx;
-- visibilidad de apps sin permiso amplio `QUERY_ALL_PACKAGES`.
+- la primera versión de apps evitó `QUERY_ALL_PACKAGES`; esa restricción fue sustituida después al aprobarse Mi dispositivo completo.
 
 ## Implementado recientemente
 
@@ -71,10 +71,19 @@
 - Copiar limitado a texto e imágenes también en Mi dispositivo;
 - ningún borrado de originales desde Mi dispositivo.
 
+## Implementado recientemente
+
+- miniaturas reales para imágenes/video en Mi dispositivo;
+- miniaturas expuestas por DocumentsProvider al selector de Android;
+- vista Lista/Cuadrícula recordada por categoría en Mi dispositivo;
+- compartir aplicaciones instaladas exportando solo APK base + splits, sin datos privados;
+- eliminación explícita de originales con confirmación OclAx y autorización Android cuando corresponde;
+- límites de espacio para exportaciones temporales de APK;
+- PR #34 fusionado tras tests, lint y build verdes.
+
 ## En desarrollo
 
-- PR #34 implementado con CI verde: miniaturas reales para imágenes/video, compartir apps instaladas sin datos privados, borrado explícito de originales y vista lista/cuadrícula por categoría;
-- validación física de Mi dispositivo y permisos;
+- validación física de este bloque en teléfono real;
 - prototipo OclAx ↔ OclAx usando Syncthing como motor candidato.
 
 ## Bloqueos
@@ -83,10 +92,10 @@ Ninguno conocido.
 
 ## Siguiente paso exacto
 
-1. Terminar revisión/fusión del PR #34 con CI verde.
-2. Validar físicamente miniaturas en Archivos → OclAx y en Mi dispositivo.
-3. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
-4. Validar borrar/cancelar borrado de un original y comprobar que la bandeja OclAx queda intacta.
-5. Confirmar vista lista/cuadrícula independiente por categoría y persistente.
-6. Prototipar Syncthing como motor de **Enviar a dispositivo** con directo/LAN/Internet y relay público como fallback.
+1. Validar físicamente miniaturas en Archivos → OclAx y en Mi dispositivo.
+2. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
+3. Validar borrar y cancelar borrado de un original, comprobando que la bandeja OclAx queda intacta.
+4. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
+5. Confirmar rendimiento de miniaturas con muchas imágenes/videos.
+6. Después de esa validación, prototipar Syncthing como motor de **Enviar a dispositivo** con directo/LAN/Internet y relay público como fallback.
 7. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
