@@ -61,7 +61,7 @@ Reglas:
 - el número solo cambia cuando el usuario abre otro chat real;
 - si existe duda sobre si es un chat nuevo, no incrementar.
 
-**Corrección del incidente 2026-09-23:** el contador llegó incorrectamente a 11 por tratar actividad técnica como sesiones nuevas. El dueño confirmó que el chat actual corresponde al número **2**. El registro oficial debe corregirse a 2 después de adoptar este protocolo.
+**Corrección del incidente 2026-09-23:** el registro llegó a 11, pero el dueño confirmó que el hilo actual corresponde al chat **2**. La causa histórica exacta de cada incremento no puede reconstruirse con la información disponible del issue; sí quedó verificado que el protocolo usaba el término ambiguo “sesión” y no protegía suficientemente la diferencia entre un chat visible y actividad técnica. El registro oficial debe corregirse a 2 después de adoptar este protocolo y usar `last_confirmed_chat` como campo canónico.
 
 **Motivo:** la presentación debe ser una prueba visible de que el agente leyó realmente todo el proyecto y de que opera dentro del chat correcto.
 
