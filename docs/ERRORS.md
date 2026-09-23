@@ -6,6 +6,32 @@ Ninguno registrado actualmente.
 
 ## Resueltos
 
+### ERR-012 — Contador de chat derivó a 11 y el handshake no probaba lectura completa
+**Estado:** CORREGIDO_PENDIENTE_VALIDACION
+
+**Síntomas:**
+- el registro persistente terminó en 11 aunque el dueño confirmó que el hilo actual es el chat 2;
+- el protocolo permitía pasar a READY después de una lectura progresiva/parcial;
+- existían reglas duplicadas fuera del repositorio que podían conservar una cadencia antigua del handshake y contradecir la fuente técnica de verdad.
+
+**Causa:**
+- la definición de “sesión” no distinguía de forma suficientemente fuerte un chat visible del usuario frente a reintentos, resincronizaciones y actividad técnica;
+- la sección de sincronización priorizaba lectura mínima/progresiva, por lo que el handshake no demostraba que se hubiera leído todo el proyecto;
+- duplicar reglas fundamentales en más de una superficie crea deriva: cambiar solo GitHub no actualiza automáticamente instrucciones de proyecto ya cargadas en ChatGPT.
+
+**Corrección:**
+- protocol_version 4 exige inventario recursivo y lectura de todos los archivos legibles versionados antes del primer handshake;
+- el número queda definido como uno por hilo visible de chat y nunca cambia por actividad técnica;
+- ante duda, el contador no se incrementa;
+- el dueño corrigió el chat actual a **#2**;
+- cualquier instrucción externa duplicada debe mantenerse alineada con AGENTS.md o reducirse a un bootstrap que mande releer AGENTS.md.
+
+**Prevención:**
+- GitHub conserva la regla canónica;
+- evitar duplicar detalles mutables del protocolo fuera del repo;
+- comprobar el inventario completo antes de READY;
+- corregir el registro administrativo cuando protocol v4 quede fusionado.
+
 ### ERR-001 — Ciclo de bootstrap sin AGENTS.md
 **Estado:** RESUELTO
 
