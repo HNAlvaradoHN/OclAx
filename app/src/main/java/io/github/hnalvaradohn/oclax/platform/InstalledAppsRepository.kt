@@ -1,34 +1,36 @@
 package io.github.hnalvaradohn.oclax.platform
 
 import android.content.Context
-import android.content.pm.LauncherApps
+import android.content.pm.ApplicationInfo
 import android.graphics.drawable.Drawable
-import android.os.Process
 
 data class InstalledAppInfo(
     val label: String,
     val packageName: String,
     val icon: Drawable,
+    val isSystemApp: Boolean,
 )
 
 class InstalledAppsRepository(context: Context) {
     private val appContext = context.applicationContext
-    private val launcherApps = appContext.getSystemService(LauncherApps::class.java)
+    private val packageManager = appContext.packageManager
 
-    fun listLaunchableApps(): List<InstalledAppInfo> =
-        launcherApps
-            .getActivityList(null, Process.myUserHandle())
-            .mapNotNull { activity ->
-                val packageName = activity.componentName.packageName
-                if (packageName == appContext.packageName) return@mapNotNull null
-
+    @Suppress("DEPRECATION")
+    fun listInstalledApps(): List<InstalledAppInfo> =
+        packageManager
+            .getInstalledApplications(0)
+            .asSequence()
+            .filter { it.packageName != appContext.packageName }
+            .mapNotNull { application ->
                 runCatching {
                     InstalledAppInfo(
-                        label = activity.label?.toString()
-                            ?.takeIf { it.isNotBlank() }
-                            ?: packageName,
-                        packageName = packageName,
-                        icon = activity.getIcon(0),
+                        label = packageManager.getApplicationLabel(application)
+                            .toString()
+                            .takeIf { it.isNotBlank() }
+                            ?: application.packageName,
+                        packageName = application.packageName,
+                        icon = packageManager.getApplicationIcon(application),
+                        isSystemApp = application.flags and ApplicationInfo.FLAG_SYSTEM != 0,
                     )
                 }.getOrNull()
             }
