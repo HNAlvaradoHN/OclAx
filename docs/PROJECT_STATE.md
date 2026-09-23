@@ -92,7 +92,8 @@
 - TRANSFER-001 iniciado: spike técnico para Syncthing core v2.x detrás de una capa propia;
 - investigación confirmó que el wrapper Android oficial está archivado, por lo que no se adoptará como dependencia;
 - **VERIFICADO:** CI aislada construye Syncthing core v2.1.5 para Android arm64/API 26 con NDK r30, sin secretos de firma, y genera SHA-256 verificable;
-- siguiente objetivo técnico: empaquetar ese runtime en una build de prueba OclAx y arrancarlo mediante foreground service con configuración privada y REST solo en loopback.
+- runtime Android integrado en la rama de trabajo: empaquetado desde CI aislado, foreground service on-demand, API REST en loopback, API key privada, telemetría/reportes de fallos desactivados y probe de Device ID/start-stop;
+- pendiente CI de la rama y validación física antes de considerar este tramo verificado.
 
 ## Bloqueos
 
@@ -106,6 +107,6 @@
 3. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
 4. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
 5. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
-6. Empaquetar el runtime arm64 ya compilado dentro de una build de prueba y validar arranque/parada + REST en `127.0.0.1`.
+6. Instalar la build con runtime integrado y usar **Enviar a dispositivo · prueba técnica**: Probar motor → confirmar ID/loopback → Detener → Probar motor otra vez.
 7. Después, probar dos dispositivos: LAN directo → Internet directo → relay público como fallback.
 8. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
