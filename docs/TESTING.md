@@ -207,3 +207,20 @@ Antes de conectar UX de envío, todavía debe demostrar físicamente:
 - contenido recibido aterriza en área privada OclAx y no se abre/instala automáticamente;
 - CI de construcción nativa no recibe secretos de firma de la app.
 
+## Base de emparejamiento
+
+Automático:
+- normalización acepta Device ID compacto o con guiones;
+- formato/longitud/caracteres inválidos se rechazan;
+- la UI no puede agregar un par sin nombre ni ID válido.
+
+Pendiente de validación física:
+- después de **Probar motor**, aparece el ID propio;
+- **Compartir ID** abre Sharesheet sin incluir API keys, archivos ni datos personales;
+- en otro teléfono puede pegarse ese ID y guardarlo con un nombre;
+- el propio ID no puede agregarse;
+- un duplicado no puede agregarse dos veces;
+- **Permitir sin aceptar** empieza apagado y persiste al reiniciar;
+- quitar un par no toca contenido OclAx ni originales del dispositivo;
+- agregar/quitar pares no debe generar tráfico de sincronización mientras el motor siga en modo aislado.
+

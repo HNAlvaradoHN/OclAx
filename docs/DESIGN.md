@@ -186,6 +186,21 @@ Mi dispositivo prioriza categorías reconocibles:
 
 El usuario debe poder reconocer en todo momento si está actuando sobre una copia OclAx o sobre un original del dispositivo.
 
+### Mis dispositivos — base de emparejamiento
+
+Durante la prueba técnica:
+- **Probar motor** obtiene el Device ID de este teléfono;
+- **Compartir ID** permite enviarlo explícitamente al otro teléfono mediante Android;
+- **Agregar** pide un nombre humano y el Device ID del otro equipo;
+- la lista muestra nombre + ID abreviado/recortado visualmente;
+- **Permitir sin aceptar** se puede guardar por dispositivo, pero empieza apagado;
+- quitar un dispositivo es una acción local y no debe borrar contenido;
+- mientras el emparejamiento real no esté conectado al motor, la UI debe decir claramente que guardar un ID todavía no intercambia archivos.
+
+En la UX final:
+- ocultar IDs técnicos detrás de detalles/diagnóstico cuando exista un método más cómodo como QR;
+- el usuario elige por nombre de dispositivo, no por cadenas técnicas.
+
 ### Transferencia OclAx ↔ OclAx
 
 Flujo visible:

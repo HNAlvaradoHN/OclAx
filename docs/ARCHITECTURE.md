@@ -119,6 +119,21 @@ Principios:
 
 ## Transferencia entre dispositivos
 
+El emparejamiento se divide en dos capas para no abrir red antes de tiempo:
+
+```text
+UI: Mis dispositivos
+        ↓
+PairedDeviceStore (privado)
+        ↓
+nombre + Device ID + confianza
+        ↓
+[futuro, tras validar runtime]
+SyncthingAdapter / config REST
+```
+
+Guardar un dispositivo localmente no modifica todavía el motor ni habilita discovery/relay.
+
 Syncthing core v2.x es el motor candidato, encapsulado detrás de una capa propia. El wrapper Android oficial discontinuado no forma parte de la arquitectura OclAx.
 
 ```text
