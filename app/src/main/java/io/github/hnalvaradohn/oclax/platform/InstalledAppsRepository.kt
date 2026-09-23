@@ -1,8 +1,9 @@
 package io.github.hnalvaradohn.oclax.platform
 
 import android.content.Context
-import android.content.Intent
+import android.content.pm.LauncherApps
 import android.graphics.drawable.Drawable
+import android.os.Process
 
 data class InstalledAppInfo(
     val label: String,
@@ -12,30 +13,25 @@ data class InstalledAppInfo(
 
 class InstalledAppsRepository(context: Context) {
     private val appContext = context.applicationContext
-    private val packageManager = appContext.packageManager
+    private val launcherApps = appContext.getSystemService(LauncherApps::class.java)
 
-    fun listLaunchableApps(): List<InstalledAppInfo> {
-        val launcherIntent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_LAUNCHER)
-        }
-
-        return packageManager
-            .queryIntentActivities(launcherIntent, 0)
-            .mapNotNull { resolveInfo ->
-                val packageName = resolveInfo.activityInfo?.packageName ?: return@mapNotNull null
+    fun listLaunchableApps(): List<InstalledAppInfo> =
+        launcherApps
+            .getActivityList(null, Process.myUserHandle())
+            .mapNotNull { activity ->
+                val packageName = activity.componentName.packageName
                 if (packageName == appContext.packageName) return@mapNotNull null
 
                 runCatching {
                     InstalledAppInfo(
-                        label = resolveInfo.loadLabel(packageManager)?.toString()
+                        label = activity.label?.toString()
                             ?.takeIf { it.isNotBlank() }
                             ?: packageName,
                         packageName = packageName,
-                        icon = resolveInfo.loadIcon(packageManager),
+                        icon = activity.getIcon(0),
                     )
                 }.getOrNull()
             }
             .distinctBy { it.packageName }
             .sortedWith(compareBy(String.CASE_INSENSITIVE_ORDER) { it.label })
-    }
 }
