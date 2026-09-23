@@ -182,29 +182,29 @@ Pendiente:
 
 
 ### DEVICE-001 — Mi dispositivo: contenido real completo
-**Estado:** PENDING  
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta
 
-Objetivo:
-- añadir una superficie **Mi dispositivo** separada de la bandeja temporal;
-- mostrar aplicaciones instaladas, imágenes, videos, audio, PDF, documentos, APK y otros archivos reales;
-- usar miniaturas/iconos reales cuando corresponda;
-- ordenar y buscar sin obligar al usuario a navegar árboles de carpetas complejos.
+Implementado:
+- superficie separada **Mi dispositivo**;
+- selector compacto entre OclAx y Mi dispositivo;
+- inventario completo de aplicaciones mediante QUERY_ALL_PACKAGES;
+- categorías Apps, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros;
+- índice de archivos reales mediante MediaStore.Files con acceso amplio;
+- solicitud de MANAGE_EXTERNAL_STORAGE mediante la pantalla especial de Android;
+- búsqueda por nombre, MIME y ruta relativa;
+- tocar archivo abre; tocar app intenta abrirla;
+- Compartir para archivos del dispositivo;
+- Copiar para texto e imágenes;
+- si se niega acceso amplio, Apps sigue disponible y las categorías de archivos muestran opción para concederlo;
+- no existe borrado de originales en esta fase.
 
-Permisos previstos:
-- acceso amplio al almacenamiento cuando Android lo requiera;
-- visibilidad completa de aplicaciones si es necesaria;
-- degradación limpia cuando el usuario niegue/revoque permisos.
-
-Reglas:
-- la autolimpieza nunca toca contenido de Mi dispositivo;
-- Eliminar en la bandeja temporal sigue borrando solo copias OclAx;
-- una futura acción de borrar originales requiere diseño y confirmación separada.
-
-Validación:
-- probar en dispositivo real que aparecen las categorías esperadas y su contenido;
-- comprobar revocación de permisos;
-- comprobar que los originales sobreviven a autolimpieza/borrado interno.
+Pendiente:
+- validación física de permisos y contenido real;
+- comprobar que aparecen las aplicaciones esperadas;
+- comprobar cantidad/categorías de archivos reales;
+- miniaturas reales para imágenes/video;
+- validar rendimiento en teléfonos con muchos archivos.
 
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
 **Estado:** RESEARCH_READY  
