@@ -249,6 +249,27 @@ Costo:
 - cualquier servidor/relay/infraestructura propia con costo requiere autorización previa.
 
 
+### TRANSFER-002 — Emparejamiento y confianza por dispositivo
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Implementado en la base de emparejamiento:
+- lista privada **Mis dispositivos** separada del motor Syncthing;
+- cada dispositivo guarda nombre visible, Device ID normalizado y preferencia **Permitir sin aceptar**;
+- la preferencia de autoaceptación empieza siempre apagada;
+- agregar/quitar/cambiar confianza no abre red ni inicia transferencias;
+- el Device ID propio solo aparece después de una prueba correcta del runtime;
+- acción explícita **Compartir ID** usa el Sharesheet de Android;
+- se rechaza agregar el propio Device ID y IDs con formato inválido;
+- los datos se guardan en SharedPreferences privadas de OclAx.
+
+Pendiente:
+- CI de esta rama;
+- validar en dos teléfonos que cada uno puede compartir/agregar el ID del otro;
+- conectar la lista local al config REST de Syncthing solo después de validar físicamente el runtime;
+- habilitar red de pares únicamente durante emparejamiento/envío explícito;
+- posteriormente añadir QR si mejora el flujo sin dependencia innecesaria.
+
 ### OPEN-001 — Abrir contenido desde la bandeja
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta
