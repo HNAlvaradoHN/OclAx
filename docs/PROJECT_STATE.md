@@ -47,7 +47,7 @@
 
 ## Bloqueos
 
-- Los APK debug de GitHub Actions todavía no tienen una firma de pruebas persistente. Una build nueva puede no actualizar una instalación anterior sin desinstalarla. La solución requiere una clave de pruebas estable en GitHub Actions Secrets; nunca debe publicarse en el repositorio.
+- El soporte para firma persistente de pruebas está preparado en código, pero todavía faltan los cuatro GitHub Actions Secrets del dueño. Hasta que se carguen y se genere el primer APK con esa firma, una build nueva puede requerir desinstalar la anterior.
 
 ## Siguiente paso exacto
 
