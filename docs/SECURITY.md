@@ -196,6 +196,16 @@ Controles obligatorios antes de exponer transferencias reales:
 - cualquier uso de global discovery/relay se documenta como exposición de metadatos de conexión (IP/device ID), no de contenido en claro;
 - detener el motor limpiamente antes de que Android suspenda/termine el servicio para reducir riesgo de corrupción de su base de datos.
 
+## Base local de emparejamiento
+
+- Un Device ID identifica un nodo, pero **no es una API key ni una contraseña**; aun así, OclAx solo lo comparte por acción explícita.
+- Los pares guardados viven en preferencias privadas de la app y no se publican en logs/repositorio.
+- Agregar un Device ID no habilita red, discovery, relay ni recepción automática.
+- Se valida y normaliza el formato antes de persistir; el propio ID no puede agregarse como par.
+- **Permitir sin aceptar** inicia apagado y por ahora solo persiste la intención del usuario; no tiene efecto de red hasta que el motor de recepción implemente esa política.
+- Quitar un par no elimina archivos ni datos de la bandeja.
+- Nunca guardar ni compartir la API key local de Syncthing junto al Device ID.
+
 ## Confianza y recepción OclAx ↔ OclAx
 
 - el emparejamiento de dispositivos es explícito;
