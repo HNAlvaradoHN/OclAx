@@ -245,3 +245,17 @@ Pendiente de validación física con dos teléfonos:
 8. repetir con un peer incorrecto/no presente y confirmar timeout seguro sin quedar discovery/MulticastLock activos;
 9. simular/forzar fallo al restaurar configuración y comprobar que el runtime se detiene en vez de dejar el listener LAN abierto.
 
+## Revisión obligatoria TRANSFER-003 — post-merge
+
+Revisión aplicada según `docs/REVIEW_ROLES.md` después de detectar que el cambio se había fusionado sin dejar la auditoría explícita registrada.
+
+- **Seguridad — INFORMATIVO.** Evidencia: REST HTTP limitado por Network Security Config a loopback; API key privada; discovery local temporal; peers limitados a redes privadas; cleanup fail-closed. Riesgo: exposición LAN accidental si esos controles regresan. Recomendación: conservar tests/controles actuales. Validación: CI + prueba física de conexión/desconexión.
+- **Privacidad — INFORMATIVO.** Evidencia: Device ID solo se comparte por acción explícita; local discovery se activa únicamente durante búsqueda y se apaga tras conectar; no se transfieren archivos aún. Riesgo: Device ID visible temporalmente en la LAN. Recomendación: mantener consentimiento explícito y ventana corta. Validación: observar que discovery termina tras conectar.
+- **Arquitectura — NO BLOQUEANTE.** Evidencia: la lógica de transporte está en `TransferRuntimeController`/`SyncthingRestClient`, pero `MainActivity` ya acumula estado/orquestación de diagnóstico. Riesgo: el siguiente bloque de envío/progreso puede acoplar UI y dominio. Recomendación: extraer un coordinador/state holder pequeño antes de que TRANSFER-004 crezca; no sobre-modularizar. Validación: UI no debe contener reglas de transporte ni persistencia.
+- **Plataforma Android — NO BLOQUEANTE.** Evidencia: targetSdk actual 36; Android 17/API 37 requerirá permiso runtime de red local para apps que apunten a 37. Riesgo: futuras builds perderían LAN si se sube target sin flujo de permiso. Recomendación: mantener PLATFORM-001 antes de target 37. Validación: probar grant/deny/revoke al migrar.
+- **QA — INFORMATIVO.** Evidencia: tests unitarios y CI verdes; no existe todavía prueba física de dos teléfonos. Riesgo: diferencias reales de Wi‑Fi/multicast/ROM. Recomendación: no marcar DONE hasta completar el guion de prueba física. Validación: dos teléfonos, conexión local, desconexión y timeout seguro.
+- **Rendimiento — INFORMATIVO.** Evidencia: polling REST cada 500 ms solo durante una ventana de hasta 45 s y MulticastLock solo durante discovery. Riesgo: consumo temporal si se repite muchas veces. Recomendación: medir antes de optimizar; considerar eventos solo si la prueba muestra impacto. Validación: observar batería/fluidez en prueba real.
+- **Diseño/UX/Accesibilidad — NO BLOQUEANTE.** Evidencia: controles técnicos están limitados a debug y estados tienen texto además de color. Riesgo: exceso de detalles si llegan a UX final. Recomendación: retirar controles técnicos cuando exista Enviar → dispositivo → progreso. Validación: prueba de flujo final.
+- **Calidad/Limpieza — INFORMATIVO.** Evidencia: el bloque viejo de diagnóstico fue reemplazado, no quedó duplicado activo. Recomendación: mantener esta regla al reemplazar el panel técnico.
+- **Release — NO APLICA aún.** Sigue siendo build de validación; release estable requiere además SEC-001/CodeQL, licencias/atribuciones y validación física.
+
