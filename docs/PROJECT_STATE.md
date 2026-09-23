@@ -5,7 +5,7 @@
 **Fase:** primera prueba vertical Android.  
 **Aplicación:** base funcional validada por CI; validación física en progreso.  
 **Repositorio:** público.  
-**Protocol version:** 3.
+**Protocol version:** 4.
 
 ## Qué ya está definido
 
@@ -13,7 +13,7 @@
 - Nombre: OclAx.
 - Significado: Open Content, Local Access & eXchange.
 - Identidad del agente: OclAx 📲.
-- Handshake de sesión visible en **todas** las respuestas del chat de desarrollo; el número permanece fijo durante ese chat y solo cambia al abrir otro chat.
+- Antes del primer handshake de un chat nuevo se exige inventario y lectura exhaustiva de todo el repositorio versionado legible; el handshake aparece en todas las respuestas READY y el número permanece fijo por hilo visible de chat.
 - Repositorio como fuente técnica de verdad.
 - Prioridad máxima a seguridad, privacidad e integridad.
 - Aplicación Android local-first orientada a contenido temporal.
