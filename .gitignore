@@ -1,0 +1,32 @@
+# Local/private configuration
+.env
+.env.*
+!.env.example
+local.properties
+secrets.properties
+*.jks
+*.keystore
+*.pem
+*.key
+google-services.json
+
+# Android / Gradle
+.gradle/
+build/
+**/build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs / temp
+*.log
+*.tmp
+*.swp
