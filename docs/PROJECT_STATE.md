@@ -69,7 +69,7 @@
 - categorías del dispositivo: Apps, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros;
 - búsqueda, abrir y compartir desde contenido real;
 - Copiar limitado a texto e imágenes también en Mi dispositivo;
-- ningún borrado de originales desde Mi dispositivo.
+- en la primera versión de Mi dispositivo no había borrado de originales; DEVICE-002 añadió después **Eliminar original** explícito y confirmado.
 
 ## Implementado recientemente
 
