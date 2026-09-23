@@ -39,7 +39,9 @@
 
 ## En desarrollo
 
-- modelo único y testeable de clasificación de contenido para evitar que UI y DocumentsProvider diverjan;
+- riel vertical derecho para categorías;
+- acciones por tarjeta: Compartir, Fijar y Eliminar con confirmación;
+- identidad naranja más visible en oscuro y claro;
 - iconografía/miniaturas finales;
 - evaluar una organización opcional por categorías dentro de DocumentsProvider sin sacrificar el acceso directo a Recientes.
 

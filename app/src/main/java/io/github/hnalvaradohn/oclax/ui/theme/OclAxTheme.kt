@@ -8,12 +8,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 
 private val OclAxOrange = Color(0xFFFF7A00)
-private val OclAxOrangeDark = Color(0xFFFFB06A)
+private val OclAxOrangeDark = Color(0xFFFFA24A)
 
 private val DarkColors = darkColorScheme(
     primary = OclAxOrangeDark,
-    onPrimary = Color(0xFF2B1200),
+    onPrimary = Color(0xFF2A1200),
+    primaryContainer = Color(0xFF5B2A00),
+    onPrimaryContainer = Color(0xFFFFDCC2),
     secondary = OclAxOrangeDark,
+    onSecondary = Color(0xFF2A1200),
+    secondaryContainer = Color(0xFF4A2A10),
+    onSecondaryContainer = Color(0xFFFFDCC2),
+    tertiary = Color(0xFFFFC082),
+    onTertiary = Color(0xFF2A1200),
     background = Color(0xFF090909),
     onBackground = Color(0xFFF5F5F5),
     surface = Color(0xFF101010),
@@ -21,19 +28,28 @@ private val DarkColors = darkColorScheme(
     surfaceVariant = Color(0xFF1B1B1B),
     onSurfaceVariant = Color(0xFFD0D0D0),
     outline = Color(0xFF686868),
+    outlineVariant = Color(0xFF373737),
 )
 
 private val LightColors = lightColorScheme(
     primary = OclAxOrange,
     onPrimary = Color.White,
+    primaryContainer = Color(0xFFFFDCC2),
+    onPrimaryContainer = Color(0xFF2D1600),
     secondary = Color(0xFF8A4A00),
-    background = Color(0xFFFFFBFF),
-    onBackground = Color(0xFF1D1B20),
-    surface = Color(0xFFFFFBFF),
-    onSurface = Color(0xFF1D1B20),
-    surfaceVariant = Color(0xFFF4EEE8),
-    onSurfaceVariant = Color(0xFF51443A),
-    outline = Color(0xFF837469),
+    onSecondary = Color.White,
+    secondaryContainer = Color(0xFFFFDDBF),
+    onSecondaryContainer = Color(0xFF2E1700),
+    tertiary = Color(0xFF9A4D00),
+    onTertiary = Color.White,
+    background = Color(0xFFFFFBF7),
+    onBackground = Color(0xFF211A16),
+    surface = Color(0xFFFFFBF7),
+    onSurface = Color(0xFF211A16),
+    surfaceVariant = Color(0xFFF7EEE7),
+    onSurfaceVariant = Color(0xFF57463A),
+    outline = Color(0xFF8B7463),
+    outlineVariant = Color(0xFFDCC6B6),
 )
 
 @Composable

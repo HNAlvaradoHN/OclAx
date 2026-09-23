@@ -97,3 +97,19 @@ Evitar:
 - mezclar sin jerarquía capturas, APK, PDF, documentos y otros archivos.
 
 La interfaz debe favorecer reconocer el contenido visualmente y reducir el número de toques.
+
+
+## Ajustes aprobados tras prueba física — 2026-09-23
+
+Feedback del dueño después de probar la UI en dispositivo real:
+
+- el naranja debe ser claramente visible como identidad, no solo existir técnicamente en el tema;
+- los filtros pasan de barra horizontal a un **riel vertical en el lado derecho** para evitar desplazamiento horizontal y permitir acceso rápido a todas las categorías;
+- cada elemento de OclAx se presenta como tarjeta con acciones directas;
+- compartir y fijar usan el naranja de identidad;
+- eliminar usa color destructivo diferenciado y exige confirmación;
+- el tipo de archivo debe tener una señal visual clara dentro de la tarjeta.
+
+Regla UX:
+- la barra derecha organiza; no debe quitar protagonismo al contenido;
+- si la altura de pantalla no alcanza, el riel puede desplazarse verticalmente, pero nunca volver a depender de desplazamiento horizontal.

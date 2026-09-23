@@ -86,8 +86,15 @@ Implementado en rama de trabajo:
 - filtros Todo, Imágenes, Documentos, PDF, Apps/APK, Texto/Código, Video, Audio y Otros;
 - etiquetas visuales por tipo.
 
+Implementado adicionalmente en rama de trabajo:
+- riel vertical derecho para categorías;
+- identidad naranja más visible;
+- tarjetas con Compartir, Fijar y Eliminar;
+- confirmación obligatoria antes de borrar una copia;
+- compartir hacia Android Sharesheet.
+
 Pendiente:
-- CI verde del bloque de categorías;
+- CI verde del bloque de acciones/riel;
 - iconografía visual final/miniaturas;
 - comprobar qué organización puede exponerse también dentro de DocumentsProvider sin añadir navegación innecesaria;
 - validación física.
