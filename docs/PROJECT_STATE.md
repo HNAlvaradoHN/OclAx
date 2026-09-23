@@ -40,7 +40,7 @@
 - Qwen rechaza APK como adjunto aunque OclAx lo expone correctamente: limitación de la app receptora;
 - una build posterior se instaló encima de la versión con firma estable sin conflicto;
 - la actualización conservó los datos internos;
-- miniaturas reales en las tarjetas de Recientes/OclAx confirmadas físicamente en dispositivo.
+- miniaturas de imágenes en las tarjetas de Recientes/OclAx confirmadas físicamente en dispositivo.
 
 ## Implementado recientemente
 
@@ -97,7 +97,7 @@
 
 ## En desarrollo
 
-- miniaturas dentro de la bandeja OclAx ya validadas físicamente; siguen pendientes otras validaciones de Mi dispositivo;
+- miniaturas de imágenes dentro de la bandeja OclAx ya validadas físicamente; siguen pendientes video/PDF y otras validaciones de Mi dispositivo;
 - TRANSFER-001 iniciado: spike técnico para Syncthing core v2.x detrás de una capa propia;
 - investigación confirmó que el wrapper Android oficial está archivado, por lo que no se adoptará como dependencia;
 - **VERIFICADO:** el spike aislado construyó Syncthing core v2.1.5 para Android arm64/API 26 con NDK r30, sin secretos de firma;
@@ -122,12 +122,11 @@
 1. Ejecutar CI de la corrección de arranque Android y generar una nueva build firmada de prueba.
 2. Instalar esa build en ambos teléfonos y repetir **Probar motor**; debe devolver Device ID y confirmar loopback.
 3. Confirmar explícitamente portada de PDF en Mi dispositivo/Archivos → OclAx y borrado/cancelación de originales.
-3. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
-4. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
-5. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
-6. Instalar la build con runtime integrado y usar **Enviar a dispositivo · prueba técnica**: Probar motor → confirmar ID/loopback → Detener → Probar motor otra vez.
+4. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
+5. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
+6. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
 7. En dos dispositivos, compartir/agregar mutuamente los Device ID y validar la lista **Mis dispositivos** + preferencia **Permitir sin aceptar**.
-8. En la misma Wi‑Fi, tocar **Probar LAN** para el peer en ambos teléfonos y confirmar **Conectado por LAN**; después **Desconectar LAN** y comprobar retorno a modo aislado.
+8. En la misma Wi-Fi, tocar **Probar LAN** para el peer en ambos teléfonos y confirmar **Conectado por LAN**; después **Desconectar LAN** y comprobar retorno a modo aislado.
 9. Crear el canal privado de transferencia de archivos y progreso solo después de validar esa conexión.
 10. Luego validar Internet directo → relay público como fallback.
 11. Aplicar la política de recepción: confiables pueden permitir sin aceptar; los demás preguntan por defecto.
