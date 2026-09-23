@@ -285,7 +285,7 @@ private fun PairedDeviceRow(
             if (active) {
                 OutlinedButton(
                     onClick = { onDisconnectLan(device) },
-                    enabled = !busy || lanBusy,
+                    enabled = !busy,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 ) {
                     Text(if (lanBusy) "Desconectando…" else "Desconectar LAN")
