@@ -183,7 +183,7 @@ Implementado para CI final y siguiente validación física:
 - test unitario verifica argumentos seguros de arranque/generación;
 - test unitario endurece un config inseguro y confirma loopback/no-discovery/no-relay/no-NAT/no-reporting; también comprueba rechazo de DOCTYPE/entidades externas;
 - debug muestra **Enviar a dispositivo · prueba técnica** con Probar motor/Detener;
-- antes de `serve` se endurece el config; después el servicio vuelve a verificar opciones privadas por REST;
+- antes de `serve` se endurece el config y el proceso arranca pausado; después el servicio vuelve a verificar opciones privadas por REST;
 - el probe espera health, obtiene Device ID, verifica autenticación, dirección GUI loopback e intenta comprobar interfaces IPv4 no-loopback;
 - detener usa shutdown REST autenticado y fallback acotado.
 
