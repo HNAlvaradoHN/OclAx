@@ -12,6 +12,9 @@ data class ShareableInstalledApp(
 )
 
 class InstalledAppExporter(context: Context) {
+    companion object {
+        private const val EXPORT_TTL_MILLIS = 24L * 60L * 60L * 1000L
+    }
     private val appContext = context.applicationContext
     private val packageManager = appContext.packageManager
     private val exportRoot = File(appContext.cacheDir, "oclax/app_exports")
@@ -32,15 +35,16 @@ class InstalledAppExporter(context: Context) {
 
         // Este directorio contiene únicamente copias temporales del código APK instalado.
         // No se toca dataDir ni ningún directorio de datos del usuario.
-        if (exportRoot.exists()) {
-            exportRoot.deleteRecursively()
-        }
         check(exportRoot.mkdirs() || exportRoot.isDirectory) {
             "No se pudo preparar el directorio temporal de exportación."
         }
+        cleanupOldExports()
 
-        val appDir = File(exportRoot, safeSegment(app.packageName))
-        check(appDir.mkdirs() || appDir.isDirectory) {
+        val appDir = File(
+            exportRoot,
+            safeSegment(app.packageName) + "-" + System.currentTimeMillis(),
+        )
+        check(appDir.mkdirs()) {
             "No se pudo preparar la exportación de la aplicación."
         }
 
@@ -74,6 +78,14 @@ class InstalledAppExporter(context: Context) {
             uris = uris,
             apkCount = uris.size,
         )
+    }
+
+    private fun cleanupOldExports() {
+        val cutoff = System.currentTimeMillis() - EXPORT_TTL_MILLIS
+        exportRoot.listFiles()
+            .orEmpty()
+            .filter { it.lastModified() in 1 until cutoff }
+            .forEach { it.deleteRecursively() }
     }
 
     private fun safeSegment(value: String): String =
