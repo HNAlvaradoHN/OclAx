@@ -234,6 +234,7 @@ Si falta el permiso amplio, mostrar una explicación corta y un único botón **
 - La elección se recuerda por categoría.
 - Apps, Imágenes y Video parten de cuadrícula; documentos y demás tipos parten de lista.
 - Las imágenes/video muestran miniaturas reales cuando estén disponibles.
+- PDF muestra como miniatura la primera página renderizada cuando pueda leerse; si está corrupto, protegido o no puede renderizarse, usa el icono PDF como fallback.
 - Apps instaladas muestran acción **Compartir** además de abrir.
 - Los archivos originales muestran acción destructiva **Eliminar original** en rojo y con confirmación explícita.
 - El texto de confirmación debe dejar claro que no se trata de la autolimpieza de OclAx.
