@@ -190,8 +190,9 @@ internal class SyncthingRuntimeService : Service() {
     }
 
     private fun updateNotification(text: String) {
-        getSystemService(NotificationManager::class.java)
-            .notify(NOTIFICATION_ID, buildNotification(text))
+        // Updating through startForeground keeps this notification inside the
+        // foreground-service contract without adding a separate notification permission.
+        startForegroundNotification(text)
     }
 
     private fun stopForegroundAndSelf() {
