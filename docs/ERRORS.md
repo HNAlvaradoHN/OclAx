@@ -122,3 +122,16 @@ Ninguno registrado actualmente.
 
 **Prevención:** no asumir que una URI de `MediaStore.Files` es válida para APIs restringidas a elementos multimedia; conservar pruebas físicas por tipo de contenido.
 
+### ERR-009 — El spike nativo asumía que sdkmanager estaba en PATH
+**Estado:** CORREGIDO_PENDIENTE_CI
+
+**Síntoma:** la primera ejecución aislada de `Syncthing Native Spike` falló antes de descargar o ejecutar código de Syncthing con `sdkmanager: command not found`.
+
+**Causa verificada:** el workflow invocaba `sdkmanager` por nombre y asumía que GitHub Actions lo añadía al `PATH`. El runner no cumplió esa suposición.
+
+**Corrección aplicada:** el workflow reutiliza el NDK pinneado si ya está instalado; en caso contrario localiza `sdkmanager` dentro de `ANDROID_HOME/cmdline-tools`, instala la versión exacta del NDK y publica la ruta del compilador mediante `GITHUB_ENV`.
+
+**Seguridad:** el fallo ocurrió antes de obtener el código externo de Syncthing; el job no recibe secretos de firma ni otros secretos privilegiados.
+
+**Validación pendiente:** confirmar que el nuevo run encuentra/instala el NDK y avanza hasta construir/verificar el binario arm64.
+
