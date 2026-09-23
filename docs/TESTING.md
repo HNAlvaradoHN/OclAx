@@ -22,11 +22,14 @@ El workflow publica un APK debug solo si las validaciones anteriores terminan co
 - extensiones admitidas;
 - nombres internos de payload.
 
-## Validación física pendiente
+## Validación física
 
 La automatización NO demuestra compatibilidad entre aplicaciones.
 
-Debe probarse en un teléfono real:
+VERIFICADO en teléfono real:
+- OclAx aparece en el selector de archivos del sistema como una fuente disponible mediante DocumentsProvider.
+
+Pendiente de probar:
 - compartir texto → OclAx → pegar;
 - compartir imagen → OclAx → pegar;
 - compartir PDF/APK/documento → OclAx;
