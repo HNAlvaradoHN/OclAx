@@ -149,13 +149,15 @@ Ninguno registrado actualmente.
 **Prevención:** no ampliar permisos para silenciar lint cuando existe una API más estrecha que representa correctamente el caso de uso; mantener mínimo privilegio.
 
 ### ERR-011 — Import de weight bloqueó compilación del emparejamiento
-**Estado:** RESUELTO_PENDIENTE_CI
+**Estado:** RESUELTO
 
 **Síntoma:** la primera CI de la base de emparejamiento falló en `TransferDevicesSection.kt` con `Cannot access 'RowColumnParentData?.weight'`.
 
 **Causa:** se importó explícitamente `androidx.compose.foundation.layout.weight`, pero en la versión actual de Compose `Modifier.weight` se resuelve como extensión del scope de Row/Column; ese import apuntó a una API interna.
 
 **Corrección aplicada:** eliminar el import explícito y dejar que `Modifier.weight` se resuelva dentro del `RowScope` correspondiente.
+
+**Validación:** la CI posterior del PR #40 terminó verde en tests, lint y build antes de fusionar la base de emparejamiento.
 
 **Prevención:** para extensiones scoped de Compose como `weight`, preferir el patrón ya usado en el proyecto y no importar símbolos internos solo porque el IDE/autocompletado los sugiera.
 
