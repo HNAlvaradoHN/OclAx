@@ -107,3 +107,21 @@ Implementado en main:
 
 Pendiente:
 - validación física de expiración y fijados.
+
+
+### RELEASE-001 — Firma estable de APK de pruebas
+**Estado:** BLOCKED_OWNER_SECRET  
+**Prioridad:** alta
+
+Problema:
+- los APK debug generados en runners efímeros pueden quedar firmados con claves distintas;
+- Android no permite actualizar una instalación existente si la firma cambia.
+
+Objetivo:
+- usar una clave de firma de pruebas estable;
+- guardarla exclusivamente en GitHub Actions Secrets;
+- nunca committear keystore, contraseña ni clave privada;
+- mantener separada cualquier futura clave de release.
+
+Bloqueo:
+- requiere que el dueño cree/cargue los secretos de firma en GitHub.
