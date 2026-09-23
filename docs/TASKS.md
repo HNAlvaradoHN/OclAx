@@ -24,23 +24,19 @@ Incluye:
 - protocol_version actualizado a 2.
 
 ### GOV-003 — Sincronización exhaustiva y numeración real por chat
-**Estado:** IMPLEMENTED_PENDING_VALIDATION
+**Estado:** DONE
 
 Incluye:
-- protocol_version 4;
+- protocol_version 4 fusionado en main;
 - lectura exhaustiva de todos los archivos legibles versionados antes del primer handshake;
 - inventario recursivo como prueba de completitud;
 - un número por hilo visible de chat y contador canónico `last_confirmed_chat`;
 - prohibición explícita de incrementar por herramientas, reintentos, resincronizaciones, ramas, PR o CI;
-- corrección del registro actual de 11 a 2 después de fusionar y resincronizar;
+- registro administrativo corregido a protocol 4 / chat 2;
+- resincronización completa desde main;
+- instrucciones del Project de ChatGPT alineadas para delegar las reglas mutables de sincronización, numeración y handshake a AGENTS.md;
+- CI de main verde después del cambio de gobernanza;
 - registro del fallo sistemático en ERR-012.
-
-Pendiente:
-- CI del PR de gobernanza;
-- merge a main;
-- corregir issue de registro a protocol 4 / sesión 2;
-- resincronizar desde main;
-- alinear las instrucciones del Project de ChatGPT que todavía dupliquen reglas antiguas.
 
 
 ## PENDING
