@@ -319,9 +319,11 @@ Estado:
 - candidato aprobado para prototipo;
 - investigación técnica actualizada el 2026-09-23: el wrapper oficial `syncthing/syncthing-android` fue discontinuado/archivado y no se adopta como dependencia;
 - existe un fork comunitario mantenido (`researchxxl/syncthing-android`) que demuestra un patrón Android vigente con SyncthingNative, pero OclAx lo tratará como referencia técnica y no como autoridad ni dependencia automática;
-- para el spike se evaluará empaquetar un **Syncthing core estable fijado por versión** detrás de una capa propia de OclAx;
-- la versión estable verificada para iniciar el spike es Syncthing **v2.1.5**; cualquier actualización deberá revisarse y fijarse explícitamente;
-- integración final pendiente de prueba técnica Android;
+- el spike ya empaqueta un **Syncthing core estable fijado por versión** detrás de una capa propia de OclAx;
+- la versión fijada es Syncthing **v2.1.5**; cualquier actualización deberá revisarse y fijarse explícitamente;
+- el runtime se ejecuta on-demand mediante un foreground service `dataSync`; no arranca al boot ni funciona como daemon permanente;
+- la GUI/API del motor se fuerza a `127.0.0.1:8384` con API key privada por instalación;
+- compilación/empaquetado y controles REST están implementados, pendientes de validación física Android antes de adoptar el motor como integración final;
 - no se autoriza servicio de pago ni infraestructura con costo sin aprobación del dueño.
 
 Modelo de confianza:
