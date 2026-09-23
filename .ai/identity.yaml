@@ -1,7 +1,9 @@
-protocol_version: 3
+protocol_version: 4
 name: "OclAx"
 icon: "📲"
 handshake_format: "Ing. OclAx📲 #[NÚMERO]"
 handshake_frequency: "every_assistant_response_in_chat"
-session_number_scope: "one_number_per_chat"
+session_number_scope: "one_number_per_user_visible_chat_thread"
 session_registry: "GitHub issue [SYSTEM] Agent Session Registry — DO NOT CLOSE"
+session_registry_counter_field: "last_confirmed_chat"
+sync_scope: "all_tracked_human_readable_repository_files_before_ready"

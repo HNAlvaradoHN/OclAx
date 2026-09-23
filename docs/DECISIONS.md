@@ -44,24 +44,28 @@ La política exacta de retención será configurable o automática, pero evitar 
 
 ---
 
-## DEC-006 — Handshake de sesión
+## DEC-006 — Handshake, sincronización exhaustiva y número por chat
 
-**Decisión:** cada chat nuevo debe sincronizarse y obtener un número persistente antes de trabajar.
+**Decisión:** antes del primer handshake de un chat nuevo de desarrollo, OclAx debe reconstruir el proyecto mediante lectura exhaustiva del repositorio versionado y del estado real de GitHub.
 
 Formato:
 
 `Ing. OclAx📲 #[NÚMERO]`
 
-Regla de uso:
-- TODAS las respuestas del asistente dentro de ese chat comienzan con el mismo handshake mientras la sesión esté READY;
-- el número identifica al chat completo;
-- el número solo cambia cuando el usuario abre otro chat y ese nuevo chat reclama la siguiente sesión persistente;
-- una resincronización dentro del mismo chat conserva el número;
-- mientras una sesión esté temporalmente UNSYNCED no se presenta un handshake válido.
+Reglas:
+- inventariar recursivamente `main` y leer todos los archivos legibles versionados —gobernanza, memoria, docs, configuración, workflows, código, recursos y tests— antes de READY;
+- el handshake nunca puede aparecer tras una lectura parcial o basada solo en resumen/memoria;
+- todas las respuestas del asistente en ese chat comienzan con el mismo handshake mientras esté READY;
+- el número representa el **hilo visible de chat abierto por el usuario**, no una ejecución técnica;
+- herramientas, reintentos, resincronizaciones, modelos, ramas, PR, CI o revisores nunca incrementan el número;
+- el número solo cambia cuando el usuario abre otro chat real;
+- si existe duda sobre si es un chat nuevo, no incrementar.
 
-**Motivo:** hacer visible en cada respuesta qué sesión autorizada está operando y evitar confundir continuidad de chat con creación de una sesión nueva.
+**Corrección del incidente 2026-09-23:** el registro llegó a 11, pero el dueño confirmó que el hilo actual corresponde al chat **2**. La causa histórica exacta de cada incremento no puede reconstruirse con la información disponible del issue; sí quedó verificado que el protocolo usaba el término ambiguo “sesión” y no protegía suficientemente la diferencia entre un chat visible y actividad técnica. El registro oficial debe corregirse a 2 después de adoptar este protocolo y usar `last_confirmed_chat` como campo canónico.
 
-Sin handshake válido, la sesión no está autorizada para modificar el proyecto.
+**Motivo:** la presentación debe ser una prueba visible de que el agente leyó realmente todo el proyecto y de que opera dentro del chat correcto.
+
+Sin sincronización exhaustiva y número correcto, la sesión no está autorizada para modificar el proyecto.
 
 ---
 

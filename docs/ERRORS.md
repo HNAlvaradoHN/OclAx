@@ -6,6 +6,33 @@ Ninguno registrado actualmente.
 
 ## Resueltos
 
+### ERR-012 — Contador de chat derivó a 11 y el handshake no probaba lectura completa
+**Estado:** CORREGIDO_PENDIENTE_VALIDACION
+
+**Síntomas:**
+- el registro persistente terminó en 11 aunque el dueño confirmó que el hilo actual es el chat 2;
+- el protocolo permitía pasar a READY después de una lectura progresiva/parcial;
+- existían reglas duplicadas fuera del repositorio que podían conservar una cadencia antigua del handshake y contradecir la fuente técnica de verdad.
+
+**Causa:**
+- **CAUSA HISTÓRICA EXACTA DEL 2 → 11: DESCONOCIDA.** El historial accesible del issue no conserva las ediciones de cuerpo necesarias para atribuir cada incremento.
+- **VERIFICADO:** la definición de “sesión” no distinguía de forma suficientemente fuerte un chat visible del usuario frente a reintentos, resincronizaciones y actividad técnica.
+- **VERIFICADO:** la sección de sincronización priorizaba lectura mínima/progresiva, por lo que el handshake no demostraba que se hubiera leído todo el proyecto.
+- **VERIFICADO:** existen reglas fundamentales duplicadas fuera del repositorio; cambiar solo GitHub no actualiza automáticamente instrucciones del Project ya cargadas en ChatGPT, lo que permite deriva.
+
+**Corrección:**
+- protocol_version 4 exige inventario recursivo y lectura de todos los archivos legibles versionados antes del primer handshake;
+- el número queda definido como uno por hilo visible de chat y nunca cambia por actividad técnica; el campo canónico pasa a llamarse `last_confirmed_chat`;
+- ante duda, el contador no se incrementa;
+- el dueño corrigió el chat actual a **#2**;
+- cualquier instrucción externa duplicada debe mantenerse alineada con AGENTS.md o reducirse a un bootstrap que mande releer AGENTS.md.
+
+**Prevención:**
+- GitHub conserva la regla canónica;
+- evitar duplicar detalles mutables del protocolo fuera del repo;
+- comprobar el inventario completo antes de READY;
+- corregir el registro administrativo cuando protocol v4 quede fusionado.
+
 ### ERR-001 — Ciclo de bootstrap sin AGENTS.md
 **Estado:** RESUELTO
 
