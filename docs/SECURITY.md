@@ -172,6 +172,7 @@ Reglas:
 - `INTERNET` se añade únicamente para transporte OclAx ↔ OclAx; no convierte la bandeja ni **Mi dispositivo** en servicios de nube.
 - El motor se inicia solo por una acción explícita de prueba/envío y usa foreground service `dataSync`; no arranca al boot.
 - Los binarios v2.1.5 para las ABI Android soportadas se compilan en un job CI que no recibe secretos de firma; el job posterior verifica cada SHA-256 antes de empaquetarlos.
+- Los jobs de pull request no reciben la firma estable de pruebas: compilan con firma debug efímera. Los secrets de firma estable solo se inyectan en pushes a `main`, después del merge.
 - La API key se genera con `SecureRandom`, se guarda en `SharedPreferences` privadas y se pasa al proceso por entorno, no por argumento visible ni por repo.
 - Antes de iniciar el servidor del motor, OclAx genera/endurece `config.xml` en almacenamiento privado con parser XML que rechaza DOCTYPE/entidades externas.
 - En modo de prueba, GUI/REST se fuerza a `127.0.0.1:8384`, el listener de sincronización a loopback, el runtime arranca pausado y se desactivan discovery global/local, relay y NAT; así **Probar motor** no anuncia el dispositivo ni abre el protocolo de sincronización a la red.
