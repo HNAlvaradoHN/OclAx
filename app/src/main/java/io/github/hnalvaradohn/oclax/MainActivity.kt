@@ -1,10 +1,15 @@
 package io.github.hnalvaradohn.oclax
 
+import android.Manifest
 import android.content.ClipData
 import android.content.ClipDescription
 import android.content.ClipboardManager
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -79,11 +84,14 @@ import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.model.supportsClipboardCopy
 import io.github.hnalvaradohn.oclax.platform.ContentOpener
+import io.github.hnalvaradohn.oclax.platform.DeviceContentRepository
+import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import java.text.DateFormat
 import java.util.Date
+import java.util.concurrent.Executors
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -92,9 +100,14 @@ class MainActivity : ComponentActivity() {
 
     private val store by lazy { ItemStore(applicationContext) }
     private val installedAppsRepository by lazy { InstalledAppsRepository(applicationContext) }
+    private val deviceContentRepository by lazy { DeviceContentRepository(applicationContext) }
     private val contentOpener by lazy { ContentOpener(this) }
+    private val deviceExecutor = Executors.newSingleThreadExecutor()
     private var items by mutableStateOf<List<StoredItem>>(emptyList())
     private var installedApps by mutableStateOf<List<InstalledAppInfo>>(emptyList())
+    private var deviceFiles by mutableStateOf<List<DeviceFileInfo>>(emptyList())
+    private var hasBroadFileAccess by mutableStateOf(false)
+    private var deviceLoading by mutableStateOf(false)
     private var retentionHours by mutableIntStateOf(24)
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -104,6 +117,9 @@ class MainActivity : ComponentActivity() {
                 OclAxHome(
                     allItems = items,
                     installedApps = installedApps,
+                    deviceFiles = deviceFiles,
+                    hasBroadFileAccess = hasBroadFileAccess,
+                    deviceLoading = deviceLoading,
                     retentionHours = retentionHours,
                     onRetentionChange = { hours ->
                         store.setRetentionHours(hours)
@@ -126,6 +142,11 @@ class MainActivity : ComponentActivity() {
                     onOpen = ::openItem,
                     onShare = ::shareItem,
                     onCopy = ::copyItem,
+                    onRequestBroadAccess = ::requestBroadFileAccess,
+                    onOpenDeviceFile = ::openDeviceFile,
+                    onShareDeviceFile = ::shareDeviceFile,
+                    onCopyDeviceFile = ::copyDeviceFile,
+                    onOpenApp = ::openInstalledApp,
                 )
             }
         }
@@ -136,10 +157,142 @@ class MainActivity : ComponentActivity() {
         refresh()
     }
 
+    override fun onDestroy() {
+        deviceExecutor.shutdownNow()
+        super.onDestroy()
+    }
+
     private fun refresh() {
         retentionHours = store.retentionHours()
         items = store.listItems()
-        installedApps = installedAppsRepository.listLaunchableApps()
+        hasBroadFileAccess = deviceContentRepository.hasBroadFileAccess()
+        refreshDeviceContent()
+    }
+
+    private fun refreshDeviceContent() {
+        deviceLoading = true
+        deviceExecutor.execute {
+            val apps = runCatching { installedAppsRepository.listInstalledApps() }.getOrDefault(emptyList())
+            val files = if (deviceContentRepository.hasBroadFileAccess()) {
+                runCatching { deviceContentRepository.listFiles() }.getOrDefault(emptyList())
+            } else {
+                emptyList()
+            }
+
+            runOnUiThread {
+                installedApps = apps
+                deviceFiles = files
+                hasBroadFileAccess = deviceContentRepository.hasBroadFileAccess()
+                deviceLoading = false
+            }
+        }
+    }
+
+    private fun requestBroadFileAccess() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            val appIntent = Intent(
+                Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION,
+                Uri.parse("package:$packageName"),
+            )
+            val fallbackIntent = Intent(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION)
+            try {
+                startActivity(appIntent)
+            } catch (_: Exception) {
+                startActivity(fallbackIntent)
+            }
+        } else if (checkSelfPermission(Manifest.permission.READ_EXTERNAL_STORAGE) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(arrayOf(Manifest.permission.READ_EXTERNAL_STORAGE), 4101)
+        } else {
+            refresh()
+        }
+    }
+
+    private fun openDeviceFile(file: DeviceFileInfo) {
+        if (!contentOpener.open(file.uri, file.mimeType)) {
+            Toast.makeText(
+                this,
+                "No hay una aplicación disponible para abrir este tipo de archivo.",
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
+
+    private fun shareDeviceFile(file: DeviceFileInfo) {
+        try {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                type = file.mimeType
+                putExtra(Intent.EXTRA_STREAM, file.uri)
+                clipData = ClipData.newUri(contentResolver, file.displayName, file.uri)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            startActivity(Intent.createChooser(intent, "Compartir desde Mi dispositivo"))
+        } catch (error: Exception) {
+            Toast.makeText(
+                this,
+                "No se pudo compartir: " + (error.message ?: "error desconocido"),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
+
+    private fun copyDeviceFile(file: DeviceFileInfo) {
+        if (!file.type.supportsClipboardCopy()) return
+
+        try {
+            val clipboard = getSystemService(ClipboardManager::class.java)
+            when (file.type) {
+                ContentType.TEXT -> {
+                    if (file.byteSize > MAX_CLIPBOARD_TEXT_BYTES) {
+                        Toast.makeText(
+                            this,
+                            "Ese texto es demasiado grande para copiarlo al portapapeles.",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        return
+                    }
+                    val text = contentResolver.openInputStream(file.uri)
+                        ?.bufferedReader(Charsets.UTF_8)
+                        ?.use { it.readText() }
+                        ?: return
+                    clipboard.setPrimaryClip(ClipData.newPlainText(file.displayName, text))
+                }
+
+                ContentType.IMAGE -> {
+                    clipboard.setPrimaryClip(
+                        ClipData(
+                            ClipDescription(file.displayName, arrayOf(file.mimeType)),
+                            ClipData.Item(file.uri),
+                        ),
+                    )
+                }
+
+                else -> return
+            }
+            Toast.makeText(this, "Copiado al portapapeles.", Toast.LENGTH_SHORT).show()
+        } catch (error: Exception) {
+            Toast.makeText(
+                this,
+                "No se pudo copiar: " + (error.message ?: "error desconocido"),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
+
+    private fun openInstalledApp(app: InstalledAppInfo) {
+        val launchIntent = packageManager.getLaunchIntentForPackage(app.packageName)
+        if (launchIntent == null) {
+            Toast.makeText(
+                this,
+                "Esta aplicación no tiene una pantalla que se pueda abrir.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+
+        runCatching { startActivity(launchIntent) }
+            .onFailure {
+                Toast.makeText(this, "No se pudo abrir " + app.label + ".", Toast.LENGTH_SHORT).show()
+            }
     }
 
     private fun openItem(item: StoredItem) {
