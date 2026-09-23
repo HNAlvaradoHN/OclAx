@@ -179,3 +179,58 @@ Pendiente:
 - validar carpetas por categoría dentro de Archivos → OclAx;
 - miniaturas reales para contenido visual cuando aporte valor;
 - decidir más adelante si tocar una app la abre o la convierte en destino directo de compartir.
+
+
+### DEVICE-001 — Mi dispositivo: contenido real completo
+**Estado:** PENDING  
+**Prioridad:** alta
+
+Objetivo:
+- añadir una superficie **Mi dispositivo** separada de la bandeja temporal;
+- mostrar aplicaciones instaladas, imágenes, videos, audio, PDF, documentos, APK y otros archivos reales;
+- usar miniaturas/iconos reales cuando corresponda;
+- ordenar y buscar sin obligar al usuario a navegar árboles de carpetas complejos.
+
+Permisos previstos:
+- acceso amplio al almacenamiento cuando Android lo requiera;
+- visibilidad completa de aplicaciones si es necesaria;
+- degradación limpia cuando el usuario niegue/revoque permisos.
+
+Reglas:
+- la autolimpieza nunca toca contenido de Mi dispositivo;
+- Eliminar en la bandeja temporal sigue borrando solo copias OclAx;
+- una futura acción de borrar originales requiere diseño y confirmación separada.
+
+Validación:
+- probar en dispositivo real que aparecen las categorías esperadas y su contenido;
+- comprobar revocación de permisos;
+- comprobar que los originales sobreviven a autolimpieza/borrado interno.
+
+### TRANSFER-001 — Envíos OclAx ↔ OclAx
+**Estado:** RESEARCH_READY  
+**Prioridad:** alta  
+**Motor candidato:** Syncthing
+
+Objetivo UX:
+- seleccionar contenido;
+- elegir un dispositivo emparejado;
+- enviar sin exponer al usuario conceptos de carpetas sincronizadas.
+
+Prototipo debe validar:
+- integración del motor Syncthing en Android;
+- conexión directa/LAN y fallback compatible;
+- control desde una capa local de OclAx;
+- progreso, cancelación, reintento y estado final;
+- consumo de batería y comportamiento en segundo plano;
+- recepción en bandeja privada OclAx;
+- emparejamiento seguro.
+
+Política de recepción:
+- **Mis dispositivos / confiables:** opción Permitir sin aceptar;
+- otros dispositivos emparejados: preguntar por defecto;
+- autoaceptación opcional por dispositivo;
+- no emparejados: nunca autoaceptar.
+
+Costo:
+- cero servicios pagos por defecto;
+- cualquier servidor/relay/infraestructura propia con costo requiere autorización previa.

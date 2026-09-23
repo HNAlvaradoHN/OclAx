@@ -9,13 +9,14 @@
 
 ## Qué ya está definido
 
+- OclAx debe poder reconstruir el estado de trabajo desde GitHub al iniciar cualquier chat nuevo; las decisiones duraderas se registran aquí/TASKS/DECISIONS/SECURITY/ARCHITECTURE antes del handoff.
 - Nombre: OclAx.
 - Significado: Open Content, Local Access & eXchange.
 - Identidad del agente: OclAx 📲.
 - Repositorio como fuente técnica de verdad.
 - Prioridad máxima a seguridad, privacidad e integridad.
 - Aplicación Android local-first orientada a contenido temporal.
-- OclAx es selector/bandeja ordenada para insertar, no gestor de archivos completo.
+- OclAx mantiene una bandeja temporal, pero el alcance aprobado ahora incluye una superficie **Mi dispositivo** para explorar contenido real del teléfono con permisos amplios cuando el usuario los conceda.
 - Autolimpieza limitada exclusivamente a copias privadas de OclAx.
 - Retención predeterminada de 24 horas; Fijados nunca expiran mientras sigan fijados.
 
@@ -63,7 +64,9 @@
 
 - corrección física de Apps instaladas mediante LauncherApps;
 - categorías virtuales en DocumentsProvider, conservando acceso directo a Recientes;
-- miniaturas reales para contenido visual cuando aporten valor.
+- miniaturas reales para contenido visual cuando aporten valor;
+- diseño e implementación de Mi dispositivo con acceso amplio al contenido real;
+- prototipo OclAx ↔ OclAx usando Syncthing como motor candidato.
 
 ## Bloqueos
 
@@ -71,7 +74,9 @@ Ninguno conocido.
 
 ## Siguiente paso exacto
 
-1. Validar físicamente Apps instaladas usando LauncherApps.
-2. Confirmar que Apps instaladas y APK guardados se distinguen con claridad.
-3. Validar carpetas de Fijados, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros dentro de Archivos → OclAx sin perder Recientes directos.
-4. Continuar con miniaturas reales para contenido visual.
+1. Implementar **Mi dispositivo** como superficie separada para contenido real: aplicaciones, imágenes, videos, audio, PDF, documentos, APK y otros.
+2. Solicitar únicamente los permisos amplios necesarios para esa superficie y degradar funcionalidad si el usuario los niega/revoca.
+3. Mantener intacto el límite: autolimpieza y borrado interno solo afectan copias OclAx.
+4. Prototipar Syncthing como motor de **Enviar a dispositivo** sin exponer sincronización de carpetas al usuario.
+5. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
+6. Continuar miniaturas/iconos y validación física.

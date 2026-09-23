@@ -96,3 +96,55 @@ Reglas:
 - se muestran solo apps lanzables visibles mediante la consulta declarada en manifest;
 - la lista no se persiste ni se transmite;
 - los archivos APK de OclAx continúan usando el modelo de contenido existente y no se mezclan con apps instaladas.
+
+
+## Mi dispositivo — acceso amplio
+
+La nueva superficie **Mi dispositivo** queda separada de la bandeja temporal.
+
+```text
+UI / Mi dispositivo
+        ↓
+DeviceContentRepository
+   ↙      ↓       ↘
+Apps   MediaStore  Storage index
+        / SAF      / acceso amplio
+```
+
+Principios:
+- la UI no accede directamente a APIs de almacenamiento/paquetes;
+- una capa de plataforma resuelve permisos y capacidades disponibles;
+- contenido externo se referencia como contenido del dispositivo; no se convierte en copia OclAx salvo que el usuario lo importe/envíe;
+- la bandeja temporal y su ItemStore conservan la propiedad exclusiva de sus copias;
+- denegar/revocar permisos no debe romper la bandeja OclAx.
+
+## Transferencia entre dispositivos
+
+Syncthing es el motor candidato, encapsulado detrás de una capa propia:
+
+```text
+UI: Enviar a dispositivo
+        ↓
+TransferService / Domain
+        ↓
+SyncthingAdapter
+        ↓
+motor Syncthing local
+        ↓
+dispositivo OclAx emparejado
+```
+
+OclAx controla:
+- emparejamiento;
+- lista/nombre de dispositivos;
+- política de confianza;
+- creación de una transferencia;
+- progreso/cancelación/reintento;
+- bandeja de recepción.
+
+Syncthing no debe filtrar conceptos de sincronización de carpetas hacia la UX principal.
+
+Recepción:
+- todo contenido entrante se materializa primero en almacenamiento privado/controlado por OclAx;
+- posteriormente el usuario puede compartirlo, copiarlo cuando aplique o guardarlo externamente;
+- autoaceptación nunca implica autoejecución/autoinstalación.

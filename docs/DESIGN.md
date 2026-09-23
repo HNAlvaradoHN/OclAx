@@ -165,3 +165,38 @@ Para evitar confusión:
 - mantener recientes visibles directamente en la raíz del proveedor;
 - añadir carpetas Fijados, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros;
 - no hacer pasar una app instalada por un archivo adjuntable.
+
+
+## Mi dispositivo y Enviar a dispositivo
+
+La navegación futura debe distinguir visualmente dos orígenes:
+
+- **OclAx**: bandeja temporal, Fijados y contenido recibido/importado;
+- **Mi dispositivo**: contenido original del teléfono.
+
+Mi dispositivo prioriza categorías reconocibles:
+- Apps;
+- Imágenes;
+- Videos;
+- Audio;
+- PDF;
+- Documentos;
+- APK;
+- Otros.
+
+El usuario debe poder reconocer en todo momento si está actuando sobre una copia OclAx o sobre un original del dispositivo.
+
+### Transferencia OclAx ↔ OclAx
+
+Flujo visible:
+1. seleccionar contenido;
+2. Enviar;
+3. elegir dispositivo;
+4. ver progreso.
+
+En ajustes de cada dispositivo emparejado:
+- **Permitir sin aceptar** — interruptor explícito;
+- cuando está apagado, cada recepción pide confirmación;
+- para dispositivos nuevos/no confiables, el estado inicial es apagado.
+
+No mostrar al usuario términos internos como carpetas Syncthing, relay, REST API o IDs técnicos salvo una pantalla de diagnóstico avanzada.

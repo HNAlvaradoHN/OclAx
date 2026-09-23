@@ -272,3 +272,77 @@ Privacidad y plataforma:
    - añade carpetas virtuales por tipo: Fijados, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros.
 
 **Motivo:** una aplicación instalada no es un documento SAF. Exponerla como si fuera un archivo produciría un flujo engañoso. La organización del selector debe mejorar sin romper la semántica de DocumentsProvider.
+
+
+---
+
+## DEC-019 — Navegación amplia del dispositivo y distribución fuera de Play Store
+
+**Decisión:** OclAx evoluciona de una bandeja temporal pura a una bandeja temporal + navegador local del contenido real del dispositivo.
+
+Objetivo de la vista **Mi dispositivo**:
+- aplicaciones instaladas;
+- imágenes;
+- videos;
+- audio;
+- PDF;
+- documentos;
+- APK;
+- otros archivos accesibles del almacenamiento compartido.
+
+Permisos:
+- OclAx puede solicitar acceso amplio al almacenamiento cuando sea necesario para cumplir este objetivo;
+- si Android requiere `MANAGE_EXTERNAL_STORAGE`, se solicita como acceso especial y el usuario puede negarlo o revocarlo;
+- si se necesita visibilidad completa de aplicaciones, puede declararse `QUERY_ALL_PACKAGES`;
+- no se solicitarán permisos sin relación con una función concreta: “acceso a todo” significa acceso amplio al contenido/aplicaciones que OclAx necesita gestionar, no todos los permisos de Android indiscriminadamente;
+- si un usuario niega o revoca permisos, OclAx debe degradar la funcionalidad y mostrar únicamente lo que Android permita.
+
+Distribución:
+- no se planea publicar OclAx en Google Play;
+- canales previstos: GitHub Releases y, opcionalmente, otras tiendas/distribuidores;
+- aun fuera de Play Store, se mantienen mínimos de seguridad, privacidad y consentimiento explícito.
+
+Límite de propiedad:
+- la autolimpieza y el botón Eliminar de las tarjetas internas siguen operando únicamente sobre copias privadas de OclAx;
+- el contenido real de **Mi dispositivo** no se borra automáticamente;
+- cualquier futura eliminación de un original externo debe ser una acción distinta, explícita y confirmada.
+
+**Motivo:** el dueño quiere ver y reutilizar el contenido real del teléfono desde OclAx, y acepta otorgar permisos amplios para conseguirlo.
+
+---
+
+## DEC-020 — Transferencia OclAx ↔ OclAx con experiencia “Enviar a dispositivo”
+
+**Decisión:** Syncthing se adopta como candidato principal de motor técnico para transferencias entre dispositivos OclAx, envuelto por una UX propia de OclAx. La experiencia visible no será “sincronizar carpetas”, sino **seleccionar contenido → elegir dispositivo → enviar**.
+
+Estado:
+- candidato aprobado para prototipo;
+- integración final pendiente de prueba técnica Android;
+- no se autoriza servicio de pago ni infraestructura con costo sin aprobación del dueño.
+
+Modelo de confianza:
+- cada dispositivo OclAx se empareja explícitamente;
+- dispositivos emparejados pueden marcarse como **Mis dispositivos / confiables**;
+- por dispositivo existe la opción **Permitir sin aceptar**;
+- si está activa, las transferencias entrantes de ese dispositivo se reciben automáticamente;
+- si está desactivada, el receptor debe aceptar o rechazar cada transferencia;
+- para otros dispositivos emparejados el valor predeterminado es **preguntar antes de recibir**;
+- un usuario puede habilitar recepción automática también para un dispositivo externo específico si lo decide;
+- un dispositivo desconocido/no emparejado nunca puede enviar automáticamente.
+
+Flujo:
+1. seleccionar uno o varios elementos;
+2. tocar Enviar;
+3. elegir un dispositivo OclAx emparejado;
+4. la transferencia comienza;
+5. el receptor aplica su política: automática o con confirmación;
+6. el contenido recibido aterriza primero en una bandeja privada de OclAx.
+
+Seguridad:
+- una transferencia recibida nunca ejecuta APK ni abre archivos automáticamente;
+- no escribe arbitrariamente sobre archivos originales del dispositivo;
+- recepción automática significa “aceptar en la bandeja OclAx”, no ejecutar ni instalar;
+- el motor de transferencia y sus APIs locales deben quedar aislados detrás de una capa de plataforma propia;
+- credenciales/API keys locales del motor nunca se publican ni se guardan en el repo.
+
+**Motivo:** ofrecer una experiencia tipo envío directo entre dispositivos, manteniendo al usuario en control del nivel de confianza por dispositivo.
