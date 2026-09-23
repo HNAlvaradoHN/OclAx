@@ -252,3 +252,19 @@ Pendiente:
 - validación física con PDF, Word/OOXML, imagen, video, audio y APK;
 - verificar comportamiento con aplicación predeterminada y con selector cuando haya varias opciones;
 - verificar flujo de “instalar apps desconocidas” al primer intento de abrir un APK.
+
+### DEVICE-002 — Miniaturas, compartir apps y borrar originales
+**Estado:** IN_PROGRESS  
+**Prioridad:** alta
+
+Implementación en PR #34:
+- miniaturas reales para imágenes/video en Mi dispositivo;
+- miniaturas expuestas por DocumentsProvider al selector de Android;
+- lista/cuadrícula persistente por categoría;
+- compartir apps instaladas usando base APK + splits sin datos privados;
+- borrar originales mediante confirmación explícita y autorización MediaStore cuando corresponda.
+
+Pendiente:
+- CI completa del PR;
+- validación física en teléfono real;
+- confirmar experiencia de recepción/instalación para paquetes con splits antes de declararlo DONE.
