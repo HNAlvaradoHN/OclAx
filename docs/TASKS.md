@@ -30,7 +30,7 @@ Incluye:
 - protocol_version 4;
 - lectura exhaustiva de todos los archivos legibles versionados antes del primer handshake;
 - inventario recursivo como prueba de completitud;
-- un número por hilo visible de chat;
+- un número por hilo visible de chat y contador canónico `last_confirmed_chat`;
 - prohibición explícita de incrementar por herramientas, reintentos, resincronizaciones, ramas, PR o CI;
 - corrección del registro actual de 11 a 2 después de fusionar y resincronizar;
 - registro del fallo sistemático en ERR-012.
