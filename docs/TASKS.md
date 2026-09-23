@@ -112,7 +112,7 @@ Implementado en main:
 Validado:
 - CI verde en PR y main para el bloque compacto/copiar;
 - test unitario confirma que Copiar solo aplica a Texto/Código e Imágenes;
-- miniaturas reales dentro de Recientes/OclAx confirmadas físicamente en dispositivo.
+- miniaturas de imágenes dentro de Recientes/OclAx confirmadas físicamente en dispositivo.
 
 Implementado adicionalmente:
 - miniaturas reales dentro de la bandeja OclAx para Imagen, Video y PDF reutilizando `ThumbnailLoader`;
@@ -120,6 +120,7 @@ Implementado adicionalmente:
 
 Pendiente:
 - validación física del menú desplegable y Copiar;
+- validar miniaturas internas de Video/PDF;
 - comprobar qué organización puede exponerse también dentro de DocumentsProvider sin añadir navegación innecesaria;
 - validación física.
 
