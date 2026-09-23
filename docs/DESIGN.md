@@ -142,3 +142,12 @@ Accesibilidad:
 - La burbuja de tiempo se muestra más baja y corta (por ejemplo, `24 h`) manteniendo un área táctil mayor que su forma visible.
 - “Apps/APK” representa APK guardados en OclAx; no debe confundirse visualmente con una futura vista de aplicaciones instaladas del dispositivo.
 - La iconografía final debe acercarse al contenido real: miniaturas para imágenes cuando sea viable, iconos reconocibles por tipo y, para una futura vista de aplicaciones instaladas, icono real de cada app cuando Android lo permita.
+
+
+## Aplicaciones e iconografía — 2026-09-23
+
+- El selector incluye **Aplicaciones** y **APK** como conceptos separados.
+- Aplicaciones muestra el icono real y nombre visible de cada app lanzable del dispositivo.
+- Las aplicaciones se ordenan alfabéticamente y usan tarjetas compactas.
+- Las tarjetas de contenido dejan de depender de siglas como TXT/DOC/APK como señal principal: usan iconos reconocibles por tipo.
+- La acción futura al tocar una aplicación no queda implícita en esta pasada; primero se completa y valida la organización visual.
