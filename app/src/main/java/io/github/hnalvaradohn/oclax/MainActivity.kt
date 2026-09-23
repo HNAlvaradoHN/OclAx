@@ -136,6 +136,9 @@ class MainActivity : ComponentActivity() {
     private var transferDeviceId by mutableStateOf<String?>(null)
     private var transferRuntimeStatus by mutableStateOf("Motor de envío sin probar.")
     private var transferRuntimeBusy by mutableStateOf(false)
+    private var lanBusyDeviceId by mutableStateOf<String?>(null)
+    private var activeLanDeviceId by mutableStateOf<String?>(null)
+    private var lanStatusByDevice by mutableStateOf<Map<String, String>>(emptyMap())
     private var pendingSystemDeleteName: String? = null
 
     private val deviceDeleteLauncher = registerForActivityResult(
@@ -212,12 +215,17 @@ class MainActivity : ComponentActivity() {
                     transferRuntimeBusy = transferRuntimeBusy,
                     transferDeviceId = transferDeviceId,
                     pairedDevices = pairedDevices,
+                    lanBusyDeviceId = lanBusyDeviceId,
+                    activeLanDeviceId = activeLanDeviceId,
+                    lanStatusByDevice = lanStatusByDevice,
                     onProbeTransferRuntime = ::probeTransferRuntime,
                     onStopTransferRuntime = ::stopTransferRuntime,
                     onShareTransferDeviceId = ::shareTransferDeviceId,
                     onAddPairedDevice = ::addPairedDevice,
                     onSetAllowWithoutAccept = ::setAllowWithoutAccept,
                     onRemovePairedDevice = ::removePairedDevice,
+                    onTestLan = ::testLanConnection,
+                    onDisconnectLan = ::disconnectLan,
                 )
             }
         }
@@ -236,6 +244,14 @@ class MainActivity : ComponentActivity() {
 
     private fun probeTransferRuntime() {
         if (transferRuntimeBusy) return
+        if (activeLanDeviceId != null) {
+            Toast.makeText(
+                this,
+                "Desconectá la prueba LAN antes de volver a probar el motor.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
 
         transferRuntimeBusy = true
         transferRuntimeStatus = "Iniciando motor de envío…"
@@ -298,11 +314,96 @@ class MainActivity : ComponentActivity() {
 
             runOnUiThread {
                 transferRuntimeBusy = false
+                activeLanDeviceId = null
+                lanBusyDeviceId = null
+                lanStatusByDevice = emptyMap()
                 transferRuntimeStatus = if (stopped) {
                     "Motor de envío detenido correctamente."
                 } else {
                     "Android aún reporta el motor activo."
                 }
+            }
+        }
+    }
+
+    private fun testLanConnection(device: PairedDevice) {
+        if (transferRuntimeBusy || lanBusyDeviceId != null) return
+
+        val active = activeLanDeviceId
+        if (active != null && active != device.deviceId) {
+            Toast.makeText(
+                this,
+                "Desconectá el otro dispositivo antes de probar uno diferente.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+        if (active == device.deviceId) return
+
+        transferRuntimeBusy = true
+        lanBusyDeviceId = device.deviceId
+        lanStatusByDevice = lanStatusByDevice + (
+            device.deviceId to "Buscando por LAN… Abrí OclAx en ambos teléfonos."
+            )
+
+        transferExecutor.execute {
+            val result = runCatching {
+                transferRuntimeController.connectLan(
+                    rawDeviceId = device.deviceId,
+                    name = device.name,
+                )
+            }
+
+            runOnUiThread {
+                transferRuntimeBusy = false
+                lanBusyDeviceId = null
+                result.onSuccess {
+                    activeLanDeviceId = device.deviceId
+                    lanStatusByDevice = lanStatusByDevice + (
+                        device.deviceId to "Conectado por LAN."
+                        )
+                    transferRuntimeStatus = "Motor activo · conexión LAN verificada."
+                }.onFailure { error ->
+                    if (activeLanDeviceId == device.deviceId) {
+                        activeLanDeviceId = null
+                    }
+                    lanStatusByDevice = lanStatusByDevice + (
+                        device.deviceId to
+                            ("No se conectó por LAN: " + (error.message ?: "error desconocido"))
+                        )
+                    transferRuntimeStatus = "Motor aislado después de la prueba LAN."
+                }
+            }
+        }
+    }
+
+    private fun disconnectLan(device: PairedDevice) {
+        if (transferRuntimeBusy || lanBusyDeviceId != null) return
+        if (activeLanDeviceId != device.deviceId) return
+
+        transferRuntimeBusy = true
+        lanBusyDeviceId = device.deviceId
+        lanStatusByDevice = lanStatusByDevice + (
+            device.deviceId to "Desconectando LAN…"
+            )
+
+        transferExecutor.execute {
+            val result = runCatching {
+                transferRuntimeController.disconnectLan(device.deviceId)
+            }
+
+            runOnUiThread {
+                transferRuntimeBusy = false
+                lanBusyDeviceId = null
+                activeLanDeviceId = null
+                lanStatusByDevice = lanStatusByDevice + (
+                    device.deviceId to if (result.isSuccess) {
+                        "Desconectado · motor aislado."
+                    } else {
+                        "Se cerró la prueba LAN; revisá el motor antes de reintentar."
+                    }
+                    )
+                transferRuntimeStatus = "Motor aislado."
             }
         }
     }
@@ -342,8 +443,18 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun removePairedDevice(deviceId: String) {
+        if (activeLanDeviceId == deviceId || lanBusyDeviceId == deviceId) {
+            Toast.makeText(
+                this,
+                "Desconectá la prueba LAN antes de quitar ese dispositivo.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+
         if (pairedDeviceStore.remove(deviceId)) {
             pairedDevices = pairedDeviceStore.list()
+            lanStatusByDevice = lanStatusByDevice - deviceId
         }
     }
 
@@ -750,12 +861,17 @@ private fun OclAxHome(
     transferRuntimeBusy: Boolean,
     transferDeviceId: String?,
     pairedDevices: List<PairedDevice>,
+    lanBusyDeviceId: String?,
+    activeLanDeviceId: String?,
+    lanStatusByDevice: Map<String, String>,
     onProbeTransferRuntime: () -> Unit,
     onStopTransferRuntime: () -> Unit,
     onShareTransferDeviceId: () -> Unit,
     onAddPairedDevice: (String, String) -> String?,
     onSetAllowWithoutAccept: (String, Boolean) -> Unit,
     onRemovePairedDevice: (String) -> Unit,
+    onTestLan: (PairedDevice) -> Unit,
+    onDisconnectLan: (PairedDevice) -> Unit,
 ) {
     var sourceMode by remember { mutableStateOf(SourceMode.OCLAX) }
     var query by remember { mutableStateOf("") }
@@ -832,12 +948,17 @@ private fun OclAxHome(
                     busy = transferRuntimeBusy,
                     ownDeviceId = transferDeviceId,
                     devices = pairedDevices,
+                    lanBusyDeviceId = lanBusyDeviceId,
+                    activeLanDeviceId = activeLanDeviceId,
+                    lanStatusByDevice = lanStatusByDevice,
                     onProbe = onProbeTransferRuntime,
                     onStop = onStopTransferRuntime,
                     onShareOwnId = onShareTransferDeviceId,
                     onAddDevice = onAddPairedDevice,
                     onSetAllowWithoutAccept = onSetAllowWithoutAccept,
                     onRemoveDevice = onRemovePairedDevice,
+                    onTestLan = onTestLan,
+                    onDisconnectLan = onDisconnectLan,
                 )
                 Spacer(Modifier.height(12.dp))
             }
