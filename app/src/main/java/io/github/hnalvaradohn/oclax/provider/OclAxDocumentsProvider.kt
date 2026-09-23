@@ -206,7 +206,11 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         val item = store.findItem(documentId)
             ?: throw FileNotFoundException("Documento no encontrado.")
         val type = contentTypeFor(item.mimeType)
-        if (type != ContentType.IMAGE && type != ContentType.VIDEO) {
+        if (
+            type != ContentType.IMAGE &&
+            type != ContentType.VIDEO &&
+            type != ContentType.PDF
+        ) {
             throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
         }
 
@@ -325,7 +329,11 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         put(row, columns, DocumentsContract.Document.COLUMN_MIME_TYPE, item.mimeType)
         put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, item.createdAt)
         val type = contentTypeFor(item.mimeType)
-        val itemFlags = if (type == ContentType.IMAGE || type == ContentType.VIDEO) {
+        val itemFlags = if (
+            type == ContentType.IMAGE ||
+            type == ContentType.VIDEO ||
+            type == ContentType.PDF
+        ) {
             DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL
         } else {
             0
