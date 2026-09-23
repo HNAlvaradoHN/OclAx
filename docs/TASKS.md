@@ -228,11 +228,11 @@ Investigación verificada — 2026-09-23:
 - el runtime debe controlarse exclusivamente por loopback con API key privada.
 
 Spike técnico, en orden:
-1. **VERIFICADO:** construir/empaquetar Syncthing core v2.1.5 para Android arm64 en CI aislada y **sin acceso a secretos de firma**; se produjo un ELF Android API 26 con NDK r30 y verificación SHA-256.
-2. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** el CI principal construye el runtime en un job sin secretos, verifica SHA-256 y lo empaqueta en el APK como `libsyncthingnative.so`; Gradle fuerza extracción para poder ejecutarlo como proceso hijo.
-3. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** `SyncthingRuntimeService` usa foreground service `dataSync`, almacenamiento privado, API/GUI fija en `127.0.0.1:8384` y API key aleatoria persistida solo en preferencias privadas.
-4. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** auto-upgrade queda deshabilitado por build/flags; al arrancar OclAx fuerza `urAccepted=-1` y `crashReportingEnabled=false` mediante REST local y verifica la respuesta.
-5. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** el probe obtiene `myID`, comprueba configuración loopback, intenta detectar exposición por IPv4 no-loopback y la detención usa `/rest/system/shutdown` con fallback de proceso.
+1. **VERIFICADO:** construir/empaquetar Syncthing core v2.1.5 para Android arm64 en CI aislada y **sin acceso a secretos de firma**; se produjo un ELF Android API 26 con verificación SHA-256.
+2. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** el CI principal construye runtimes pinneados para arm64-v8a, armeabi-v7a, x86_64 y x86 en un job sin secretos, verifica cada SHA-256 y los empaqueta en el APK; Gradle fuerza extracción para ejecutarlos como proceso hijo.
+3. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** antes de iniciar `serve`, OclAx genera la configuración local si hace falta y la endurece: GUI/API `127.0.0.1:8384`, API key privada, listener BEP solo loopback y discovery global/local, relay y NAT desactivados.
+4. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** `SyncthingRuntimeService` usa foreground service `dataSync` on-demand y vuelve a aplicar/verificar por REST el modo aislado, `urAccepted=-1` y `crashReportingEnabled=false` antes de marcar el motor activo.
+5. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** el probe obtiene `myID`, comprueba que REST exige API key, valida dirección GUI loopback, intenta detectar el mismo runtime por IPv4 no-loopback y la detención usa `/rest/system/shutdown` con fallback acotado.
 6. **SIGUIENTE:** instalar la build en teléfono real y validar arranque → Device ID → loopback → detener → arrancar otra vez sin corrupción.
 7. emparejar dos instalaciones de prueba y validar transferencia LAN;
 8. validar conexión Internet directa y relay público como fallback;
