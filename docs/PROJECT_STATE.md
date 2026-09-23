@@ -73,7 +73,7 @@
 
 ## En desarrollo
 
-- PR #34: miniaturas reales para imágenes/video, compartir apps instaladas sin datos privados, borrado explícito de originales y vista lista/cuadrícula por categoría;
+- PR #34 implementado con CI verde: miniaturas reales para imágenes/video, compartir apps instaladas sin datos privados, borrado explícito de originales y vista lista/cuadrícula por categoría;
 - validación física de Mi dispositivo y permisos;
 - prototipo OclAx ↔ OclAx usando Syncthing como motor candidato.
 
@@ -83,7 +83,7 @@ Ninguno conocido.
 
 ## Siguiente paso exacto
 
-1. Terminar CI/revisión del PR #34.
+1. Terminar revisión/fusión del PR #34 con CI verde.
 2. Validar físicamente miniaturas en Archivos → OclAx y en Mi dispositivo.
 3. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
 4. Validar borrar/cancelar borrado de un original y comprobar que la bandeja OclAx queda intacta.
