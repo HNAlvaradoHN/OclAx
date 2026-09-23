@@ -26,7 +26,7 @@ Incluye:
 ## PENDING
 
 ### SEC-001 — Configurar protecciones del repositorio público
-**Estado:** PENDING  
+**Estado:** IN_PROGRESS  
 **Prioridad:** alta
 
 Objetivo:
@@ -47,6 +47,8 @@ Objetivo:
 - establecer build y pruebas básicas.
 
 ### PRODUCT-001 — Formalizar alcance MVP
-**Estado:** PENDING
+**Estado:** IN_PROGRESS
 
-Definir exactamente qué entra en la primera versión funcional y qué queda fuera para evitar sobreingeniería.
+Investigación técnica completada en `docs/FEASIBILITY.md`.
+
+Siguiente acción: confirmar con el dueño el alcance final del MVP antes de marcar DONE.
