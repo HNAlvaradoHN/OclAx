@@ -417,18 +417,32 @@ internal class TransferRuntimeController(context: Context) {
             connection
         } catch (error: Exception) {
             runCatching { client.pauseDevice(deviceId) }
-            runCatching { client.enforcePrivateOptions() }
-            SyncthingRuntimeService.disableLanDiscovery(appContext)
+            val isolated = runCatching {
+                client.enforcePrivateOptions()
+            }.isSuccess
+            runCatching {
+                SyncthingRuntimeService.disableLanDiscovery(appContext)
+            }
+            if (!isolated) {
+                runCatching { stop() }
+            }
             throw error
         }
     }
 
     fun disconnectLan(deviceId: String) {
+        var isolated = false
         try {
             runCatching { client.pauseDevice(deviceId) }
             client.enforcePrivateOptions()
+            isolated = true
         } finally {
-            SyncthingRuntimeService.disableLanDiscovery(appContext)
+            runCatching {
+                SyncthingRuntimeService.disableLanDiscovery(appContext)
+            }
+            if (!isolated) {
+                runCatching { stop() }
+            }
         }
     }
 
