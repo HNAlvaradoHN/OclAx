@@ -39,10 +39,11 @@
 
 ## Implementado recientemente
 
-- rama de trabajo con selector compacto de categorías a la izquierda;
+- selector compacto de categorías a la izquierda, fusionado en main;
 - Copiar limitado a Texto/Código e Imágenes;
-- tarjetas y acciones más compactas;
+- tarjetas e iconos visualmente más compactos, manteniendo áreas táctiles accesibles;
 - naranja más vivo en oscuro y claro;
+- CI verde en PR y main para este bloque;
 - acciones por tarjeta: Compartir, Copiar cuando aplique, Fijar y Eliminar con confirmación;
 - firma persistente de pruebas mediante GitHub Actions Secrets;
 - versionCode monotónico en CI;
@@ -59,7 +60,7 @@ Ninguno conocido.
 
 ## Siguiente paso exacto
 
-1. Instalar físicamente el primer APK con firma estable; esta transición requiere desinstalar la versión antigua una última vez.
-2. Verificar que una build posterior pueda instalarse encima sin conflicto de paquete.
+1. Instalar la nueva build sobre la instalación con firma estable, sin desinstalar, para validar actualización real.
+2. Confirmar que Android conserva los datos internos al actualizar encima.
 3. Validar físicamente selector compacto, Copiar texto/imagen, Compartir, Eliminar con confirmación, retención y Fijados.
 4. Continuar con iconografía/miniaturas y categorías opcionales en DocumentsProvider sin sacrificar Recientes.
