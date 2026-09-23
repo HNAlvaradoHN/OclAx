@@ -80,3 +80,20 @@ Sin handshake válido, la sesión no está autorizada para modificar el proyecto
 **Decisión:** `docs/TOOLS.md` registra herramientas externas relevantes, su estado, límites, privacidad y condiciones de uso.
 
 **Motivo:** evitar agregar herramientas por moda o convertirlas accidentalmente en una fuente de verdad paralela.
+
+
+---
+
+## DEC-010 — Flujo principal de inserción
+
+**Decisión:** OclAx se diseña como una bandeja temporal accesible desde el selector de archivos de Android.
+
+**Flujo objetivo del usuario:**
+
+`guardar rápido en OclAx → abrir otra app → + / Adjuntar → Archivos → OclAx → Recientes → insertar`
+
+La raíz de OclAx debe priorizar **Recientes** y mostrar contenido mixto en un solo lugar: imágenes/capturas, texto materializado como archivo cuando haga falta, APK, PDF, documentos, video, código y otros archivos.
+
+**Regla de producto:** insertar debe requerir el mínimo de pasos posible. OclAx no debe obligar al usuario a navegar carpetas internas ni organizar manualmente antes de usar un elemento.
+
+**Limitación Android:** OclAx no puede capturar universalmente todo lo copiado en segundo plano. Por eso el ingreso al estante debe usar acciones explícitas y rápidas (Compartir a OclAx, importar, guardar selección/texto, o mecanismos equivalentes compatibles con Android). IME/Accessibility/Shizuku no forman parte del MVP salvo decisión posterior.

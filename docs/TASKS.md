@@ -47,8 +47,16 @@ Objetivo:
 - establecer build y pruebas básicas.
 
 ### PRODUCT-001 — Formalizar alcance MVP
-**Estado:** IN_PROGRESS
+**Estado:** DONE
 
-Investigación técnica completada en `docs/FEASIBILITY.md`.
+Alcance central confirmado:
+- OclAx funciona como bandeja temporal universal;
+- entrada rápida y explícita de contenido;
+- salida principal mediante `+ / Archivos → OclAx → Recientes → insertar`;
+- contenido mixto;
+- DocumentsProvider como pieza central;
+- cero red;
+- autolimpieza y fijado;
+- sin IME/Accessibility/Shizuku en el MVP.
 
-Siguiente acción: confirmar con el dueño el alcance final del MVP antes de marcar DONE.
+La compatibilidad real se validará posteriormente en dispositivo.

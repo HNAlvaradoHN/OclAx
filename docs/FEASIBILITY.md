@@ -164,6 +164,12 @@ Esto no prueba que no exista ninguna en todo Internet, pero sí indica que OclAx
 
 ## Dirección recomendada del MVP
 
+La prioridad de producto queda definida por este flujo:
+
+`capturar/seleccionar/tener archivo → guardar rápidamente en OclAx → otra app → + / Archivos → OclAx → Recientes → insertar`
+
+OclAx debe comportarse como una **bandeja temporal universal**, no como un gestor de carpetas tradicional.
+
 El MVP debe validar primero el flujo más valioso y menos frágil:
 
 1. recibir texto/imagen/archivo mediante Share;
