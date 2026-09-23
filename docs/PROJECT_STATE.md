@@ -66,7 +66,8 @@
 - categorías virtuales en DocumentsProvider, conservando acceso directo a Recientes;
 - miniaturas reales para contenido visual cuando aporten valor;
 - diseño e implementación de Mi dispositivo con acceso amplio al contenido real;
-- prototipo OclAx ↔ OclAx usando Syncthing como motor candidato.
+- prototipo OclAx ↔ OclAx usando Syncthing como motor candidato;
+- apertura directa de contenido desde tarjetas mediante aplicaciones del sistema.
 
 ## Bloqueos
 
@@ -74,9 +75,10 @@ Ninguno conocido.
 
 ## Siguiente paso exacto
 
-1. Implementar **Mi dispositivo** como superficie separada para contenido real: aplicaciones, imágenes, videos, audio, PDF, documentos, APK y otros.
-2. Solicitar únicamente los permisos amplios necesarios para esa superficie y degradar funcionalidad si el usuario los niega/revoca.
-3. Mantener intacto el límite: autolimpieza y borrado interno solo afectan copias OclAx.
-4. Prototipar Syncthing como motor de **Enviar a dispositivo** sin exponer sincronización de carpetas al usuario.
-5. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
-6. Continuar miniaturas/iconos y validación física.
+1. Validar físicamente abrir PDF, Word/documentos, imágenes, video, audio y APK desde una tarjeta OclAx.
+2. Implementar **Mi dispositivo** como superficie separada para contenido real: aplicaciones, imágenes, videos, audio, PDF, documentos, APK y otros.
+3. Solicitar únicamente los permisos amplios necesarios para esa superficie y degradar funcionalidad si el usuario los niega/revoca.
+4. Mantener intacto el límite: autolimpieza y borrado interno solo afectan copias OclAx.
+5. Prototipar Syncthing como motor de **Enviar a dispositivo** con directo/LAN/Internet y relay público como fallback, sin exponer sincronización de carpetas al usuario.
+6. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
+7. Continuar miniaturas/iconos y validación física.
