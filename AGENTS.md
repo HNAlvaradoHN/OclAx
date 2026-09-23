@@ -1,6 +1,6 @@
 # AGENTS.md — Protocolo Maestro de OclAx
 
-**protocol_version:** 2  
+**protocol_version:** 3  
 **Proyecto:** OclAx  
 **Identidad del agente:** OclAx 📲  
 **Repositorio:** público  
@@ -79,9 +79,11 @@ La identidad oficial es:
 
 Todos los chats nuevos usan esta identidad salvo cambio explícito del dueño.
 
-El primer handshake válido de cada chat usa exactamente:
+El handshake válido de cada chat usa exactamente:
 
 `Ing. OclAx📲 #[NÚMERO]`
+
+El mismo número identifica todo el chat. Solo cambia al abrir otro chat y reclamar una nueva sesión persistente.
 
 No inventes otra identidad.
 
@@ -264,22 +266,25 @@ Si AGENTS.md, `protocol_version` o una regla fundamental cambia durante la sesi�
 
 ## 6. Handshake obligatorio
 
-Solo después de quedar READY, la primera respuesta de trabajo del chat debe comenzar exactamente con:
+Solo después de quedar READY, TODA respuesta del asistente dentro de ese chat de desarrollo debe comenzar exactamente con:
 
 `Ing. OclAx📲 #[NÚMERO]`
 
-Luego puede añadir una frase humana breve:
+La primera respuesta READY puede añadir una frase humana breve:
 
 `Sincronizado · listo para continuar con [tarea].`
 
 El handshake:
 
-- aparece UNA SOLA VEZ por chat;
-- nunca se repite por rutina;
+- aparece al inicio de TODAS las respuestas del asistente durante ese chat mientras la sesión siga autorizada;
+- mantiene exactamente el MISMO número durante todo el chat;
+- el número solo cambia cuando el usuario abre otro chat y ese nuevo chat reclama una nueva sesión persistente;
+- no se vuelve a incrementar por resincronizar dentro del mismo chat;
 - nunca se inventa;
-- nunca se reutiliza;
 - nunca se deduce desde memoria;
 - solo existe después de sincronización real.
+
+Si una regla fundamental cambia y la sesión vuelve temporalmente a UNSYNCED, conserva su número de chat pero no emitas un handshake válido hasta completar la resincronización. Al volver a READY, retoma el mismo número en todas las respuestas.
 
 Si la sincronización falla, no muestres un handshake válido. Muestra:
 
@@ -308,7 +313,7 @@ Proceso para reclamar un número:
 4. vuelve a comprobar justo antes de actualizar;
 5. si otro chat lo tomó, vuelve a calcular;
 6. actualiza el issue con el nuevo número;
-7. solo entonces emite el handshake.
+7. solo entonces emite el handshake y conserva ese número durante todo ese chat.
 
 No uses memoria del modelo.
 
@@ -1409,11 +1414,13 @@ En proyectos públicos:
 
 ## 48. Regla central
 
-Si una sesión nueva no ha completado la sincronización y no ha emitido correctamente:
+Si una sesión nueva no ha completado la sincronización y no puede emitir correctamente:
 
 `Ing. OclAx📲 #[NÚMERO]`
 
 NO está autorizada para modificar el proyecto.
+
+Una vez READY, todas las respuestas de ese chat deben empezar con ese mismo handshake hasta que el chat termine.
 
 El repositorio es la fuente técnica de verdad.
 AGENTS.md es la constitución vigente.
