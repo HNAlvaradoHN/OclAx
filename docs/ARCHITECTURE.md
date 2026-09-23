@@ -178,6 +178,7 @@ El runtime nativo:
 - `SyncthingPrivateConfig` genera/endurece la configuración antes de arrancar: GUI/API y listener BEP solo loopback; discovery/relay/NAT apagados durante el probe local;
 - `SyncthingRuntimeService` es un foreground service `dataSync` on-demand, no un daemon permanente;
 - `SyncthingRestClient` vuelve a imponer/verificar el perfil privado y controla salud, autenticación, Device ID y apagado únicamente contra `127.0.0.1:8384`;
+- Android Network Security Config permite HTTP cleartext solo para `127.0.0.1`/`localhost`; el resto de destinos conserva cleartext bloqueado;
 - no filtra conceptos de carpetas Syncthing hacia la UI principal.
 
 OclAx controla:
