@@ -133,7 +133,7 @@ Pendiente de validación física:
 - abrir y compartir archivos reales;
 - copiar texto e imágenes;
 - revocar acceso amplio y confirmar que OclAx conserva su bandeja y que Mi dispositivo vuelve a pedir permiso;
-- confirmar que no existe una acción de borrado de originales;
+- confirmar que **Eliminar original** aparece solo como acción explícita y que cancelar conserva el archivo;
 - observar tiempo de carga y fluidez con un dispositivo con muchos archivos.
 
 ## Miniaturas, compartir apps y borrar originales
@@ -178,7 +178,14 @@ VERIFICADO previamente en CI aislada:
 - el artefacto fue ELF Android y su SHA-256 coincidió con el archivo de verificación;
 - el job usó permisos `contents: read` y no recibió secretos de firma de OclAx.
 
-Implementado para CI final y siguiente validación física:
+VERIFICADO en main run 125:
+- job nativo construyó correctamente arm64-v8a, armeabi-v7a, x86_64 y x86;
+- checksums se verificaron antes de empaquetar;
+- tests unitarios, lint y assembleDebug terminaron verdes;
+- el APK contiene los cuatro `libsyncthingnative.so`;
+- la firma estable de pruebas se preparó correctamente en main y el APK se publicó como artefacto.
+
+Implementado para la siguiente validación física:
 - CI principal construye y empaqueta `libsyncthingnative.so` para arm64-v8a, armeabi-v7a, x86_64 y x86 desde el tag+commit pinneado;
 - test unitario verifica argumentos seguros de arranque/generación;
 - test unitario endurece un config inseguro y confirma loopback/no-discovery/no-relay/no-NAT/no-reporting; también comprueba rechazo de DOCTYPE/entidades externas;

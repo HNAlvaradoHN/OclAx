@@ -201,7 +201,7 @@ Implementado:
 - Compartir para archivos del dispositivo;
 - Copiar para texto e imágenes;
 - si se niega acceso amplio, Apps sigue disponible y las categorías de archivos muestran opción para concederlo;
-- no existe borrado de originales en esta fase.
+- la primera versión no incluía borrado de originales; DEVICE-002 añadió después **Eliminar original** explícito y confirmado.
 
 Pendiente:
 - validación física de permisos y contenido real;
@@ -229,7 +229,7 @@ Investigación verificada — 2026-09-23:
 
 Spike técnico, en orden:
 1. **VERIFICADO:** construir/empaquetar Syncthing core v2.1.5 para Android arm64 en CI aislada y **sin acceso a secretos de firma**; se produjo un ELF Android API 26 con verificación SHA-256.
-2. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** el CI principal construye runtimes pinneados para arm64-v8a, armeabi-v7a, x86_64 y x86 en un job sin secretos, verifica cada SHA-256 y los empaqueta en el APK; Gradle fuerza extracción para ejecutarlos como proceso hijo.
+2. **VERIFICADO_EN_CI:** el CI principal construye runtimes pinneados para arm64-v8a, armeabi-v7a, x86_64 y x86 en un job sin secretos, verifica cada SHA-256 y los empaqueta en el APK; Gradle fuerza extracción para ejecutarlos como proceso hijo. PR #39 y main run 125 terminaron verdes.
 3. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** antes de iniciar `serve`, OclAx genera la configuración local si hace falta y la endurece: GUI/API `127.0.0.1:8384`, API key privada, listener BEP solo loopback y discovery global/local, relay y NAT desactivados.
 4. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** `SyncthingRuntimeService` usa foreground service `dataSync` on-demand y vuelve a aplicar/verificar por REST el modo aislado, `urAccepted=-1` y `crashReportingEnabled=false` antes de marcar el motor activo.
 5. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** el probe obtiene `myID`, comprueba que REST exige API key, valida dirección GUI loopback, intenta detectar el mismo runtime por IPv4 no-loopback y la detención usa `/rest/system/shutdown` con fallback acotado.
