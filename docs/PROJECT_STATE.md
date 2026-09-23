@@ -86,6 +86,13 @@
 - miniaturas reales también en las tarjetas internas de OclAx para Imagen, Video y PDF;
 - carga asíncrona reutilizando ThumbnailLoader y fallback seguro a icono por tipo.
 
+## Implementado recientemente
+
+- base local de **Mis dispositivos** para el siguiente paso de OclAx ↔ OclAx;
+- agregar/quitar dispositivo por Device ID, nombre visible y preferencia **Permitir sin aceptar**;
+- Device ID propio compartible de forma explícita desde Android;
+- emparejamiento local todavía no modifica Syncthing ni abre red: queda desacoplado hasta validar el runtime físicamente.
+
 ## En desarrollo
 
 - validación física de miniaturas dentro de la bandeja OclAx y del bloque Mi dispositivo;
@@ -110,5 +117,6 @@
 4. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
 5. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
 6. Instalar la build con runtime integrado y usar **Enviar a dispositivo · prueba técnica**: Probar motor → confirmar ID/loopback → Detener → Probar motor otra vez.
-7. Después, probar dos dispositivos: LAN directo → Internet directo → relay público como fallback.
-8. Implementar confianza por dispositivo: Permitir sin aceptar para dispositivos elegidos; preguntar por defecto para otros.
+7. En dos dispositivos, compartir/agregar mutuamente los Device ID y validar la lista **Mis dispositivos** + preferencia **Permitir sin aceptar**.
+8. Con el runtime validado, conectar esos pares al motor y probar LAN directo → Internet directo → relay público como fallback.
+9. Aplicar la política de recepción: confiables pueden permitir sin aceptar; los demás preguntan por defecto.
