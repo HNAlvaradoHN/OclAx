@@ -120,7 +120,7 @@ jobs:
         uses: actions/checkout@v7
 
       - name: Download native runtimes
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: syncthing-native-v2.1.5
           path: "${{ runner.temp }}/syncthing-runtime"
