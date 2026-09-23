@@ -31,3 +31,7 @@ fun isDocumentMime(mime: String): Boolean =
         mime.contains("openxmlformats-officedocument") ||
         mime.contains("opendocument") ||
         mime == "application/rtf"
+
+
+fun ContentType.supportsClipboardCopy(): Boolean =
+    this == ContentType.TEXT || this == ContentType.IMAGE
