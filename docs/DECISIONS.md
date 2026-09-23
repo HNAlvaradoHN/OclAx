@@ -317,6 +317,10 @@ Límite de propiedad:
 
 Estado:
 - candidato aprobado para prototipo;
+- investigación técnica actualizada el 2026-09-23: el wrapper oficial `syncthing/syncthing-android` fue discontinuado/archivado y no se adopta como dependencia;
+- existe un fork comunitario mantenido (`researchxxl/syncthing-android`) que demuestra un patrón Android vigente con SyncthingNative, pero OclAx lo tratará como referencia técnica y no como autoridad ni dependencia automática;
+- para el spike se evaluará empaquetar un **Syncthing core estable fijado por versión** detrás de una capa propia de OclAx;
+- la versión estable verificada para iniciar el spike es Syncthing **v2.1.5**; cualquier actualización deberá revisarse y fijarse explícitamente;
 - integración final pendiente de prueba técnica Android;
 - no se autoriza servicio de pago ni infraestructura con costo sin aprobación del dueño.
 
@@ -339,6 +343,10 @@ Flujo:
 6. el contenido recibido aterriza primero en una bandeja privada de OclAx.
 
 Seguridad:
+- el proceso/API local del motor debe quedar limitado a loopback; no se expondrá la interfaz de control a la LAN/Internet;
+- cualquier API key local se genera por instalación, vive solo en almacenamiento privado y nunca se publica ni se registra;
+- el binario/runtime de Syncthing se fija por versión y se construye/obtiene mediante un flujo reproducible separado de secretos de firma;
+- se desactivan auto-upgrade y telemetría/usage reporting del motor dentro de OclAx;
 - una transferencia recibida nunca ejecuta APK ni abre archivos automáticamente;
 - no escribe arbitrariamente sobre archivos originales del dispositivo;
 - recepción automática significa “aceptar en la bandeja OclAx”, no ejecutar ni instalar;

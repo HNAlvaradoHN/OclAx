@@ -171,3 +171,23 @@ Pendiente de validación física:
 - si falla la generación de miniatura, la tarjeta debe seguir siendo utilizable con icono de fallback;
 - desplazar una lista con muchas miniaturas no debe bloquear perceptiblemente la UI.
 
+## Spike de transferencia OclAx ↔ OclAx
+
+VERIFICADO en CI aislada:
+- Syncthing core v2.1.5 se compiló para Android arm64/API 26 con NDK r30;
+- el artefacto es un ELF aarch64 para Android y su SHA-256 coincide con el archivo de verificación generado en el mismo job;
+- el job usa permisos `contents: read` y no recibe secretos de firma de OclAx.
+
+Antes de conectar UX de envío, todavía debe demostrar:
+- el runtime Syncthing core pinneado arranca en Android y entrega un device ID;
+- REST/GUI responde únicamente por loopback y rechaza acceso desde otra máquina de la LAN;
+- la API exige la key privada generada localmente;
+- auto-upgrade y usage reporting permanecen desactivados;
+- start/stop/restart no corrompe configuración/base de datos;
+- dos dispositivos emparejados transfieren un archivo pequeño por LAN;
+- un archivo grande puede mostrar progreso sin cargarse completo en memoria;
+- cancelación/reintento dejan estados consistentes;
+- sin ruta directa, relay funciona como fallback manteniendo contenido cifrado extremo a extremo;
+- contenido recibido aterriza en área privada OclAx y no se abre/instala automáticamente;
+- CI de construcción nativa no recibe secretos de firma de la app.
+

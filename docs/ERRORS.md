@@ -122,3 +122,18 @@ Ninguno registrado actualmente.
 
 **Prevención:** no asumir que una URI de `MediaStore.Files` es válida para APIs restringidas a elementos multimedia; conservar pruebas físicas por tipo de contenido.
 
+### ERR-009 — El spike nativo asumía que sdkmanager estaba en PATH
+**Estado:** RESUELTO
+
+**Síntoma:** la primera ejecución aislada de `Syncthing Native Spike` falló antes de descargar o ejecutar código de Syncthing con `sdkmanager: command not found`.
+
+**Causa verificada:** el workflow invocaba `sdkmanager` por nombre y asumía que GitHub Actions lo añadía al `PATH`. El runner no cumplió esa suposición.
+
+**Corrección aplicada:** el workflow reutiliza el NDK pinneado si ya está instalado; en caso contrario localiza `sdkmanager` dentro de `ANDROID_HOME/cmdline-tools`, instala la versión exacta del NDK y publica la ruta del compilador mediante `GITHUB_ENV`.
+
+**Validación:** el segundo run completó NDK, obtención del tag pinneado, compilación arm64 y artefacto. El binario producido es ELF Android arm64/API 26 con NDK r30 y su SHA-256 coincide con el archivo de verificación generado por CI.
+
+**Seguridad:** el primer fallo ocurrió antes de obtener código externo; el job corregido mantiene `contents: read`, no recibe secretos de firma ni otros secretos privilegiados.
+
+**Prevención:** no asumir que herramientas del Android SDK están en `PATH`; resolver rutas desde `ANDROID_HOME` y validar ejecutables antes de usarlos.
+

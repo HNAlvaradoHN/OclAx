@@ -119,7 +119,7 @@ Principios:
 
 ## Transferencia entre dispositivos
 
-Syncthing es el motor candidato, encapsulado detrás de una capa propia:
+Syncthing core v2.x es el motor candidato, encapsulado detrás de una capa propia. El wrapper Android oficial discontinuado no forma parte de la arquitectura OclAx.
 
 ```text
 UI: Enviar a dispositivo
@@ -127,11 +127,20 @@ UI: Enviar a dispositivo
 TransferService / Domain
         ↓
 SyncthingAdapter
+        ↓ REST loopback + API key privada
+SyncthingRuntime (foreground service)
         ↓
-motor Syncthing local
+Syncthing core nativo pinneado por versión
         ↓
 dispositivo OclAx emparejado
 ```
+
+El runtime nativo:
+- vive en directorios privados de OclAx;
+- no expone su GUI/API fuera de loopback;
+- desactiva auto-upgrade/usage reporting;
+- se construye en CI separada de secretos de firma;
+- no filtra conceptos de carpetas Syncthing hacia la UI principal.
 
 OclAx controla:
 - emparejamiento;

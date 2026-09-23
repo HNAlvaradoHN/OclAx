@@ -211,23 +211,31 @@ Pendiente:
 - validar rendimiento en teléfonos con muchos archivos.
 
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
-**Estado:** RESEARCH_READY  
+**Estado:** IN_PROGRESS  
 **Prioridad:** alta  
-**Motor candidato:** Syncthing
+**Motor candidato:** Syncthing core v2.x detrás de adaptador propio
 
 Objetivo UX:
 - seleccionar contenido;
 - elegir un dispositivo emparejado;
 - enviar sin exponer al usuario conceptos de carpetas sincronizadas.
 
-Prototipo debe validar:
-- integración del motor Syncthing en Android;
-- conexión directa/LAN y fallback compatible;
-- control desde una capa local de OclAx;
-- progreso, cancelación, reintento y estado final;
-- consumo de batería y comportamiento en segundo plano;
-- recepción en bandeja privada OclAx;
-- emparejamiento seguro.
+Investigación verificada — 2026-09-23:
+- el wrapper oficial Android de Syncthing fue discontinuado y archivado; no se incorporará como dependencia;
+- Syncthing estable vigente para iniciar el spike: v2.1.5;
+- existe un fork Android comunitario mantenido (`researchxxl/syncthing-android`) que demuestra ejecución nativa/foreground service actual, pero se usa solo como referencia;
+- Syncthing mantiene REST local, discovery LAN/global y relay; el relay conserva cifrado extremo a extremo entre dispositivos aunque expone metadatos de conexión al relay;
+- el runtime debe controlarse exclusivamente por loopback con API key privada.
+
+Spike técnico, en orden:
+1. **VERIFICADO:** construir/empaquetar Syncthing core v2.1.5 para Android arm64 en CI aislada y **sin acceso a secretos de firma**; se produjo un ELF Android API 26 con NDK r30 y verificación SHA-256.
+2. **SIGUIENTE:** empaquetar ese runtime dentro de una build de prueba OclAx y arrancarlo en un foreground service mínimo con directorios de configuración/datos privados.
+3. enlazar GUI/API a `127.0.0.1`, generar API key local y confirmar que no es accesible desde la LAN;
+4. desactivar auto-upgrade y usage reporting;
+5. obtener device ID/estado mediante REST y detener/reiniciar limpiamente;
+6. emparejar dos instalaciones de prueba y validar transferencia LAN;
+7. validar conexión Internet directa y relay público como fallback;
+8. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;
