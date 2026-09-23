@@ -20,6 +20,7 @@
 - Feedback del usuario clasificado en BLOQUEANTE / NO BLOQUEANTE.
 - Reemplazo real: lo viejo se elimina cuando deja de tener consumidores.
 - Aplicación Android local-first orientada a contenido temporal.
+- OclAx se define como selector/bandeja ordenada para insertar, no como gestor de archivos completo.
 
 ## Qué funciona
 
