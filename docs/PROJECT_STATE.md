@@ -39,7 +39,8 @@
 - los tipos de archivo probados pueden seleccionarse e insertarse desde OclAx;
 - Qwen rechaza APK como adjunto aunque OclAx lo expone correctamente: limitación de la app receptora;
 - una build posterior se instaló encima de la versión con firma estable sin conflicto;
-- la actualización conservó los datos internos.
+- la actualización conservó los datos internos;
+- miniaturas reales en las tarjetas de Recientes/OclAx confirmadas físicamente en dispositivo.
 
 ## Implementado recientemente
 
@@ -96,7 +97,7 @@
 
 ## En desarrollo
 
-- validación física de miniaturas dentro de la bandeja OclAx y del bloque Mi dispositivo;
+- miniaturas dentro de la bandeja OclAx ya validadas físicamente; siguen pendientes otras validaciones de Mi dispositivo;
 - TRANSFER-001 iniciado: spike técnico para Syncthing core v2.x detrás de una capa propia;
 - investigación confirmó que el wrapper Android oficial está archivado, por lo que no se adoptará como dependencia;
 - **VERIFICADO:** el spike aislado construyó Syncthing core v2.1.5 para Android arm64/API 26 con NDK r30, sin secretos de firma;
@@ -106,18 +107,21 @@
 - **VERIFICADO EN CI MAIN:** tests, lint, build multi-ABI, presencia de los cuatro runtimes y APK firmado estable terminaron verdes en el run 125;
 - conexión LAN-only fusionada en main mediante PR #42: peer pausado por defecto, discovery local temporal, listener TCP restringido a redes privadas y retorno fail-closed a modo aislado al desconectar;
 - **VERIFICADO EN CI MAIN:** run 150 terminó verde con tests, lint, build multi-ABI, verificación de runtimes y APK debug publicado;
-- TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** porque falta la prueba física con dos teléfonos;
+- **FALLO FÍSICO REPRODUCIDO EN DOS TELÉFONOS:** `Probar motor` agotó el tiempo antes de obtener Device ID, por lo que la prueba LAN no puede comenzar aún;
+- **CORRECCIÓN IMPLEMENTADA PENDIENTE DE CI/VALIDACIÓN FÍSICA:** ejecutar Syncthing en Android como proceso interno ya supervisado (`STMONITORED=yes`), usar almacenamiento temporal privado para SQLite y aportar gateway IPv4 del sistema como fallback para Android 14+;
+- TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** porque primero debe pasar nuevamente `Probar motor` en ambos teléfonos y luego la prueba LAN;
 - todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
 
 ## Bloqueos
 
-- ninguno técnico conocido en código actual;
-- siguen pendientes validaciones físicas del borrado corregido, miniaturas y runtime de transferencia antes de declarar esos bloques DONE.
+- **TRANSFER-001 BLOQUEADO EN VALIDACIÓN FÍSICA:** el runtime no respondió a tiempo en dos teléfonos; corrección de arranque Android implementada y pendiente de CI + nueva prueba física;
+- siguen pendientes validaciones físicas del borrado corregido y otros puntos de Mi dispositivo antes de declarar esos bloques DONE.
 
 ## Siguiente paso exacto
 
-1. Validar miniaturas reales de Imagen/Video/PDF también dentro de la bandeja OclAx.
-2. Confirmar explícitamente portada de PDF en Mi dispositivo/Archivos → OclAx y borrado/cancelación de originales.
+1. Ejecutar CI de la corrección de arranque Android y generar una nueva build firmada de prueba.
+2. Instalar esa build en ambos teléfonos y repetir **Probar motor**; debe devolver Device ID y confirmar loopback.
+3. Confirmar explícitamente portada de PDF en Mi dispositivo/Archivos → OclAx y borrado/cancelación de originales.
 3. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
 4. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
 5. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
