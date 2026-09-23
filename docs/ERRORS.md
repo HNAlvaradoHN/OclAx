@@ -95,9 +95,11 @@ Ninguno registrado actualmente.
 
 **Causa:** la primera implementación capturaba directamente una excepción introducida en Android 10 dentro de un método accesible para todas las versiones soportadas.
 
-**Solución:** separar el borrado por versión: Android 11+ usa `MediaStore.createDeleteRequest`; Android 10 usa un método anotado para API 29 que maneja `RecoverableSecurityException`; Android 8/9 usa la ruta legacy.
+**Solución inicial:** separar el borrado por versión: Android 11+ usaba `MediaStore.createDeleteRequest`; Android 10 usa un método anotado para API 29 que maneja `RecoverableSecurityException`; Android 8/9 usa la ruta legacy.
 
-**Prevención:** encapsular APIs Android introducidas después de minSdk en métodos explícitamente versionados/anotados en lugar de confiar solo en ramas internas.
+**Evolución posterior:** la prueba física reveló que Android 11+ rechaza la URI genérica de `MediaStore.Files` en `createDeleteRequest`. La corrección vigente está documentada en ERR-008.
+
+**Prevención:** encapsular APIs Android introducidas después de minSdk en métodos explícitamente versionados/anotados y validar físicamente los contratos de URI exigidos por cada API.
 
 ### ERR-008 — PDF sin portada y borrado de originales rechazado
 **Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
