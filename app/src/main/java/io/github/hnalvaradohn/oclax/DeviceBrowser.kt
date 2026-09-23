@@ -616,7 +616,11 @@ private fun DeviceFileVisual(
     }
 
     LaunchedEffect(file.uri, file.modifiedAt, sizePx) {
-        thumbnail = if (file.type == ContentType.IMAGE || file.type == ContentType.VIDEO) {
+        thumbnail = if (
+            file.type == ContentType.IMAGE ||
+            file.type == ContentType.VIDEO ||
+            file.type == ContentType.PDF
+        ) {
             withContext(Dispatchers.IO) {
                 onLoadThumbnail(file, sizePx)
             }
