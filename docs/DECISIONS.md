@@ -323,7 +323,8 @@ Estado:
 - la versión fijada es Syncthing **v2.1.5**; cualquier actualización deberá revisarse y fijarse explícitamente;
 - el runtime se ejecuta on-demand mediante un foreground service `dataSync`; no arranca al boot ni funciona como daemon permanente;
 - la GUI/API del motor se fuerza a `127.0.0.1:8384` con API key privada por instalación;
-- compilación/empaquetado y controles REST están implementados, pendientes de validación física Android antes de adoptar el motor como integración final;
+- durante el probe de un solo dispositivo, el protocolo de sincronización también escucha solo en loopback y discovery global/local, relay y NAT quedan apagados; la red de pares se habilitará recién como parte explícita del emparejamiento/transferencia;
+- compilación multi-ABI, configuración previa y controles REST están implementados, pendientes de CI final y validación física Android antes de adoptar el motor como integración final;
 - no se autoriza servicio de pago ni infraestructura con costo sin aprobación del dueño.
 
 Modelo de confianza:
