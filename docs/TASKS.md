@@ -93,8 +93,11 @@ Implementado en main:
 - confirmación obligatoria antes de borrar una copia;
 - compartir hacia Android Sharesheet.
 
+Validado:
+- CI verde en PR y main para el bloque compacto/copiar;
+- test unitario confirma que Copiar solo aplica a Texto/Código e Imágenes.
+
 Pendiente:
-- CI verde del bloque compacto/copiar;
 - validación física del menú desplegable y Copiar;
 - iconografía visual final/miniaturas;
 - comprobar qué organización puede exponerse también dentro de DocumentsProvider sin añadir navegación innecesaria;
