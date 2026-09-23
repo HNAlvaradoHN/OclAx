@@ -47,7 +47,10 @@ Pendiente de probar:
 - comportamiento con archivo grande y poco almacenamiento;
 - WhatsApp, Telegram y navegador;
 - expiración física de copias OclAx y supervivencia del archivo original;
-- Fijados y cambio de retención desde UI cuando esos controles estén disponibles.
+- Fijados y cambio de retención desde UI;
+- borrado manual con confirmación y comprobación de que el original externo sobrevive;
+- compartir desde una tarjeta hacia otra aplicación;
+- riel derecho completo y usable en modo claro/oscuro y en pantallas de distinta altura.
 
 Hasta completar esa validación, APP-001 permanece como:
 `IMPLEMENTED_PENDING_VALIDATION`.
