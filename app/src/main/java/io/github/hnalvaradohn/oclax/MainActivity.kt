@@ -100,6 +100,7 @@ import io.github.hnalvaradohn.oclax.platform.InstalledAppExporter
 import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
+import io.github.hnalvaradohn.oclax.platform.transfer.TransferRuntimeController
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -119,13 +120,17 @@ class MainActivity : ComponentActivity() {
     private val thumbnailLoader by lazy { ThumbnailLoader(applicationContext) }
     private val viewModePreferences by lazy { ViewModePreferences(applicationContext) }
     private val contentOpener by lazy { ContentOpener(this) }
+    private val transferRuntimeController by lazy { TransferRuntimeController(applicationContext) }
     private val deviceExecutor = Executors.newSingleThreadExecutor()
+    private val transferExecutor = Executors.newSingleThreadExecutor()
     private var items by mutableStateOf<List<StoredItem>>(emptyList())
     private var installedApps by mutableStateOf<List<InstalledAppInfo>>(emptyList())
     private var deviceFiles by mutableStateOf<List<DeviceFileInfo>>(emptyList())
     private var hasBroadFileAccess by mutableStateOf(false)
     private var deviceLoading by mutableStateOf(false)
     private var retentionHours by mutableIntStateOf(24)
+    private var transferRuntimeStatus by mutableStateOf("Motor de envío sin probar.")
+    private var transferRuntimeBusy by mutableStateOf(false)
     private var pendingSystemDeleteName: String? = null
 
     private val deviceDeleteLauncher = registerForActivityResult(
@@ -198,6 +203,10 @@ class MainActivity : ComponentActivity() {
                     onLoadDeviceThumbnail = thumbnailLoader::loadDevice,
                     onLoadDeviceViewMode = viewModePreferences::getDeviceMode,
                     onSaveDeviceViewMode = viewModePreferences::setDeviceMode,
+                    transferRuntimeStatus = transferRuntimeStatus,
+                    transferRuntimeBusy = transferRuntimeBusy,
+                    onProbeTransferRuntime = ::probeTransferRuntime,
+                    onStopTransferRuntime = ::stopTransferRuntime,
                 )
             }
         }
@@ -210,7 +219,80 @@ class MainActivity : ComponentActivity() {
 
     override fun onDestroy() {
         deviceExecutor.shutdownNow()
+        transferExecutor.shutdownNow()
         super.onDestroy()
+    }
+
+    private fun probeTransferRuntime() {
+        if (transferRuntimeBusy) return
+
+        transferRuntimeBusy = true
+        transferRuntimeStatus = "Iniciando motor de envío…"
+
+        val started = runCatching {
+            transferRuntimeController.start()
+        }
+        if (started.isFailure) {
+            transferRuntimeBusy = false
+            transferRuntimeStatus = "No se pudo iniciar el motor."
+            Toast.makeText(
+                this,
+                "No se pudo iniciar el motor de envío.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+
+        transferExecutor.execute {
+            val result = runCatching {
+                transferRuntimeController.probe()
+            }
+            runOnUiThread {
+                transferRuntimeBusy = false
+                result.onSuccess { probe ->
+                    val shortId = probe.deviceId.take(7)
+                    val isolation = if (probe.nonLoopbackAddressesChecked > 0) {
+                        "loopback verificado"
+                    } else {
+                        "loopback configurado"
+                    }
+                    transferRuntimeStatus = "Listo · ID $shortId… · $isolation."
+                }.onFailure { error ->
+                    transferRuntimeStatus =
+                        "Prueba falló: " + (error.message ?: "error desconocido")
+                }
+            }
+        }
+    }
+
+    private fun stopTransferRuntime() {
+        if (transferRuntimeBusy) return
+
+        transferRuntimeBusy = true
+        transferRuntimeStatus = "Deteniendo motor de envío…"
+        val requested = runCatching {
+            transferRuntimeController.stop()
+        }
+        if (requested.isFailure) {
+            transferRuntimeBusy = false
+            transferRuntimeStatus = "No se pudo solicitar la detención."
+            return
+        }
+
+        transferExecutor.execute {
+            val stopped = runCatching {
+                transferRuntimeController.awaitStopped()
+            }.getOrDefault(false)
+
+            runOnUiThread {
+                transferRuntimeBusy = false
+                transferRuntimeStatus = if (stopped) {
+                    "Motor de envío detenido correctamente."
+                } else {
+                    "Android aún reporta el motor activo."
+                }
+            }
+        }
     }
 
     private fun refresh() {
@@ -598,6 +680,10 @@ private fun OclAxHome(
     onLoadDeviceThumbnail: (DeviceFileInfo, Int) -> Bitmap?,
     onLoadDeviceViewMode: (String, ContentViewMode) -> ContentViewMode,
     onSaveDeviceViewMode: (String, ContentViewMode) -> Unit,
+    transferRuntimeStatus: String,
+    transferRuntimeBusy: Boolean,
+    onProbeTransferRuntime: () -> Unit,
+    onStopTransferRuntime: () -> Unit,
 ) {
     var sourceMode by remember { mutableStateOf(SourceMode.OCLAX) }
     var query by remember { mutableStateOf("") }
@@ -667,6 +753,16 @@ private fun OclAxHome(
                 onSelect = { sourceMode = it },
             )
             Spacer(Modifier.height(12.dp))
+
+            if (BuildConfig.DEBUG && sourceMode == SourceMode.OCLAX) {
+                TransferRuntimeDiagnostics(
+                    status = transferRuntimeStatus,
+                    busy = transferRuntimeBusy,
+                    onProbe = onProbeTransferRuntime,
+                    onStop = onStopTransferRuntime,
+                )
+                Spacer(Modifier.height(12.dp))
+            }
 
             if (sourceMode == SourceMode.DEVICE) {
                 DeviceBrowser(
@@ -739,6 +835,50 @@ private fun OclAxHome(
                             )
                         }
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun TransferRuntimeDiagnostics(
+    status: String,
+    busy: Boolean,
+    onProbe: () -> Unit,
+    onStop: () -> Unit,
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+    ) {
+        Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 10.dp)) {
+            Text(
+                "Enviar a dispositivo · prueba técnica",
+                style = MaterialTheme.typography.labelLarge,
+                fontWeight = FontWeight.Medium,
+            )
+            Text(
+                status,
+                style = MaterialTheme.typography.bodySmall,
+            )
+            Spacer(Modifier.height(6.dp))
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedButton(
+                    onClick = onProbe,
+                    enabled = !busy,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                ) {
+                    Text("Probar motor")
+                }
+                TextButton(
+                    onClick = onStop,
+                    enabled = !busy,
+                ) {
+                    Text("Detener")
                 }
             }
         }
