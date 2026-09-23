@@ -111,3 +111,14 @@ SEC-001: revisar y configurar controles disponibles del repositorio público sin
 - Solo un identificador interno válido y una metadata válida pueden convertirse en candidato de expiración.
 - Los elementos fijados nunca son candidatos de expiración.
 - La opción `nunca` desactiva la expiración automática sin borrar contenido existente.
+
+
+## Borrado manual y compartir desde la bandeja
+
+- La acción Eliminar solo acepta un ID interno válido de OclAx.
+- Antes de borrar se vuelve a resolver el elemento desde metadata válida.
+- El directorio a eliminar debe tener como padre canónico exacto `filesDir/oclax/items`.
+- La UI exige confirmación explícita antes de ejecutar el borrado.
+- El borrado manual no usa la URI de origen y no puede alcanzar archivos externos.
+- Compartir reutiliza FileProvider para exponer temporalmente una URI de solo lectura a la app elegida.
+- Para texto plano, OclAx comparte el texto mediante `ACTION_SEND` sin acceso adicional al almacenamiento.
