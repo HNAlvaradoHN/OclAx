@@ -169,7 +169,7 @@ Los archivos que ya existen fuera de OclAx pueden incorporarse de forma explíci
 - Android Gradle Plugin 9.4.0;
 - Gradle 9.6.0;
 - JDK 17;
-- compileSdk/targetSdk 37;
+- compileSdk/targetSdk 36;
 - Compose BOM 2026.09.00.
 
 **Motivo:** usar APIs nativas y mínimas para demostrar el flujo central antes de añadir persistencia compleja, IME, accesibilidad, nube o permisos amplios.
