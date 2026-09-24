@@ -1,6 +1,6 @@
 # AGENTS.md — Protocolo Maestro de OclAx
 
-**protocol_version:** 4  
+**protocol_version:** 5  
 **Proyecto:** OclAx  
 **Identidad del agente:** OclAx 📲  
 **Repositorio:** público  
@@ -49,13 +49,14 @@ Cuando dos fuentes se contradigan, no improvises.
 Orden de autoridad:
 
 1. reglas de seguridad, privacidad y prevención de pérdida de datos;
-2. este AGENTS.md vigente en la rama principal autorizada;
-3. decisiones explícitas del dueño registradas oficialmente;
-4. estado real comprobable del repositorio: código, configuración, rama, pruebas y CI;
-5. memoria oficial: PROJECT_STATE, TASKS, DECISIONS, ARCHITECTURE, SECURITY, TESTING y ERRORS;
-6. tarea, issue o PR activo;
-7. conversación actual;
-8. memoria del modelo o conversaciones antiguas.
+2. candado de autorización `LOCKED_READ_ONLY`;
+3. este AGENTS.md vigente en la rama principal autorizada;
+4. decisiones explícitas del dueño registradas oficialmente;
+5. estado real comprobable del repositorio: código, configuración, rama, pruebas y CI;
+6. memoria oficial: PROJECT_STATE, TASKS, DECISIONS, ARCHITECTURE, SECURITY, TESTING y ERRORS;
+7. tarea, issue o PR autorizado;
+8. conversación actual;
+9. memoria del modelo o conversaciones antiguas.
 
 Si documentación y código se contradicen, investiga cuál refleja la realidad y corrige la documentación cuando corresponda.
 
@@ -158,13 +159,14 @@ No conviertas PROJECT_STATE en una novela histórica.
 
 ---
 
-## 4. Estados de sesión
+## 4. Estados de sesión y candado de autorización
 
-Toda sesión nueva de desarrollo comienza en:
+Toda sesión nueva de desarrollo comienza simultáneamente en:
 
-`UNSYNCED`
+- `LOCKED_READ_ONLY` como estado de autorización;
+- `UNSYNCED` como estado de sincronización.
 
-Estados permitidos:
+Estados de sincronización permitidos:
 
 `UNSYNCED -> SYNCING -> READY`
 
@@ -172,7 +174,13 @@ Si existe un bloqueo:
 
 `UNSYNCED -> SYNCING -> BLOCKED`
 
-Solo una sesión READY puede modificar el proyecto.
+`READY` significa que el agente conoce el estado real del proyecto. NO concede por sí solo permiso para modificar.
+
+Solo puede modificarse el proyecto cuando se cumplen ambas condiciones:
+1. sincronización `READY`;
+2. existe una tarea autorizada suficientemente clara.
+
+En `LOCKED_READ_ONLY` se permite leer, investigar, diagnosticar, revisar código/CI y proponer acciones. Se prohíbe modificar archivos, ramas, PR, issues, workflows, configuración o memoria oficial.
 
 ### Excepción limitada de bootstrap
 
@@ -196,12 +204,12 @@ Al terminar:
 6. pasa a READY;
 7. solo entonces comienza trabajo de producto.
 
-Mientras no esté READY:
+Mientras no esté READY o no exista una tarea autorizada:
 
 - no modifiques código;
 - no modifiques archivos oficiales;
 - no crees ramas;
-- no fusiones PR;
+- no abras ni fusiones PR;
 - no cambies configuración;
 - no cambies estado oficial;
 - no declares tareas DONE;
@@ -382,6 +390,86 @@ Un error reparado no desaparece si su historial ayuda a evitar reincidencias. M�
 - prevención cuando aplique.
 
 Nunca guardes secretos o datos privados en estos documentos.
+
+---
+
+
+## 8A. Autorización y autonomía controlada por objetivo
+
+El usuario define el resultado. El agente determina el alcance técnico mínimo necesario.
+
+El usuario NO necesita enumerar archivos, clases, tests, documentación ni comandos.
+
+Una tarea se considera autorizada cuando el contexto identifica claramente un único objetivo. Ejemplos válidos:
+- “corrige este problema”;
+- “implementa esto”;
+- “aplica este fix”;
+- “continúa con esta tarea”;
+- “déjalo funcionando”;
+- “sigue”, solo cuando PROJECT_STATE/TASKS y el contexto muestran inequívocamente un único siguiente paso.
+
+Si existen dos o más interpretaciones importantes, pregunta antes de modificar.
+
+Una tarea autorizada incluye implícitamente, dentro de su objetivo:
+- leer archivos necesarios;
+- identificar causa raíz;
+- modificar el mínimo necesario;
+- añadir o ajustar tests relacionados;
+- ejecutar tests, lint, build, análisis estático y validaciones aplicables;
+- corregir errores introducidos por la propia implementación;
+- actualizar documentación técnica y memoria oficial directamente afectadas;
+- registrar decisiones, errores, CI, validaciones físicas pendientes y siguiente paso;
+- eliminar código sustituido cuando sea seguro;
+- realizar revisiones aplicables definidas en REVIEW_ROLES.
+
+Estas acciones no requieren autorizaciones individuales.
+
+Para código, el flujo normal autorizado es:
+`rama -> implementación -> pruebas -> revisión -> PR -> CI -> correcciones -> merge -> CI main -> memoria/handoff`
+
+Ese flujo queda incluido en una tarea de implementación completa cuando sea reversible, sin costo, sin pérdida de datos, sin secretos, sin cambios sensibles de permisos/seguridad y sin decisiones arquitectónicas importantes no aprobadas.
+
+Si el usuario limita expresamente la tarea a análisis, diagnóstico, rama, PR u otra etapa, respeta ese límite.
+
+Nunca:
+- mergees con CI fallando;
+- hagas force-push o reescritura de historial sin autorización explícita;
+- provoques pérdida de datos;
+- generes costos no autorizados;
+- ejecutes acciones irreversibles no autorizadas;
+- amplíes producto o inicies otra funcionalidad fuera del objetivo.
+
+### Hallazgos fuera de alcance
+
+Si aparece otro problema no necesario para completar la tarea:
+- no lo corrijas automáticamente;
+- regístralo como HALLAZGO FUERA DE ALCANCE con evidencia, riesgo y acción propuesta;
+- continúa con la tarea si no bloquea.
+
+Detente y pide autorización solo si el hallazgo afecta seguridad/privacidad, integridad o pérdida de datos, arquitectura fundamental, impide validar la tarea, genera costo o exige una operación irreversible.
+
+---
+
+## 8B. Revisores / agentes aplicables
+
+Los roles definidos en `docs/REVIEW_ROLES.md` forman parte del proceso normal de una tarea autorizada.
+
+En toda tarea significativa, el coordinador DEBE activar automáticamente los revisores aplicables según la matriz de ese archivo cuando reduzcan errores, aporten independencia útil o aceleren una comprobación real.
+
+No requieren autorización separada.
+
+No actives roles claramente irrelevantes ni dupliques revisiones sin valor.
+
+Si la plataforma dispone de agentes/revisores independientes, utilízalos cuando puedan aportar independencia, rapidez o menor riesgo sin costo no autorizado ni exposición de datos privados. Si no existen, ejecuta las mismas perspectivas como revisiones separadas.
+
+Los revisores:
+- no sustituyen tests, lint, build ni CI;
+- no amplían el alcance;
+- no modifican fuera de la tarea;
+- no usan servicios pagos ni envían datos privados sin autorización;
+- reportan evidencia, riesgo, recomendación y validación.
+
+Un hallazgo necesario para completar correctamente la tarea puede corregirse dentro del objetivo autorizado. Los demás se registran como fuera de alcance.
 
 ---
 
