@@ -3,6 +3,7 @@ package io.github.hnalvaradohn.oclax.platform.transfer
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
+import javax.xml.parsers.ParserConfigurationException
 import org.junit.Test
 import java.nio.file.Files
 
@@ -55,6 +56,18 @@ class SyncthingPrivateConfigTest {
         } finally {
             dir.deleteRecursively()
         }
+    }
+
+    @Test
+    fun unsupportedXmlFeatureDoesNotAbortSecuritySetup() {
+        val applied = SyncthingPrivateConfig.applyOptionalXmlFeature(
+            feature = "unsupported-feature",
+            value = true,
+        ) { _, _ ->
+            throw ParserConfigurationException("unsupported")
+        }
+
+        assertFalse(applied)
     }
 
     @Test
