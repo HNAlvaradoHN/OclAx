@@ -295,10 +295,12 @@ Spike técnico, en orden:
 7. **PR #47 IMPLEMENTADO Y CI VERDE:** el runtime Android ejecuta Syncthing como proceso interno ya supervisado (`STMONITORED=1`) y usa almacenamiento temporal privado para SQLite.
 8. **REPRUEBA FÍSICA FALLIDA:** la build firmada de `main` siguió mostrando `El motor no respondió a tiempo`; por tanto esa hipótesis no resolvió la causa real.
 9. **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** registrar etapa exacta, código de salida y una línea de log del intento actual sanitizada; sin permisos, telemetría ni subida de logs.
-10. **SIGUIENTE:** instalar la build firmada más reciente de `main` en un teléfono, tocar **Probar motor** una sola vez y usar el diagnóstico exacto para corregir la causa real hasta obtener Device ID + loopback.
-11. emparejar dos instalaciones de prueba y validar conexión LAN;
-12. validar conexión Internet directa y relay público como fallback;
-13. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
+10. **CAUSA VERIFICADA EN DISPOSITIVO:** Android falla al preparar la configuración porque su parser no soporta obligatoriamente la feature Xerces `disallow-doctype-decl`.
+11. **FIX IMPLEMENTADO_PENDIENTE_CI/FÍSICA:** hacer opcionales las flags dependientes del parser y conservar el bloqueo de DOCTYPE/ENTITY + resolución externa mediante controles independientes.
+12. **SIGUIENTE:** CI → merge → build firmada de `main` → probar un teléfono hasta obtener Device ID + loopback.
+13. emparejar dos instalaciones de prueba y validar conexión LAN;
+14. validar conexión Internet directa y relay público como fallback;
+15. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;
