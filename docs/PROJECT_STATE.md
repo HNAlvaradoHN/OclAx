@@ -123,22 +123,23 @@
 - **VERIFICADO EN CI MAIN:** run 150 terminó verde con tests, lint, build multi-ABI, verificación de runtimes y APK debug publicado;
 - **FALLO FÍSICO REPRODUCIDO EN DOS TELÉFONOS:** `Probar motor` agotó el tiempo antes de obtener Device ID, por lo que la prueba LAN no puede comenzar aún;
 - **PR #47 / MAIN CI VERDE, PERO FALLÓ LA REPRUEBA FÍSICA:** ejecutar Syncthing como proceso interno ya supervisado (`STMONITORED=1`) y usar almacenamiento temporal privado para SQLite no eliminó el timeout; esa hipótesis queda descartada como solución suficiente;
-- **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** OclAx registra localmente la etapa de arranque, código de salida y una única línea de log sanitizada del intento actual para reemplazar el timeout genérico por evidencia accionable; no añade permisos ni telemetría; la build firmada más reciente de main ya contiene este diagnóstico;
-- TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** porque primero debe identificarse y corregirse la causa real del arranque local, luego repetir `Probar motor` y recién después probar LAN;
+- **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** OclAx registra localmente la etapa de arranque, código de salida y una única línea de log sanitizada del intento actual para reemplazar el timeout genérico por evidencia accionable; no añade permisos ni telemetría; la build diagnóstica identificó el fallo en la preparación de configuración privada por una feature XML no soportada en Android;
+- **CAUSA DE ARRANQUE VERIFICADA:** el parser XML de Android rechazaba la feature Xerces `disallow-doctype-decl` antes de iniciar Syncthing; la corrección mantiene bloqueo de DOCTYPE/ENTITY y resolución externa sin depender de esa feature, pendiente CI y validación física;
+- TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta que la nueva build obtenga Device ID + loopback y recién después se pruebe LAN;
 - todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
 
 ## Bloqueos
 
-- **TRANSFER-001 BLOQUEADO:** la corrección de arranque de PR #47 pasó CI pero la build firmada siguió mostrando el mismo timeout en dispositivo real; la causa exacta sigue DESCONOCIDA y PR #48 añade diagnóstico local seguro para aislarla;
+- **TRANSFER-001 BLOQUEADO_PENDIENTE_VALIDACION:** la causa inmediata del arranque ya está VERIFICADA en el parser XML; el fix está implementado en rama y debe pasar CI, merge y prueba física antes de declarar resuelto el bloqueo;
 - siguen pendientes validaciones físicas del borrado corregido y otros puntos de Mi dispositivo antes de declarar esos bloques DONE.
 
 ## Siguiente paso exacto
 
-1. Descargar/instalar la build firmada más reciente de `main` en **un teléfono primero**.
-2. Tocar **Probar motor** una sola vez.
-3. Registrar el mensaje de diagnóstico exacto que muestre OclAx; debe indicar etapa/código/último registro sanitizado sin revelar secretos.
-4. Corregir la causa concreta y repetir hasta obtener Device ID + loopback; solo entonces probar el segundo teléfono.
-5. Después compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
+1. Completar CI y merge del fix de compatibilidad XML Android.
+2. Generar la build firmada de `main`.
+3. Instalarla en **un teléfono primero** y tocar **Probar motor** una sola vez.
+4. Confirmar que supera la etapa de configuración privada y obtiene Device ID + loopback; si aparece otro fallo, registrar el diagnóstico exacto y corregir esa causa.
+5. Solo después probar el segundo teléfono, compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
 6. En la misma Wi-Fi, tocar **Probar LAN** en ambos y confirmar **Conectado por LAN**; después desconectar y comprobar retorno a modo aislado.
 7. Crear el canal privado de transferencia de archivos + progreso solo después de validar esa conexión.
 8. Mantener en paralelo las validaciones pendientes de PDF/borrado/apps/vistas/fecha-hora en Mi dispositivo.
