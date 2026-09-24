@@ -133,9 +133,9 @@
 
 ## Siguiente paso exacto
 
-1. Fusionar PR #48 después de CI verde y generar la build firmada de `main`.
-2. Instalar esa build en **un teléfono primero** y tocar **Probar motor** una sola vez.
-3. Registrar el mensaje de diagnóstico exacto que muestre OclAx; debe indicar etapa/código/último registro sanitizado sin revelar secretos.
+1. Completar la gobernanza v6: fusionar PR #51, esperar CI verde en `main` y resincronizar.
+2. Instalar la build firmada más reciente de `main` en **un teléfono primero** y tocar **Probar motor** una sola vez.
+3. Registrar el diagnóstico exacto que muestre OclAx; debe indicar etapa/código/último registro sanitizado sin revelar secretos.
 4. Corregir la causa concreta y repetir hasta obtener Device ID + loopback; solo entonces probar el segundo teléfono.
 5. Después compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
 6. En la misma Wi-Fi, tocar **Probar LAN** en ambos y confirmar **Conectado por LAN**; después desconectar y comprobar retorno a modo aislado.
