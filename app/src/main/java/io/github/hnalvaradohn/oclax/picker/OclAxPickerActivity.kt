@@ -253,6 +253,14 @@ class OclAxPickerActivity : ComponentActivity() {
         selected = if (selected.any { it.key == selection.key }) {
             selected.filterNot { it.key == selection.key }
         } else {
+            if (selected.size >= MAX_SELECTIONS) {
+                Toast.makeText(
+                    this,
+                    "Podés seleccionar hasta $MAX_SELECTIONS archivos por vez.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+                return
+            }
             selected + selection
         }
     }
@@ -293,18 +301,30 @@ class OclAxPickerActivity : ComponentActivity() {
 
     private fun resolveRequestedMimeTypes(request: Intent): List<String> {
         val extras = request.getStringArrayExtra(Intent.EXTRA_MIME_TYPES)
-            ?.filter { it.isNotBlank() }
+            ?.asSequence()
+            ?.map(String::trim)
+            ?.filter { it.isNotBlank() && it.length <= MAX_MIME_LENGTH }
+            ?.take(MAX_REQUESTED_MIME_TYPES)
+            ?.toList()
             .orEmpty()
 
         return if (extras.isNotEmpty()) {
             extras
         } else {
-            listOf(request.type?.takeIf { it.isNotBlank() } ?: "*/*")
+            listOf(
+                request.type
+                    ?.trim()
+                    ?.takeIf { it.isNotBlank() && it.length <= MAX_MIME_LENGTH }
+                    ?: "*/*",
+            )
         }
     }
 
     companion object {
         private const val LEGACY_STORAGE_PERMISSION_REQUEST = 4201
+        private const val MAX_REQUESTED_MIME_TYPES = 32
+        private const val MAX_MIME_LENGTH = 127
+        private const val MAX_SELECTIONS = 100
     }
 }
 
