@@ -26,8 +26,6 @@
 ## Gobernanza vigente
 
 - protocol v6 fusionado en `main` mediante PR #51;
-- CI de `main` run 188 terminó verde en runtime nativo, tests, lint, build multi-ABI, verificación de runtimes y publicación de APK;
-- resincronización exhaustiva bajo protocol v6 completada en este chat sin incrementar el número de sesión;
 - registro administrativo alineado a protocol 6 y conserva `last_confirmed_chat: 3`;
 - `docs/MASTER_RULES_CHATGPT_GITHUB_V4.txt`, AGENTS.md, REVIEW_ROLES y las instrucciones compactas del Project quedan alineados;
 - bootstrap requiere la frase exacta `BOOTSTRAP AUTORIZADO`;
@@ -44,7 +42,9 @@
 - búsqueda y filtros por tipo;
 - Fijados y retención configurable;
 - tema Material 3: oscuro negro/naranja y claro con acento naranja;
-- tests unitarios, lint/build/CI y APK debug.
+- tests unitarios, lint/build/CI y APK debug;
+- firma estable de APK de pruebas;
+- caché de runtimes Syncthing nativos en CI con verificación SHA-256 obligatoria antes de empaquetar.
 
 ## Validación física confirmada
 
@@ -54,94 +54,49 @@
 - Qwen rechaza APK como adjunto aunque OclAx lo expone correctamente: limitación de la app receptora;
 - una build posterior se instaló encima de la versión con firma estable sin conflicto;
 - la actualización conservó los datos internos;
-- miniaturas de imágenes en las tarjetas de Recientes/OclAx confirmadas físicamente en dispositivo.
+- miniaturas de imágenes en las tarjetas de Recientes/OclAx confirmadas físicamente en dispositivo;
+- en un teléfono real **Probar motor** devuelve Device ID + `loopback verificado` después del fix XML.
 
 ## Implementado recientemente
 
-- selector compacto de categorías a la izquierda, fusionado en main;
+- selector compacto de categorías y tarjetas/acciones compactas;
 - Copiar limitado a Texto/Código e Imágenes;
-- tarjetas e iconos visualmente más compactos, manteniendo áreas táctiles accesibles;
-- naranja más vivo en oscuro y claro;
-- CI verde en PR y main para este bloque;
-- acciones por tarjeta: Compartir, Copiar cuando aplique, Fijar y Eliminar con confirmación;
-- firma persistente de pruebas mediante GitHub Actions Secrets;
-- versionCode monotónico en CI;
-- APK firmado estable generado correctamente en main.
-
-## Implementado recientemente
-
-- control de retención visualmente más compacto tras prueba física;
-- categoría Aplicaciones separada de APK;
-- aplicaciones lanzables del dispositivo ordenadas alfabéticamente con iconos reales;
-- iconos reconocibles por tipo en las tarjetas de OclAx;
-- la primera versión de apps evitó `QUERY_ALL_PACKAGES`; esa restricción fue sustituida después al aprobarse Mi dispositivo completo.
-
-## Implementado recientemente
-
-- apertura directa de contenido desde tarjetas mediante aplicaciones del sistema;
-- superficie **Mi dispositivo** separada de la bandeja OclAx;
-- acceso amplio al almacenamiento compartido mediante permiso especial de Android;
-- visibilidad completa de aplicaciones mediante QUERY_ALL_PACKAGES;
-- categorías del dispositivo: Apps, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros;
-- búsqueda, abrir y compartir desde contenido real;
-- Copiar limitado a texto e imágenes también en Mi dispositivo;
-- en la primera versión de Mi dispositivo no había borrado de originales; DEVICE-002 añadió después **Eliminar original** explícito y confirmado.
-
-## Implementado recientemente
-
-- miniaturas reales para imágenes/video en Mi dispositivo;
-- miniaturas expuestas por DocumentsProvider al selector de Android;
-- vista Lista/Cuadrícula recordada por categoría en Mi dispositivo;
-- compartir aplicaciones instaladas exportando solo APK base + splits, sin datos privados;
-- eliminación explícita de originales con confirmación OclAx y autorización Android cuando corresponde;
-- límites de espacio para exportaciones temporales de APK;
-- PR #34 fusionado tras tests, lint y build verdes.
-
-## Implementado recientemente
-
-- miniaturas reales también en las tarjetas internas de OclAx para Imagen, Video y PDF;
-- carga asíncrona reutilizando ThumbnailLoader y fallback seguro a icono por tipo.
-
-## Implementado recientemente
-
-- base local de **Mis dispositivos** fusionada en main mediante PR #40;
-- agregar/quitar dispositivo por Device ID, nombre visible y preferencia **Permitir sin aceptar**;
-- Device ID propio compartible de forma explícita desde Android;
-- el siguiente bloque ya implementa una prueba LAN explícita por peer, pero todavía no comparte carpetas ni archivos.
+- apertura directa de contenido mediante aplicaciones del sistema;
+- superficie **Mi dispositivo** con inventario completo de aplicaciones mediante `PackageManager.getInstalledApplications(0)` + `QUERY_ALL_PACKAGES` y archivos reales mediante MediaStore;
+- miniaturas para imagen/video/PDF, lista/cuadrícula recordada por categoría, exportación segura de APK y eliminación explícita de originales;
+- fecha y hora de modificación visible en las tarjetas de **Mi dispositivo** mediante PR #58; main run 203 verde;
+- base local de **Mis dispositivos**, Device ID compartible y preferencia **Permitir sin aceptar**;
+- prueba LAN explícita por peer sin compartir carpetas ni archivos;
+- diagnóstico LAN mejorado fusionado: distingue peer no descubierto, descubierto sin conexión y pausado, sin exponer IP;
+- PR #57 añadió caché del runtime nativo; main run 200 pobló el caché y runs posteriores restauran el runtime sin recompilar las cuatro ABI, manteniendo verificación SHA-256;
+- ERR-005 reconciliado con la implementación vigente mediante PR #59; main run 205 terminó verde.
 
 ## En desarrollo
 
 - miniaturas de imágenes dentro de la bandeja OclAx ya validadas físicamente; siguen pendientes video/PDF y otras validaciones de Mi dispositivo;
-- TRANSFER-001 iniciado: spike técnico para Syncthing core v2.x detrás de una capa propia;
-- investigación confirmó que el wrapper Android oficial está archivado, por lo que no se adoptará como dependencia;
-- **VERIFICADO:** el spike aislado construyó Syncthing core v2.1.5 para Android arm64/API 26 con NDK r30, sin secretos de firma;
-- runtime Android fusionado en main para arm64-v8a, armeabi-v7a, x86_64 y x86: build nativo en job sin secretos, checksums antes de empaquetar, foreground service on-demand, REST loopback y API key privada;
-- el arranque seguro genera/configura el motor antes de servir: listener de sincronización solo en loopback, discovery global/local, relay y NAT desactivados; telemetría y crash reporting desactivados;
-- el probe valida Device ID, autenticación REST, aislamiento loopback y start/stop;
-- **VERIFICADO EN CI MAIN:** tests, lint, build multi-ABI, presencia de los cuatro runtimes y APK firmado estable terminaron verdes en el run 125;
-- conexión LAN-only fusionada en main mediante PR #42: peer pausado por defecto, discovery local temporal, listener TCP restringido a redes privadas y retorno fail-closed a modo aislado al desconectar;
-- **VERIFICADO EN CI MAIN:** run 150 terminó verde con tests, lint, build multi-ABI, verificación de runtimes y APK debug publicado;
-- **FALLO FÍSICO REPRODUCIDO EN DOS TELÉFONOS:** `Probar motor` agotó el tiempo antes de obtener Device ID, por lo que la prueba LAN no puede comenzar aún;
-- **PR #47 / MAIN CI VERDE, PERO FALLÓ LA REPRUEBA FÍSICA:** ejecutar Syncthing como proceso interno ya supervisado (`STMONITORED=1`) y usar almacenamiento temporal privado para SQLite no eliminó el timeout; esa hipótesis queda descartada como solución suficiente;
-- **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** OclAx registra localmente la etapa de arranque, código de salida y una única línea de log sanitizada del intento actual para reemplazar el timeout genérico por evidencia accionable; no añade permisos ni telemetría; la build diagnóstica identificó el fallo en la preparación de configuración privada por una feature XML no soportada en Android;
-- **CAUSA DE ARRANQUE VERIFICADA, FIX FUSIONADO Y VALIDACIÓN FÍSICA PARCIAL SUPERADA:** el parser XML de Android rechazaba la feature Xerces `disallow-doctype-decl` antes de iniciar Syncthing; PR #53 reemplazó esa dependencia por controles portables, main run 192 quedó verde y en un teléfono real **Probar motor** ya devuelve Device ID + `loopback verificado`;
-- **FALLO UX CORREGIDO EN MAIN:** el panel técnico, búsqueda, filtros y tarjetas comparten ahora un único scroll vertical; PR #55 y main run 196 quedaron verdes; falta validación física explícita del desplazamiento completo;
-- **DIAGNÓSTICO LAN IMPLEMENTADO:** cuando la búsqueda vence, OclAx consulta el cache oficial de discovery local y distingue si el segundo teléfono nunca apareció, si apareció pero no conectó o si el peer quedó pausado; no muestra IPs ni amplía permisos;
+- TRANSFER-001 continúa con Syncthing core v2.1.5 detrás de una capa propia;
+- runtime Android está fusionado para arm64-v8a, armeabi-v7a, x86_64 y x86 con foreground service on-demand, REST loopback y API key privada;
+- el arranque seguro mantiene discovery global/local, relay y NAT desactivados en modo aislado; telemetría y crash reporting desactivados;
+- conexión LAN-only está implementada con peer pausado por defecto, discovery local temporal, listener TCP restringido a redes privadas y retorno fail-closed a modo aislado;
+- el parser XML incompatible en Android fue corregido y validado físicamente en un teléfono;
+- el panel técnico, búsqueda, filtros y tarjetas comparten un único scroll vertical; PR #55 y main run 196 verdes; falta validación física explícita del desplazamiento completo;
+- el diagnóstico LAN mejorado ya está fusionado y validado automáticamente; falta validación física con dos teléfonos;
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta validar el segundo teléfono y luego la conexión LAN;
-- todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
+- todavía no existe transferencia de archivos: el canal privado + progreso permanece bloqueado hasta validar LAN con dos teléfonos.
 
 ## Bloqueos
 
-- **TRANSFER-001 AVANZÓ:** un teléfono ya supera la preparación privada y obtiene Device ID + loopback; falta confirmar el segundo teléfono antes de cerrar la validación del arranque;
+- **TRANSFER-001/003:** falta confirmar el motor en el segundo teléfono y completar la prueba LAN física con ambos dispositivos en la misma Wi-Fi;
 - **UX DE PRUEBA:** fix de scroll ya fusionado y con CI main verde; falta confirmación física explícita;
-- siguen pendientes validaciones físicas del borrado corregido y otros puntos de Mi dispositivo antes de declarar esos bloques DONE.
+- siguen pendientes validaciones físicas del borrado corregido, PDF/apps/vistas y fecha/hora en Mi dispositivo;
+- Internet directo, relay y canal real de archivos no deben implementarse antes de validar físicamente LAN según la autorización vigente.
 
 ## Siguiente paso exacto
 
-1. Completar CI/merge del diagnóstico LAN mejorado y generar build firmada.
-2. Mañana, en el teléfono disponible, confirmar que toda la superficie OclAx puede desplazarse hasta el final y que **Probar motor** sigue devolviendo Device ID + loopback.
-3. Cuando esté disponible el segundo teléfono, instalar la misma build y tocar **Probar motor** una vez; debe mostrar Device ID + loopback.
-4. Compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
-5. En la misma Wi-Fi, tocar **Probar LAN** en ambos dentro de la misma ventana. Si no conecta, registrar el nuevo diagnóstico: `no apareció en discovery local`, `apareció pero no conectó` o `quedó pausado`; después desconectar y comprobar retorno a modo aislado.
-6. Crear el canal privado de transferencia de archivos + progreso solo después de validar esa conexión.
-7. Mantener en paralelo las validaciones pendientes de PDF/borrado/apps/vistas/fecha-hora en Mi dispositivo.
+1. En el teléfono disponible, instalar la build firmada más reciente y confirmar scroll completo, **Probar motor** y fecha/hora en Mi dispositivo.
+2. Cuando esté disponible el segundo teléfono, instalar exactamente la misma build y confirmar Device ID + loopback.
+3. Compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
+4. En la misma Wi-Fi, tocar **Probar LAN** en ambos dentro de la misma ventana. Si no conecta, registrar el diagnóstico exacto: `no apareció en discovery local`, `apareció pero no conectó` o `quedó pausado`.
+5. Confirmar **Desconectar LAN** y retorno a modo aislado.
+6. Solo después de validar LAN, diseñar/implementar el canal privado de archivos + progreso; Internet/relay continúa fuera de alcance hasta esa validación.
+7. Mantener en paralelo las validaciones físicas pendientes de PDF/borrado/apps/vistas/fecha-hora en Mi dispositivo.
