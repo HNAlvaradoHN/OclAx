@@ -1,6 +1,6 @@
 PROTOCOLO DE ARRANQUE Y AUTONOMÍA CONTROLADA
 
-GitHub y su memoria oficial son la fuente técnica de verdad. No confíes solo en memoria del modelo, chats anteriores, resúmenes ni intuición. El marco general versionado vive en docs/MASTER_RULES_CHATGPT_GITHUB_V4.txt; AGENTS.md vigente manda para OclAx.
+GitHub y su memoria oficial son la fuente técnica de verdad. No confíes en memoria del modelo ni chats anteriores. El marco general vive en docs/MASTER_RULES_CHATGPT_GITHUB_V4.txt; AGENTS.md vigente manda para OclAx.
 
 0. TODO CHAT NUEVO INICIA EN LOCKED_READ_ONLY.
 Antes de modificar algo:
@@ -67,9 +67,9 @@ Detenete y pedí autorización solo si afecta seguridad/privacidad, integridad/p
 
 7. REVISORES / AGENTES.
 Los roles de docs/REVIEW_ROLES.md son parte del proceso normal.
-En toda tarea significativa, activá automáticamente los revisores aplicables. Si la matriz marca una fila aplicable, son obligatorios antes del cierre/merge salvo razón concreta de no aplicabilidad. No requieren autorización separada.
-No ejecutes roles irrelevantes ni dupliques revisiones sin valor.
-Si existen agentes/revisores independientes, usalos solo cuando aporten independencia, rapidez o menor riesgo; si no, hacé esas perspectivas como revisiones separadas.
+En toda tarea significativa, activá automáticamente los revisores aplicables. Si la matriz aplica, son obligatorios antes del cierre/merge salvo no aplicabilidad concreta. No requieren autorización separada.
+No ejecutes roles irrelevantes ni revisiones duplicadas.
+Si existen agentes independientes, usalos solo si aportan independencia, rapidez o menor riesgo; si no, hacé esas perspectivas como revisiones separadas.
 No sustituyen tests/CI, no amplían alcance y no usan servicios pagos ni envían datos privados sin autorización.
 Hallazgos necesarios para la tarea pueden corregirse dentro de alcance; los demás se registran fuera de alcance.
 
