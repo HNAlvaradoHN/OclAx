@@ -57,7 +57,8 @@
 - miniaturas de imágenes en las tarjetas de Recientes/OclAx confirmadas físicamente en dispositivo;
 - en un teléfono real **Probar motor** devuelve Device ID + `loopback verificado` después del fix XML;
 - con la build main run 207, el scroll completo de OclAx quedó confirmado físicamente;
-- con la build main run 207, **Mi dispositivo** muestra fecha y hora de modificación físicamente en el teléfono.
+- con la build main run 207, **Mi dispositivo** muestra fecha y hora de modificación físicamente en el teléfono;
+- portada de PDF, apertura de PDF/Word/imagen/video/audio/APK, borrado/cancelación de imagen y PDF/documento, Apps instaladas y persistencia Lista/Cuadrícula fueron confirmados físicamente.
 
 ## Implementado recientemente
 
@@ -89,7 +90,7 @@
 ## Bloqueos
 
 - **TRANSFER-001/003:** falta confirmar el motor en el segundo teléfono y completar la prueba LAN física con ambos dispositivos en la misma Wi-Fi;
-- siguen pendientes validaciones físicas del borrado corregido, PDF/apps y persistencia de vistas en Mi dispositivo;
+- siguen pendientes validaciones físicas de miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes;
 - Internet directo, relay y canal real de archivos no deben implementarse antes de validar físicamente LAN según la autorización vigente.
 
 ## Siguiente paso exacto
@@ -99,4 +100,4 @@
 3. En la misma Wi-Fi, tocar **Probar LAN** en ambos dentro de la misma ventana. Si no conecta, registrar el diagnóstico exacto: `no apareció en discovery local`, `apareció pero no conectó` o `quedó pausado`.
 4. Confirmar **Desconectar LAN** y retorno a modo aislado.
 5. Solo después de validar LAN, diseñar/implementar el canal privado de archivos + progreso; Internet/relay continúa fuera de alcance hasta esa validación.
-6. Mantener en paralelo las validaciones físicas pendientes de PDF/borrado/apps y persistencia de vistas en Mi dispositivo.
+6. Mantener en paralelo las validaciones físicas pendientes de miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes.
