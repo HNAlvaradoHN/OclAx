@@ -227,6 +227,7 @@ internal fun PickerScreen(
                                 .firstOrNull { it.name == selectedCategory.key }
                         },
                         modifier = Modifier.weight(1f),
+                        scrollable = true,
                     )
                 }
 
