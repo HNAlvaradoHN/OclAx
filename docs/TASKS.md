@@ -235,10 +235,12 @@ Corrección en curso tras prueba física:
 - etiquetas diferenciadas: Apps instaladas / APK guardados;
 - DocumentsProvider organizado por categorías manteniendo acceso directo a recientes.
 
+Validado físicamente — 2026-09-24:
+- la lista de Apps instaladas funciona correctamente en el teléfono probado.
+
 Pendiente:
-- validar físicamente visibilidad, orden e iconos;
 - validar carpetas por categoría dentro de Archivos → OclAx;
-- miniaturas reales para contenido visual cuando aporte valor;
+- continuar ampliando miniaturas visuales cuando aporte valor;
 - decidir más adelante si tocar una app la abre o la convierte en destino directo de compartir.
 
 
@@ -260,13 +262,15 @@ Implementado:
 - si se niega acceso amplio, Apps sigue disponible y las categorías de archivos muestran opción para concederlo;
 - la primera versión no incluía borrado de originales; DEVICE-002 añadió después **Eliminar original** explícito y confirmado.
 
+Validado físicamente — 2026-09-24:
+- aparecen las aplicaciones instaladas esperadas;
+- fecha y hora de modificación visibles en las tarjetas de **Mi dispositivo** con main run 207; describe modificación del archivo, no hora de recepción OclAx.
+
 Pendiente:
-- validación física de permisos y contenido real;
-- comprobar que aparecen las aplicaciones esperadas;
-- comprobar cantidad/categorías de archivos reales;
-- miniaturas reales para imágenes/video;
-- validar rendimiento en teléfonos con muchos archivos;
-- mostrar fecha y hora de modificación en las tarjetas de **Mi dispositivo**, igual que en Recientes, dejando claro que no equivale necesariamente a la hora de recepción OclAx.
+- validación completa de revocación/reconcesión de permisos;
+- comprobar cantidad/categorías con una muestra más amplia;
+- miniaturas de video cuando el formato sea compatible;
+- validar rendimiento en teléfonos con muchos archivos.
 
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
 **Estado:** IN_PROGRESS  
@@ -299,10 +303,11 @@ Spike técnico, en orden:
 11. **FIX VALIDADO EN UN TELÉFONO REAL:** PR #53 fusionado; main run 192 verde; la APK firmada supera la preparación privada y **Probar motor** devuelve Device ID + `loopback verificado`.
 12. **FALLO UX CORREGIDO_PENDIENTE_VALIDACIÓN_FÍSICA:** PR #55 fusionado y main run 196 verde; OclAx usa una única lista desplazable para panel, búsqueda, controles y tarjetas.
 13. **DIAGNÓSTICO LAN IMPLEMENTADO_PENDIENTE_CI/FÍSICA:** al vencer la búsqueda, consulta `/rest/system/discovery` y diferencia `no visto por discovery`, `visto sin conexión` y `peer pausado`, sin exponer IPs.
-14. **SIGUIENTE:** build firmada → validar scroll/motor en el primer teléfono; con el segundo disponible, probar motor, emparejamiento y LAN usando el nuevo diagnóstico si falla.
-15. emparejar dos instalaciones de prueba y validar conexión LAN;
-16. validar conexión Internet directa y relay público como fallback;
-17. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
+14. **VALIDADO EN PRIMER TELÉFONO:** main run 207 confirma scroll completo, Device ID + loopback y fecha/hora en Mi dispositivo.
+15. **SIGUIENTE:** con el segundo teléfono disponible, probar motor, emparejamiento y LAN usando el nuevo diagnóstico si falla.
+16. emparejar dos instalaciones de prueba y validar conexión LAN;
+17. validar conexión Internet directa y relay público como fallback;
+18. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;
@@ -375,7 +380,7 @@ Hallazgo de revisión de Plataforma:
 - probar rechazo/revocación del permiso y mantener Internet normal independiente del LAN.
 
 ### OPEN-001 — Abrir contenido desde la bandeja
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Implementado:
@@ -386,10 +391,12 @@ Implementado:
 - se declara REQUEST_INSTALL_PACKAGES para permitir el flujo de instalación de APK cuando Android lo autorice;
 - si no existe manejador compatible, se muestra un mensaje en lugar de fallar.
 
-Pendiente:
-- validación física con PDF, Word/OOXML, imagen, video, audio y APK;
-- verificar comportamiento con aplicación predeterminada y con selector cuando haya varias opciones;
-- verificar flujo de “instalar apps desconocidas” al primer intento de abrir un APK.
+Validación física — 2026-09-24:
+- PDF, Word/OOXML, imagen, video, audio y APK abren correctamente desde OclAx en el teléfono probado;
+- el flujo de APK alcanza el manejador/instalador del sistema según corresponda.
+
+Observaciones futuras no bloqueantes:
+- seguir verificando variantes de resolución cuando existan varias apps manejadoras o ningún manejador compatible.
 
 ### DEVICE-002 — Miniaturas, compartir apps y borrar originales
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
@@ -414,9 +421,11 @@ Corrección implementada:
 - primera página del PDF renderizada con `PdfRenderer` para Mi dispositivo y DocumentsProvider;
 - borrado Android 11+ intenta eliminación directa con el acceso amplio ya concedido y usa confirmación MediaStore solo con URI específica para Imagen/Video/Audio cuando sea necesaria.
 
+Validado físicamente — 2026-09-24:
+- portada/primera página de PDF visible;
+- borrar y cancelar funcionan para imagen y PDF/documento;
+- Lista/Cuadrícula se recuerda correctamente.
+
 Pendiente:
-- validar físicamente portada de PDF;
-- validar borrar/cancelar una imagen y un PDF/documento;
 - confirmar compartir APK único y paquete con splits sin datos privados;
-- confirmar persistencia de Lista/Cuadrícula;
 - confirmar experiencia de recepción/instalación para paquetes con splits antes de declararlo DONE.

@@ -111,21 +111,25 @@ Corrección a validar:
 
 ## Abrir contenido desde OclAx
 
-Pendiente de validación física:
-- tocar PDF y abrirlo con visor compatible;
-- tocar Word/OOXML y abrirlo con editor/visor instalado;
-- tocar imagen y abrirla con galería/visor;
-- tocar video/audio y abrirlo con reproductor;
-- tocar APK y llegar al instalador/manejador del sistema;
-- comprobar que Android respeta una app predeterminada o muestra resolución cuando corresponda;
-- comprobar mensaje seguro cuando no existe manejador compatible;
-- confirmar que ninguna apertura concede escritura ni modifica la copia OclAx.
+VERIFICADO en teléfono real — 2026-09-24:
+- PDF abre correctamente;
+- Word/OOXML abre correctamente;
+- imagen abre correctamente;
+- video y audio abren correctamente;
+- APK llega correctamente al manejador/instalador del sistema.
+
+Pendiente de cobertura de borde:
+- comprobar resolución cuando existan varias apps compatibles o ninguna;
+- mantener solo lectura sobre la copia OclAx.
 
 
 ## Mi dispositivo
 
+VERIFICADO en teléfono real — 2026-09-24:
+- Apps instaladas muestra correctamente las aplicaciones esperadas.
+
 Pendiente de validación física:
-- entrar a Mi dispositivo y comprobar que Apps lista aplicaciones instaladas reales, incluidas las que antes no eran visibles;
+
 - seleccionar Imágenes/Documentos/PDF/APK/Texto-Código/Video/Audio/Otros y comprobar solicitud de acceso amplio;
 - conceder acceso desde Ajustes y volver a OclAx;
 - comprobar que las categorías muestran contenido real del almacenamiento;
@@ -138,27 +142,19 @@ Pendiente de validación física:
 
 ## Miniaturas, compartir apps y borrar originales
 
-VERIFICADO en teléfono real:
-- Mi dispositivo muestra miniaturas reales para imágenes en cuadrícula.
-
-FALLOS observados:
-- PDF no mostraba la portada/primera página;
-- borrar un original fallaba con `All requested items must be Media items`.
-
-Corrección a validar:
-- PDF debe mostrar una miniatura generada desde su primera página tanto en Mi dispositivo como en Archivos → OclAx;
-- borrar una imagen debe funcionar o pedir confirmación Android válida sin el error de URI genérica;
-- borrar un PDF/documento debe usar el acceso amplio concedido y no intentar presentarlo como elemento multimedia.
+VERIFICADO en teléfono real — 2026-09-24:
+- Mi dispositivo muestra miniaturas reales para imágenes;
+- PDF muestra portada/primera página;
+- borrar una imagen funciona correctamente;
+- borrar un PDF/documento funciona correctamente;
+- cancelar el borrado conserva el archivo;
+- Lista/Cuadrícula se recuerda correctamente.
 
 Pendiente de validación física:
 - Video debe mostrar fotograma/miniatura cuando sea compatible;
-- Mi dispositivo debe mostrar miniaturas en lista y cuadrícula;
-- cambiar vista en una categoría no debe modificar las demás y debe sobrevivir al reinicio;
 - compartir una app de APK único debe enviar un APK instalable sin datos privados del usuario;
 - compartir una app con splits debe enviar base + todos los splits;
 - recepción/instalación debe seguir siendo una decisión explícita del receptor;
-- cancelar cualquier confirmación de borrado debe conservar el archivo;
-- tras eliminar, el elemento debe desaparecer del índice sin afectar copias OclAx;
 - autolimpieza debe seguir sin tocar originales.
 
 ## Miniaturas dentro de la bandeja OclAx
@@ -233,6 +229,8 @@ Corrección automática validada:
 
 Validación física confirmada — 2026-09-23:
 - en un teléfono con la build de main run 192, **Probar motor** muestra `Listo`, Device ID y `loopback verificado`;
+- con main run 207, el scroll completo de OclAx quedó confirmado físicamente;
+- con main run 207, **Mi dispositivo** muestra fecha y hora de modificación en las tarjetas;
 - la corrección de compatibilidad XML supera físicamente la etapa que antes fallaba;
 - en esa misma pantalla se detectó que el panel técnico largo no permitía desplazar verticalmente todo OclAx; PR #55 + main run 196 quedaron verdes y falta confirmar físicamente el scroll corregido.
 
