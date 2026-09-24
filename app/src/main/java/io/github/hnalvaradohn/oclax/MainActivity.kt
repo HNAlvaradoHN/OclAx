@@ -1024,7 +1024,7 @@ private fun OclAxHome(
 
                         item(key = "oclax-category-overview") {
                             CategoryOverviewGrid(
-                                items = categoryOverview,
+                                categories = categoryOverview,
                                 onSelect = { selected ->
                                     filter = ContentFilter.entries
                                         .firstOrNull { it.name == selected.key }
