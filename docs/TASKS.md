@@ -60,7 +60,7 @@ Validado:
 
 
 ### GOV-005 — Alinear paquete maestro, AGENTS y Project Instructions
-**Estado:** IN_PROGRESS
+**Estado:** DONE
 
 Objetivo:
 - eliminar contradicciones entre el paquete maestro V3 y la autonomía ya adoptada en OclAx;
@@ -72,10 +72,12 @@ Objetivo:
 - mantener las instrucciones compactas del Project bajo 8000 caracteres;
 - subir `protocol_version` a 6.
 
-Pendiente para DONE:
-- PR fusionado;
-- CI de `main` verde;
-- resincronización exhaustiva bajo protocol v6.
+Validado:
+- PR #51 fusionado en `main`;
+- CI de `main` run 188 verde;
+- resincronización exhaustiva completada bajo protocol v6;
+- registro persistente alineado a protocol 6 sin incrementar el chat actual;
+- instrucciones compactas verificadas bajo el límite de 8000 caracteres.
 
 ## PENDING
 
@@ -292,8 +294,8 @@ Spike técnico, en orden:
 6. **FALLO FÍSICO REPRODUCIDO:** en dos teléfonos, `Probar motor` agotó el tiempo sin responder antes de obtener Device ID.
 7. **PR #47 IMPLEMENTADO Y CI VERDE:** el runtime Android ejecuta Syncthing como proceso interno ya supervisado (`STMONITORED=1`) y usa almacenamiento temporal privado para SQLite.
 8. **REPRUEBA FÍSICA FALLIDA:** la build firmada de `main` siguió mostrando `El motor no respondió a tiempo`; por tanto esa hipótesis no resolvió la causa real.
-9. **DIAGNÓSTICO IMPLEMENTADO · PR #48 CI VERDE:** registrar etapa exacta, código de salida y una línea de log del intento actual sanitizada; sin permisos, telemetría ni subida de logs.
-10. **SIGUIENTE:** generar build firmada desde `main`, probar un teléfono y usar el diagnóstico exacto para corregir la causa real hasta obtener Device ID + loopback.
+9. **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** registrar etapa exacta, código de salida y una línea de log del intento actual sanitizada; sin permisos, telemetría ni subida de logs.
+10. **SIGUIENTE:** instalar la build firmada más reciente de `main` en un teléfono, tocar **Probar motor** una sola vez y usar el diagnóstico exacto para corregir la causa real hasta obtener Device ID + loopback.
 11. emparejar dos instalaciones de prueba y validar conexión LAN;
 12. validar conexión Internet directa y relay público como fallback;
 13. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
