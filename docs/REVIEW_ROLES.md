@@ -8,6 +8,8 @@ Los roles son perspectivas independientes de revisión. No requieren contratar m
 
 Para toda tarea significativa autorizada, el coordinador debe activar automáticamente los roles aplicables cuando su revisión pueda reducir errores, aportar independencia real o acelerar una comprobación útil. No hace falta una autorización adicional del usuario para ejecutar estas revisiones.
 
+**Obligatoriedad condicional:** si la matriz de activación marca una fila aplicable, esos roles deben revisar antes del cierre/merge salvo que exista una razón concreta y registrable de no aplicabilidad. No se activa un rol solo por cumplir una lista.
+
 Si la plataforma ofrece agentes/revisores independientes, deben usarse cuando sean realmente útiles y no impliquen costo no autorizado, exposición de datos privados o trabajo duplicado. Si no están disponibles, el coordinador ejecuta esas perspectivas como pasadas separadas.
 
 No se ejecutan roles claramente irrelevantes. El objetivo es reducir errores y tiempo total, no crear burocracia.
