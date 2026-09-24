@@ -49,7 +49,7 @@ El usuario no debe tener que recordar pruebas, memoria ni handoff.
 Para código:
 rama → implementación → pruebas → revisión → PR → CI → correcciones → merge → CI main → memoria/handoff.
 
-Una tarea de implementación completa autoriza ese flujo si es reversible, sin costo, sin pérdida de datos/secretos, sin cambios sensibles de permisos/seguridad y sin decisión arquitectónica importante no aprobada.
+Una tarea de implementación completa autoriza ese flujo si es reversible, sin costo, sin pérdida de datos ni exposición de secretos, sin cambios sensibles de permisos/seguridad y sin decisión arquitectónica importante no aprobada.
 Si la tarea se limita a análisis, diagnóstico, rama o PR, respetá ese límite.
 Nunca mergear con CI fallando.
 No force-push, reescritura de historial, pérdida de datos, costos ni acciones irreversibles sin autorización explícita.
