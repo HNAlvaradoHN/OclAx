@@ -3,7 +3,7 @@
 ## Abiertos
 
 ### ERR-013 — Runtime Syncthing no responde a tiempo en Android
-**Estado:** CORREGIDO_PENDIENTE_CI_Y_VALIDACION_FISICA
+**Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
 
 **Síntoma:**
 - en dos teléfonos distintos, `Probar motor` termina con `El motor no respondió a tiempo`;
@@ -25,8 +25,10 @@
 - añadir test unitario del entorno de arranque;
 - el primer intento de CI detectó que consultar el gateway exigiría `ACCESS_NETWORK_STATE`; se eliminó ese fallback opcional en vez de ampliar permisos sin necesidad.
 
+**Validación automática:**
+- PR CI verde: tests, lint, build multi-ABI y presencia de runtimes confirmados.
+
 **Validación requerida:**
-- CI verde;
 - nueva build instalada en ambos teléfonos;
 - `Probar motor` devuelve Device ID y confirma loopback;
 - detener y volver a iniciar funciona sin corrupción.
