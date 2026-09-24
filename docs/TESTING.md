@@ -234,7 +234,7 @@ Corrección automática validada:
 Validación física confirmada — 2026-09-23:
 - en un teléfono con la build de main run 192, **Probar motor** muestra `Listo`, Device ID y `loopback verificado`;
 - la corrección de compatibilidad XML supera físicamente la etapa que antes fallaba;
-- en esa misma pantalla se detectó que el panel técnico largo no permite desplazar verticalmente todo OclAx; existe fix de layout pendiente de CI y nueva validación física.
+- en esa misma pantalla se detectó que el panel técnico largo no permitía desplazar verticalmente todo OclAx; PR #55 + main run 196 quedaron verdes y falta confirmar físicamente el scroll corregido.
 
 Pendiente de validación física:
 - confirmar el mismo arranque correcto en el segundo teléfono;
@@ -254,7 +254,9 @@ Precondición de plataforma:
 Automático:
 - la política LAN permite solo `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` y `169.254.0.0/16`;
 - no acepta `0.0.0.0/0`, `::/0` ni `100.64.0.0/10`;
-- el listener de la prueba es TCP IPv4 en el puerto Syncthing esperado.
+- el listener de la prueba es TCP IPv4 en el puerto Syncthing esperado;
+- tests del diagnóstico LAN verifican mensajes distintos para peer no descubierto, peer descubierto sin conexión y peer inesperadamente pausado;
+- el diagnóstico usa `/rest/system/discovery` solo al vencer la búsqueda y no presenta las IPs encontradas al usuario.
 
 Pendiente de validación física con dos teléfonos:
 1. instalar la misma build en ambos;
@@ -264,8 +266,9 @@ Pendiente de validación física con dos teléfonos:
 5. ambos deben llegar a **Conectado por LAN** y discovery local/MulticastLock deben quedar apagados después de conectar;
 6. no debe transferirse ningún archivo en esta prueba;
 7. tocar **Desconectar LAN** y confirmar que vuelve a modo aislado;
-8. repetir con un peer incorrecto/no presente y confirmar timeout seguro sin quedar discovery/MulticastLock activos;
-9. simular/forzar fallo al restaurar configuración y comprobar que el runtime se detiene en vez de dejar el listener LAN abierto.
+8. repetir con un peer incorrecto/no presente y confirmar timeout seguro, retorno a modo aislado y mensaje **no apareció en discovery local**;
+9. con ambos teléfonos tocando **Probar LAN** pero sin completar enlace, confirmar que si discovery sí ve al peer el mensaje cambia a **apareció en discovery local, pero no se completó la conexión**;
+10. simular/forzar fallo al restaurar configuración y comprobar que el runtime se detiene en vez de dejar el listener LAN abierto.
 
 ## Revisión obligatoria TRANSFER-003 — post-merge
 
