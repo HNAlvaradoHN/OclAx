@@ -1,3 +1,30 @@
+### ERR-015 — Picker propio funcional pero visualmente desordenado
+**Estado:** CORREGIDO_PENDIENTE_VALIDACION
+
+**Síntoma físico — 2026-09-24:**
+- **Elegir con OclAx** aparece y abre correctamente desde una aplicación externa;
+- **Mi dispositivo** muestra archivos, pero mezcla APK, imágenes, texto y otros tipos en una lista plana;
+- la pantalla no se percibe consistente con la organización ya validada de la aplicación principal.
+
+**Causa verificada en código:**
+- el primer picker solo tenía origen + búsqueda;
+- no reutilizaba categorías ni miniaturas de la navegación principal;
+- sus botones de origen eran más altos y las tarjetas usaban una presentación propia simplificada.
+
+**Corrección implementada:**
+- selector de origen alineado al tamaño de la app;
+- categorías por tipo, con Fijados solo para OclAx;
+- categoría inicial derivada del MIME solicitado cuando es específico;
+- miniaturas reales para Imagen/Video/PDF mediante `ThumbnailLoader`;
+- fecha/hora y ruta en Mi dispositivo;
+- tarjetas compactas alineadas a la densidad visual de OclAx;
+- tests unitarios para matching de categorías y selección inicial.
+
+**Validación pendiente:**
+- CI del fix;
+- revalidación visual en el mismo teléfono;
+- confirmar retorno del archivo y selección múltiple.
+
 # ERRORS
 
 ## Abiertos
