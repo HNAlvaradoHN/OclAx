@@ -1,5 +1,6 @@
 package io.github.hnalvaradohn.oclax.platform.transfer
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -21,6 +22,20 @@ class SyncthingRuntimeConfigTest {
         assertTrue(command.contains("--paused"))
         assertFalse(command.any { it.contains("0.0.0.0") })
         assertFalse(command.any { it.contains("api", ignoreCase = true) && it.contains("key", ignoreCase = true) })
+    }
+
+    @Test
+    fun androidRuntimeEnvironmentSkipsOuterMonitorAndUsesPrivateTempStorage() {
+        val environment = SyncthingRuntimeConfig.privateEnvironmentOverrides(
+            homePath = "/private/home",
+            tempPath = "/private/cache",
+            apiKey = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFG",
+        )
+
+        assertEquals("1", environment["STMONITORED"])
+        assertEquals("/private/home", environment["STHOMEDIR"])
+        assertEquals("/private/cache", environment["SQLITE_TMPDIR"])
+        assertEquals("127.0.0.1:8384", environment["STGUIADDRESS"])
     }
 
     @Test

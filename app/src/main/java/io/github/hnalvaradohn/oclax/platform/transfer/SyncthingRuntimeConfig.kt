@@ -48,6 +48,26 @@ internal class SyncthingRuntimeConfig(
             "generate",
             "--no-port-probing",
         )
+
+        internal fun privateEnvironmentOverrides(
+            homePath: String,
+            tempPath: String,
+            apiKey: String,
+        ): Map<String, String> = buildMap {
+            put("HOME", homePath)
+            put("TMPDIR", tempPath)
+            put("SQLITE_TMPDIR", tempPath)
+            put("STHOMEDIR", homePath)
+            put("STGUIAPIKEY", apiKey)
+            put("STGUIADDRESS", "$LOOPBACK_ADDRESS:$GUI_PORT")
+            put("STNOBROWSER", "yes")
+            put("STNORESTART", "yes")
+            put("STNOUPGRADE", "yes")
+
+            // Syncthing's outer monitor re-execs the binary. Android wrappers run the
+            // core directly as the already-monitored child process instead.
+            put("STMONITORED", "1")
+        }
     }
 
     val homeDir: File
@@ -136,13 +156,12 @@ internal class SyncthingRuntimeConfig(
     )
 
     fun applyPrivateEnvironment(builder: ProcessBuilder) {
-        val environment = builder.environment()
-        environment["HOME"] = homeDir.absolutePath
-        environment["TMPDIR"] = tempDir.absolutePath
-        environment["STGUIAPIKEY"] = apiKey()
-        environment["STGUIADDRESS"] = "$LOOPBACK_ADDRESS:$GUI_PORT"
-        environment["STNOBROWSER"] = "yes"
-        environment["STNORESTART"] = "yes"
-        environment["STNOUPGRADE"] = "yes"
+        builder.environment().putAll(
+            privateEnvironmentOverrides(
+                homePath = homeDir.absolutePath,
+                tempPath = tempDir.absolutePath,
+                apiKey = apiKey(),
+            ),
+        )
     }
 }

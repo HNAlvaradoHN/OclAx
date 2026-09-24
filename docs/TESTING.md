@@ -163,6 +163,8 @@ Pendiente de validación física:
 
 ## Miniaturas dentro de la bandeja OclAx
 
+**Validación física confirmada — 2026-09-23:** las miniaturas de imagen en Recientes/OclAx se muestran correctamente en dispositivo real.
+
 Pendiente de validación física:
 - una imagen recibida/pegada debe mostrar su miniatura real en la tarjeta de OclAx;
 - un video recibido debe mostrar un fotograma cuando pueda decodificarse;
@@ -213,6 +215,11 @@ Automático:
 - normalización acepta Device ID compacto o con guiones;
 - formato/longitud/caracteres inválidos se rechazan;
 - la UI no puede agregar un par sin nombre ni ID válido.
+
+Fallo físico observado antes del emparejamiento:
+- en dos teléfonos, **Probar motor** agotó el tiempo antes de devolver Device ID;
+- se implementó una corrección del entorno Android para ejecutar el core como proceso ya supervisado (`STMONITORED=1`) y fijar temp SQLite privado;
+- PR CI pasó con tests, lint, build multi-ABI y verificación de runtimes; falta nueva prueba física antes de continuar.
 
 Pendiente de validación física:
 - después de **Probar motor**, aparece el ID propio;

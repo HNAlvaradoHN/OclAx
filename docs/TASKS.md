@@ -111,7 +111,8 @@ Implementado en main:
 
 Validado:
 - CI verde en PR y main para el bloque compacto/copiar;
-- test unitario confirma que Copiar solo aplica a Texto/Código e Imágenes.
+- test unitario confirma que Copiar solo aplica a Texto/Código e Imágenes;
+- miniaturas de imágenes dentro de Recientes/OclAx confirmadas físicamente en dispositivo.
 
 Implementado adicionalmente:
 - miniaturas reales dentro de la bandeja OclAx para Imagen, Video y PDF reutilizando `ThumbnailLoader`;
@@ -119,7 +120,7 @@ Implementado adicionalmente:
 
 Pendiente:
 - validación física del menú desplegable y Copiar;
-- validar miniaturas internas de Imagen/Video/PDF;
+- validar miniaturas internas de Video/PDF;
 - comprobar qué organización puede exponerse también dentro de DocumentsProvider sin añadir navegación innecesaria;
 - validación física.
 
@@ -224,7 +225,8 @@ Pendiente:
 - comprobar que aparecen las aplicaciones esperadas;
 - comprobar cantidad/categorías de archivos reales;
 - miniaturas reales para imágenes/video;
-- validar rendimiento en teléfonos con muchos archivos.
+- validar rendimiento en teléfonos con muchos archivos;
+- mostrar fecha y hora de modificación en las tarjetas de **Mi dispositivo**, igual que en Recientes, dejando claro que no equivale necesariamente a la hora de recepción OclAx.
 
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
 **Estado:** IN_PROGRESS  
@@ -249,10 +251,13 @@ Spike técnico, en orden:
 3. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** antes de iniciar `serve`, OclAx genera la configuración local si hace falta y la endurece: GUI/API `127.0.0.1:8384`, API key privada, listener BEP solo loopback y discovery global/local, relay y NAT desactivados.
 4. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** `SyncthingRuntimeService` usa foreground service `dataSync` on-demand y vuelve a aplicar/verificar por REST el modo aislado, `urAccepted=-1` y `crashReportingEnabled=false` antes de marcar el motor activo.
 5. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** el probe obtiene `myID`, comprueba que REST exige API key, valida dirección GUI loopback, intenta detectar el mismo runtime por IPv4 no-loopback y la detención usa `/rest/system/shutdown` con fallback acotado.
-6. **SIGUIENTE:** instalar la build en teléfono real y validar arranque → Device ID → loopback → detener → arrancar otra vez sin corrupción.
-7. emparejar dos instalaciones de prueba y validar transferencia LAN;
-8. validar conexión Internet directa y relay público como fallback;
-9. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
+6. **FALLO FÍSICO REPRODUCIDO:** en dos teléfonos, `Probar motor` agotó el tiempo sin responder antes de obtener Device ID.
+7. **CORRECCIÓN IMPLEMENTADA_PENDIENTE_VALIDACIÓN_FÍSICA:** el runtime Android ejecuta Syncthing como proceso interno ya supervisado (`STMONITORED=1`), usa almacenamiento temporal privado para SQLite; una prueba unitaria fija este contrato.
+8. **CI PR VERDE:** tests, lint, build multi-ABI y verificación de runtimes pasaron con la corrección.
+9. **SIGUIENTE:** generar la build firmada desde `main`, instalarla en ambos teléfonos y validar arranque → Device ID → loopback → detener → arrancar otra vez sin corrupción.
+10. emparejar dos instalaciones de prueba y validar transferencia LAN;
+11. validar conexión Internet directa y relay público como fallback;
+12. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;
