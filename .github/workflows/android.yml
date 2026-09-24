@@ -23,6 +23,7 @@ jobs:
       GO_VERSION: "1.27.1"
       NDK_VERSION: "30.0.16248370"
       MIN_ANDROID_API: "26"
+      # Increment when the native build recipe changes outside the pinned inputs below.
       NATIVE_CACHE_SCHEMA: "1"
 
     steps:
