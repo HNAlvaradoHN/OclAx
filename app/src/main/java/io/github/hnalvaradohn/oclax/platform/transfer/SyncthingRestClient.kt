@@ -381,8 +381,10 @@ internal class TransferRuntimeController(context: Context) {
     private val appContext = context.applicationContext
     private val config = SyncthingRuntimeConfig(appContext)
     private val client = SyncthingRestClient(config)
+    private val startupDiagnostics = RuntimeStartupDiagnostics(appContext)
 
     fun start() {
+        startupDiagnostics.beginAttempt(config.logFile.length())
         SyncthingRuntimeService.start(appContext)
     }
 
@@ -391,9 +393,18 @@ internal class TransferRuntimeController(context: Context) {
     }
 
     fun probe(timeoutMillis: Long = 25_000L): TransferRuntimeProbeResult {
-        client.awaitReady(timeoutMillis)
-        client.enforcePrivateOptions()
-        return client.probe()
+        try {
+            client.awaitReady(timeoutMillis)
+            client.enforcePrivateOptions()
+            return client.probe()
+        } catch (error: Exception) {
+            val snapshot = startupDiagnostics.snapshot()
+            val logLine = config.safeLastLogLineSince(snapshot.logOffset)
+            throw IOException(
+                formatRuntimeStartupFailure(snapshot, logLine),
+                error,
+            )
+        }
     }
 
     fun connectLan(
