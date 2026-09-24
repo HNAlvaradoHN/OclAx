@@ -307,7 +307,7 @@ Revisión obligatoria PICKER-001:
 - **Arquitectura — INFORMATIVO.** Activity/plataforma, UI Compose y matching MIME quedaron separados; reutilizan ItemStore y DeviceContentRepository.
 - **Plataforma Android — INFORMATIVO.** `ACTION_GET_CONTENT` devuelve `data` para selección simple y `ClipData` para múltiple, con `FLAG_GRANT_READ_URI_PERMISSION`; DocumentsProvider no cambia.
 - **QA — PENDIENTE FÍSICO.** CI cubre build/lint/tests; falta interoperabilidad real con aplicaciones externas.
-- **Diseño/UX/Accesibilidad — NO BLOQUEANTE.** Dos orígenes claros, búsqueda, cancelar, estado de selección y botón final para múltiple; miniaturas pueden añadirse después sin bloquear el flujo.
+- **Diseño/UX/Accesibilidad — ACTUALIZADO TRAS PRUEBA FÍSICA.** La primera UI abrió correctamente, pero su lista plana no mantuvo la organización visual de la app; categorías, densidad y miniaturas pasan a ser parte del fix de PICKER-001.
 - **Calidad/Limpieza — INFORMATIVO.** La nueva UI no se incrusta en MainActivity y no añade dependencias.
 
 
