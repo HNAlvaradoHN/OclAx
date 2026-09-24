@@ -181,6 +181,7 @@ Reglas:
 - El probe exige que REST sin API key sea rechazado y busca el mismo Device ID en interfaces IPv4 no-loopback para detectar una exposición accidental.
 - El apagado usa primero la API autenticada de Syncthing y solo fuerza el proceso si no termina dentro del límite.
 - El log del motor queda en almacenamiento privado y con rotación/tamaño acotados; no se sube a GitHub automáticamente.
+- El diagnóstico técnico de arranque solo muestra una línea del intento actual y la sanitiza antes de UI: elimina rutas privadas, Device ID, IP y valores largos; el estado/código permanece local en preferencias privadas y no se transmite.
 
 ## Spike de motor Syncthing
 

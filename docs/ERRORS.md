@@ -3,35 +3,37 @@
 ## Abiertos
 
 ### ERR-013 — Runtime Syncthing no responde a tiempo en Android
-**Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
+**Estado:** ABIERTO_EN_DIAGNOSTICO
 
 **Síntoma:**
 - en dos teléfonos distintos, `Probar motor` termina con `El motor no respondió a tiempo`;
+- después de PR #47 y una nueva build firmada desde `main`, el mismo síntoma continuó en dispositivo real;
 - el fallo ocurre antes de obtener Device ID y antes de cualquier prueba LAN.
 
 **Evidencia verificada:**
-- el mismo APK reproduce el fallo en dos dispositivos;
-- la REST local nunca llega a responder dentro del timeout;
-- el wrapper Android comunitario mantenido ejecuta Syncthing con `STMONITORED=1`, evitando el monitor externo que vuelve a ejecutar el binario;
-- OclAx no establecía esa variable. El wrapper Android también aporta un fallback de gateway para Android 14+, pero esa ruta pertenece al soporte NAT y no es necesaria mientras OclAx mantiene NAT desactivado.
+- el fallo es reproducible en más de un dispositivo;
+- builds, tests, lint, runtime multi-ABI y empaquetado pasan CI;
+- `STMONITORED=1` + `SQLITE_TMPDIR` pasaron CI pero no eliminaron el timeout físicamente;
+- la UI anterior ocultaba si el fallo ocurría al preparar configuración, arrancar el binario, abrir REST o endurecer opciones privadas.
 
 **Causa:**
-- **HIPÓTESIS PRINCIPAL, AÚN NO CONFIRMADA FÍSICAMENTE:** el monitor externo/re-exec de Syncthing no es adecuado para este empaquetado Android y evita que el proceso interno llegue a servir REST correctamente.
+- **DESCONOCIDA.** La hipótesis de que el monitor externo/re-exec era por sí solo la causa quedó refutada como solución suficiente por la prueba física posterior a PR #47.
 
-**Corrección implementada:**
-- ejecutar el core Android como proceso interno ya supervisado mediante `STMONITORED=1`;
-- usar `SQLITE_TMPDIR` dentro del cache privado;
-- fijar `STHOMEDIR` al directorio privado ya usado por OclAx;
-- añadir test unitario del entorno de arranque;
-- el primer intento de CI detectó que consultar el gateway exigiría `ACCESS_NETWORK_STATE`; se eliminó ese fallback opcional en vez de ampliar permisos sin necesidad.
+**Diagnóstico implementado en PR #48:**
+- registrar localmente la etapa exacta de arranque;
+- conservar código de salida del proceso cuando exista;
+- mostrar una única línea de log posterior al inicio del intento;
+- sanitizar rutas privadas, Device ID, IP y valores largos antes de mostrarla;
+- no añadir permisos, telemetría ni envío de logs;
+- tests unitarios cubren el formateo y la sanitización;
+- CI del PR terminó verde en tests, lint, build multi-ABI y verificación de runtimes.
 
-**Validación automática:**
-- PR CI verde: tests, lint, build multi-ABI y presencia de runtimes confirmados.
-
-**Validación requerida:**
-- nueva build instalada en ambos teléfonos;
-- `Probar motor` devuelve Device ID y confirma loopback;
-- detener y volver a iniciar funciona sin corrupción.
+**Siguiente validación:**
+- instalar la build firmada generada desde `main` tras fusionar PR #48;
+- probar primero un solo teléfono;
+- capturar el diagnóstico exacto;
+- corregir la causa evidenciada y repetir hasta obtener Device ID + loopback;
+- solo después continuar con el segundo teléfono y LAN.
 
 
 ## Resueltos

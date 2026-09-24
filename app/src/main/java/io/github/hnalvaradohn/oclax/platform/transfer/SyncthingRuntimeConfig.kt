@@ -3,6 +3,7 @@ package io.github.hnalvaradohn.oclax.platform.transfer
 import android.content.Context
 import android.util.Base64
 import java.io.File
+import java.io.FileInputStream
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
@@ -163,5 +164,30 @@ internal class SyncthingRuntimeConfig(
                 apiKey = apiKey(),
             ),
         )
+    }
+
+    fun safeLastLogLineSince(offset: Long): String? {
+        if (!logFile.isFile) return null
+
+        return runCatching {
+            FileInputStream(logFile).use { input ->
+                var remaining = offset.coerceIn(0L, logFile.length())
+                while (remaining > 0L) {
+                    val skipped = input.skip(remaining)
+                    if (skipped <= 0L) break
+                    remaining -= skipped
+                }
+
+                input.bufferedReader(Charsets.UTF_8).useLines { lines ->
+                    lines
+                        .filter { it.isNotBlank() }
+                        .lastOrNull()
+                        ?.replace(homeDir.absolutePath, "<ruta privada>")
+                        ?.replace(tempDir.absolutePath, "<ruta privada>")
+                        ?.replace(context.applicationInfo.nativeLibraryDir, "<ruta nativa>")
+                        ?.let(::sanitizeRuntimeDiagnosticText)
+                }
+            }
+        }.getOrNull()
     }
 }
