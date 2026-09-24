@@ -220,7 +220,14 @@ Fallo físico observado antes del emparejamiento:
 - en dos teléfonos, **Probar motor** agotó el tiempo antes de devolver Device ID;
 - PR #47 cambió el entorno Android a proceso ya supervisado (`STMONITORED=1`) + temp SQLite privado y pasó CI;
 - la build firmada posterior siguió mostrando exactamente el mismo timeout en dispositivo real;
-- PR #48 añade diagnóstico por etapa/código/log sanitizado y su CI pasó; la próxima prueba debe hacerse primero en un teléfono para obtener la causa exacta antes de continuar.
+- la build diagnóstica posterior identificó la etapa exacta: **preparando la configuración privada**;
+- el mensaje mostró la feature `http://apache.org/xml/features/disallow-doctype-decl`, confirmando que el parser XML de Android abortaba antes de iniciar Syncthing.
+
+Corrección automática a validar:
+- las features XML específicas del parser se aplican solo si están soportadas;
+- OclAx rechaza `DOCTYPE` y `ENTITY` antes del parseo y bloquea resolución externa mediante `EntityResolver`;
+- test unitario nuevo simula una feature no soportada y confirma que la preparación no aborta por esa razón;
+- se conservan las pruebas de endurecimiento de red/telemetría y rechazo XXE/DOCTYPE.
 
 Pendiente de validación física:
 - después de **Probar motor**, aparece el ID propio;

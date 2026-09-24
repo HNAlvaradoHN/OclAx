@@ -175,7 +175,7 @@ Reglas:
 - Los jobs de pull request no reciben la firma estable de pruebas: compilan con firma debug efímera. Los secrets de firma estable solo se inyectan en pushes a `main`, después del merge.
 - La API key se genera con `SecureRandom`, se guarda en `SharedPreferences` privadas y se pasa al proceso por entorno, no por argumento visible ni por repo.
 - En Android, el core se ejecuta como proceso interno ya supervisado (`STMONITORED=1`) para evitar el monitor externo/re-exec y SQLite usa cache privado (`SQLITE_TMPDIR`). No se añadió `ACCESS_NETWORK_STATE` solo para aportar un gateway opcional, porque NAT permanece desactivado en esta fase.
-- Antes de iniciar el servidor del motor, OclAx genera/endurece `config.xml` en almacenamiento privado con parser XML que rechaza DOCTYPE/entidades externas.
+- Antes de iniciar el servidor del motor, OclAx genera/endurece `config.xml` en almacenamiento privado. La protección XML no depende de una feature Xerces concreta: rechaza declaraciones `DOCTYPE`/`ENTITY` antes del parseo, instala un `EntityResolver` que bloquea resoluciones externas y aplica flags adicionales solo cuando el parser Android las soporta.
 - En modo de prueba, GUI/REST se fuerza a `127.0.0.1:8384`, el listener de sincronización a loopback, el runtime arranca pausado y se desactivan discovery global/local, relay y NAT; así **Probar motor** no anuncia el dispositivo ni abre el protocolo de sincronización a la red.
 - Al arrancar, el servicio vuelve a aplicar y verificar por REST local el modo aislado, `urAccepted=-1` y `crashReportingEnabled=false` antes de declarar el motor activo.
 - El probe exige que REST sin API key sea rechazado y busca el mismo Device ID en interfaces IPv4 no-loopback para detectar una exposición accidental.
