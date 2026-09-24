@@ -252,11 +252,12 @@ Spike técnico, en orden:
 4. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** `SyncthingRuntimeService` usa foreground service `dataSync` on-demand y vuelve a aplicar/verificar por REST el modo aislado, `urAccepted=-1` y `crashReportingEnabled=false` antes de marcar el motor activo.
 5. **IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** el probe obtiene `myID`, comprueba que REST exige API key, valida dirección GUI loopback, intenta detectar el mismo runtime por IPv4 no-loopback y la detención usa `/rest/system/shutdown` con fallback acotado.
 6. **FALLO FÍSICO REPRODUCIDO:** en dos teléfonos, `Probar motor` agotó el tiempo sin responder antes de obtener Device ID.
-7. **CORRECCIÓN IMPLEMENTADA_PENDIENTE_CI_Y_VALIDACIÓN:** el runtime Android ejecuta Syncthing como proceso interno ya supervisado (`STMONITORED=1`), usa almacenamiento temporal privado para SQLite; una prueba unitaria fija este contrato.
-8. **SIGUIENTE:** generar nueva build, instalarla en ambos teléfonos y validar arranque → Device ID → loopback → detener → arrancar otra vez sin corrupción.
-9. emparejar dos instalaciones de prueba y validar transferencia LAN;
-10. validar conexión Internet directa y relay público como fallback;
-11. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
+7. **CORRECCIÓN IMPLEMENTADA_PENDIENTE_VALIDACIÓN_FÍSICA:** el runtime Android ejecuta Syncthing como proceso interno ya supervisado (`STMONITORED=1`), usa almacenamiento temporal privado para SQLite; una prueba unitaria fija este contrato.
+8. **CI PR VERDE:** tests, lint, build multi-ABI y verificación de runtimes pasaron con la corrección.
+9. **SIGUIENTE:** generar la build firmada desde `main`, instalarla en ambos teléfonos y validar arranque → Device ID → loopback → detener → arrancar otra vez sin corrupción.
+10. emparejar dos instalaciones de prueba y validar transferencia LAN;
+11. validar conexión Internet directa y relay público como fallback;
+12. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;
