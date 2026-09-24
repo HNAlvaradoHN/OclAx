@@ -5,7 +5,7 @@
 **Fase:** primera prueba vertical Android.  
 **Aplicación:** base funcional validada por CI; validación física en progreso.  
 **Repositorio:** público.  
-**Protocol version:** 6 (rama de gobernanza; pendiente de merge/CI main).
+**Protocol version:** 6.
 
 ## Qué ya está definido
 
@@ -23,16 +23,17 @@
 - Autolimpieza limitada exclusivamente a copias privadas de OclAx.
 - Retención predeterminada de 24 horas; Fijados nunca expiran mientras sigan fijados.
 
-## Gobernanza en actualización
+## Gobernanza vigente
 
-- protocol v5 quedó fusionado y validado en `main`;
-- protocol v6 alinea el paquete maestro general, AGENTS.md y las instrucciones compactas del Project;
-- bootstrap pasa a requerir la frase exacta `BOOTSTRAP AUTORIZADO` también en AGENTS.md;
-- se versiona `docs/MASTER_RULES_CHATGPT_GITHUB_V4.txt` como marco general reutilizable;
+- protocol v6 fusionado en `main` mediante PR #51;
+- CI de `main` run 188 terminó verde en runtime nativo, tests, lint, build multi-ABI, verificación de runtimes y publicación de APK;
+- resincronización exhaustiva bajo protocol v6 completada en este chat sin incrementar el número de sesión;
+- registro administrativo alineado a protocol 6 y conserva `last_confirmed_chat: 3`;
+- `docs/MASTER_RULES_CHATGPT_GITHUB_V4.txt`, AGENTS.md, REVIEW_ROLES y las instrucciones compactas del Project quedan alineados;
+- bootstrap requiere la frase exacta `BOOTSTRAP AUTORIZADO`;
 - autorización por objetivo mantiene autonomía técnica completa dentro de límites seguros;
-- revisores/agentes son obligatorios de forma condicional cuando la matriz aplica y aportan valor; roles irrelevantes no se ejecutan;
-- instrucciones compactas siguen bajo el límite de 8000 caracteres;
-- pendiente: PR, CI y resincronización exhaustiva bajo protocol v6.
+- revisores/agentes son obligatorios de forma condicional cuando la matriz aplica y aporta valor; roles irrelevantes no se ejecutan;
+- instrucciones compactas permanecen bajo el límite de 8000 caracteres.
 
 ## Qué funciona
 
@@ -122,7 +123,7 @@
 - **VERIFICADO EN CI MAIN:** run 150 terminó verde con tests, lint, build multi-ABI, verificación de runtimes y APK debug publicado;
 - **FALLO FÍSICO REPRODUCIDO EN DOS TELÉFONOS:** `Probar motor` agotó el tiempo antes de obtener Device ID, por lo que la prueba LAN no puede comenzar aún;
 - **PR #47 / MAIN CI VERDE, PERO FALLÓ LA REPRUEBA FÍSICA:** ejecutar Syncthing como proceso interno ya supervisado (`STMONITORED=1`) y usar almacenamiento temporal privado para SQLite no eliminó el timeout; esa hipótesis queda descartada como solución suficiente;
-- **DIAGNÓSTICO IMPLEMENTADO · PR #48 CI VERDE:** OclAx registra localmente la etapa de arranque, código de salida y una única línea de log sanitizada del intento actual para reemplazar el timeout genérico por evidencia accionable; no añade permisos ni telemetría;
+- **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** OclAx registra localmente la etapa de arranque, código de salida y una única línea de log sanitizada del intento actual para reemplazar el timeout genérico por evidencia accionable; no añade permisos ni telemetría; la build firmada más reciente de main ya contiene este diagnóstico;
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** porque primero debe identificarse y corregirse la causa real del arranque local, luego repetir `Probar motor` y recién después probar LAN;
 - todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
 
@@ -133,8 +134,8 @@
 
 ## Siguiente paso exacto
 
-1. Fusionar PR #48 después de CI verde y generar la build firmada de `main`.
-2. Instalar esa build en **un teléfono primero** y tocar **Probar motor** una sola vez.
+1. Descargar/instalar la build firmada más reciente de `main` en **un teléfono primero**.
+2. Tocar **Probar motor** una sola vez.
 3. Registrar el mensaje de diagnóstico exacto que muestre OclAx; debe indicar etapa/código/último registro sanitizado sin revelar secretos.
 4. Corregir la causa concreta y repetir hasta obtener Device ID + loopback; solo entonces probar el segundo teléfono.
 5. Después compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
