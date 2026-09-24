@@ -5,7 +5,7 @@
 **Fase:** primera prueba vertical Android.  
 **Aplicación:** base funcional validada por CI; validación física en progreso.  
 **Repositorio:** público.  
-**Protocol version:** 5.
+**Protocol version:** 6 (rama de gobernanza; pendiente de merge/CI main).
 
 ## Qué ya está definido
 
@@ -23,14 +23,16 @@
 - Autolimpieza limitada exclusivamente a copias privadas de OclAx.
 - Retención predeterminada de 24 horas; Fijados nunca expiran mientras sigan fijados.
 
-## Gobernanza vigente
+## Gobernanza en actualización
 
-- protocol v5 fusionado y validado en `main`;
-- `LOCKED_READ_ONLY` separado del estado de sincronización READY/UNSYNCED;
-- autorización por objetivo: el usuario define el resultado y el agente asume alcance técnico mínimo, pruebas, revisión, PR/CI, memoria y handoff dentro de límites seguros;
-- revisores/agentes aplicables de `docs/REVIEW_ROLES.md` se activan automáticamente cuando reducen errores o aceleran una validación útil;
-- instrucciones compactas para ChatGPT Project versionadas en `docs/CHATGPT_PROJECT_INSTRUCTIONS.txt` (7,730 caracteres);
-- resincronización exhaustiva bajo protocol v5 completada tras el merge.
+- protocol v5 quedó fusionado y validado en `main`;
+- protocol v6 alinea el paquete maestro general, AGENTS.md y las instrucciones compactas del Project;
+- bootstrap pasa a requerir la frase exacta `BOOTSTRAP AUTORIZADO` también en AGENTS.md;
+- se versiona `docs/MASTER_RULES_CHATGPT_GITHUB_V4.txt` como marco general reutilizable;
+- autorización por objetivo mantiene autonomía técnica completa dentro de límites seguros;
+- revisores/agentes son obligatorios de forma condicional cuando la matriz aplica y aportan valor; roles irrelevantes no se ejecutan;
+- instrucciones compactas siguen bajo el límite de 8000 caracteres;
+- pendiente: PR, CI y resincronización exhaustiva bajo protocol v6.
 
 ## Qué funciona
 

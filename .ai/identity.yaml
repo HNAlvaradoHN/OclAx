@@ -1,4 +1,4 @@
-protocol_version: 5
+protocol_version: 6
 name: "OclAx"
 icon: "📲"
 handshake_format: "Ing. OclAx📲 #[NÚMERO]"

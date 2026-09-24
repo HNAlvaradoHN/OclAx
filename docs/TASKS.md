@@ -59,6 +59,24 @@ Validado:
 - registro persistente e identidad técnica alineados a protocol 5.
 
 
+### GOV-005 — Alinear paquete maestro, AGENTS y Project Instructions
+**Estado:** IN_PROGRESS
+
+Objetivo:
+- eliminar contradicciones entre el paquete maestro V3 y la autonomía ya adoptada en OclAx;
+- exigir bootstrap únicamente con `BOOTSTRAP AUTORIZADO`;
+- mantener autorización por objetivo sin exigir listas manuales de archivos;
+- mantener pruebas, revisión, Git, memoria y handoff dentro de una tarea autorizada;
+- versionar el paquete maestro V4;
+- hacer obligatorios los revisores aplicables solo cuando la matriz realmente corresponda y aporten valor;
+- mantener las instrucciones compactas del Project bajo 8000 caracteres;
+- subir `protocol_version` a 6.
+
+Pendiente para DONE:
+- PR fusionado;
+- CI de `main` verde;
+- resincronización exhaustiva bajo protocol v6.
+
 ## PENDING
 
 ### SEC-001 — Configurar protecciones del repositorio público

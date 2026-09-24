@@ -1,6 +1,6 @@
 # AGENTS.md — Protocolo Maestro de OclAx
 
-**protocol_version:** 5  
+**protocol_version:** 6  
 **Proyecto:** OclAx  
 **Identidad del agente:** OclAx 📲  
 **Repositorio:** público  
@@ -67,6 +67,13 @@ Nunca presentes una suposición como hecho. Usa cuando importe:
 - NO VERIFICADO;
 - DESCONOCIDO.
 
+AGENTS.md puede endurecer este protocolo, pero no eliminar la sincronización previa, permitir cambios espontáneos fuera de una tarea autorizada ni relajar el bootstrap protegido.
+
+Una relajación extraordinaria del candado solo es válida con:
+`AUTORIZO RELAJAR CANDADO PARA: [alcance concreto]`
+
+Nunca interpretes una autorización limitada como permiso general.
+
 Si se cambia una regla fundamental, incrementa `protocol_version`, vuelve la sesión a UNSYNCED y resincroniza.
 
 ---
@@ -109,10 +116,14 @@ Cuando exista UI, también:
 Cuando existan herramientas externas relevantes:
 - `docs/TOOLS.md`
 
+Paquete maestro general reutilizable:
+- `docs/MASTER_RULES_CHATGPT_GITHUB_V4.txt`
+
 Bootstrap compacto para ChatGPT Project:
 - `docs/CHATGPT_PROJECT_INSTRUCTIONS.txt`
 
-Ese archivo existe para el límite de caracteres del Project y debe delegar aquí las reglas mutables. Si diverge, manda AGENTS.md vigente.
+El paquete maestro define principios generales reutilizables. Este AGENTS.md contiene el protocolo específico de OclAx y tiene prioridad dentro del proyecto.
+El archivo compacto existe por el límite de caracteres del Project y debe delegar aquí las reglas mutables. Si diverge, manda AGENTS.md vigente.
 
 Responsabilidad:
 
@@ -187,9 +198,21 @@ Solo puede modificarse el proyecto cuando se cumplen ambas condiciones:
 
 En `LOCKED_READ_ONLY` se permite leer, investigar, diagnosticar, revisar código/CI y proponer acciones. Se prohíbe modificar archivos, ramas, PR, issues, workflows, configuración o memoria oficial.
 
-### Excepción limitada de bootstrap
+### Bootstrap protegido
 
-Si el repositorio es realmente nuevo y todavía no existe AGENTS.md, se permite un bootstrap limitado exclusivamente a:
+El bootstrap SOLO puede ejecutarse si el usuario escribe exactamente:
+
+`BOOTSTRAP AUTORIZADO`
+
+Sin esa frase:
+- no crees AGENTS.md;
+- no instales identidad, memoria oficial ni registro persistente;
+- no crees gobernanza;
+- no cambies configuración base;
+- no desarrolles código de producto;
+- permanece en LOCKED_READ_ONLY y reporta que falta autorización de bootstrap.
+
+Con `BOOTSTRAP AUTORIZADO`, limita el trabajo a:
 - confirmar que el repositorio es nuevo;
 - preguntar nombre e icono si faltan;
 - instalar gobernanza;
@@ -201,13 +224,13 @@ Si el repositorio es realmente nuevo y todavía no existe AGENTS.md, se permite 
 Durante bootstrap NO desarrolles código de producto.
 
 Al terminar:
-1. vuelve a UNSYNCED;
+1. vuelve a `LOCKED_READ_ONLY / UNSYNCED`;
 2. relee AGENTS.md desde GitHub;
 3. relee memoria oficial;
 4. comprueba estado real;
 5. reclama número persistente;
 6. pasa a READY;
-7. solo entonces comienza trabajo de producto.
+7. solo entonces puede comenzar trabajo de producto con una tarea autorizada.
 
 Mientras no esté READY o no exista una tarea autorizada:
 
@@ -279,7 +302,16 @@ Solo después de quedar READY, TODA respuesta del asistente dentro de ese chat d
 
 `Ing. OclAx📲 #[NÚMERO]`
 
-La primera respuesta READY puede añadir una frase humana breve:
+La primera respuesta READY debe incluir, además del handshake, un reporte breve equivalente a:
+- repo y rama;
+- HEAD real;
+- `protocol_version`;
+- sincronización;
+- bloqueo actual;
+- siguiente tarea oficial;
+- autorización suficiente para actuar: SÍ / NO.
+
+Puede añadir una frase humana breve:
 
 `Sincronizado · listo para continuar con [tarea].`
 
@@ -1372,7 +1404,7 @@ No generes imágenes, mockups, renders o diagramas con herramientas de imagen sa
 
 ## 40. Autonomía
 
-Si el siguiente paso:
+Dentro del objetivo ya autorizado, si el siguiente paso:
 - está claramente definido;
 - es seguro;
 - es reversible;
@@ -1380,6 +1412,8 @@ Si el siguiente paso:
 - no necesita una decisión importante;
 
 continúa sin pedir confirmación innecesaria.
+
+Al completar ese objetivo, detente antes de iniciar una funcionalidad distinta salvo nueva autorización.
 
 Pregunta antes si existe:
 - costo;
