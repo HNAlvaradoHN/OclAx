@@ -219,7 +219,7 @@ Automático:
 Fallo físico observado antes del emparejamiento:
 - en dos teléfonos, **Probar motor** agotó el tiempo antes de devolver Device ID;
 - se implementó una corrección del entorno Android para ejecutar el core como proceso ya supervisado (`STMONITORED=1`) y fijar temp SQLite privado;
-- CI y nueva prueba física deben pasar antes de continuar.
+- PR CI pasó con tests, lint, build multi-ABI y verificación de runtimes; falta nueva prueba física antes de continuar.
 
 Pendiente de validación física:
 - después de **Probar motor**, aparece el ID propio;
