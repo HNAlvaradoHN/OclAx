@@ -196,6 +196,8 @@ fun DeviceBrowser(
                     filter = next
                     viewMode = onLoadViewMode(next.key, next.defaultViewMode)
                 },
+                modifier = Modifier.weight(1f),
+                scrollable = true,
             )
             return@Column
         }
