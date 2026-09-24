@@ -125,22 +125,23 @@
 - **PR #47 / MAIN CI VERDE, PERO FALLÓ LA REPRUEBA FÍSICA:** ejecutar Syncthing como proceso interno ya supervisado (`STMONITORED=1`) y usar almacenamiento temporal privado para SQLite no eliminó el timeout; esa hipótesis queda descartada como solución suficiente;
 - **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** OclAx registra localmente la etapa de arranque, código de salida y una única línea de log sanitizada del intento actual para reemplazar el timeout genérico por evidencia accionable; no añade permisos ni telemetría; la build diagnóstica identificó el fallo en la preparación de configuración privada por una feature XML no soportada en Android;
 - **CAUSA DE ARRANQUE VERIFICADA, FIX FUSIONADO Y VALIDACIÓN FÍSICA PARCIAL SUPERADA:** el parser XML de Android rechazaba la feature Xerces `disallow-doctype-decl` antes de iniciar Syncthing; PR #53 reemplazó esa dependencia por controles portables, main run 192 quedó verde y en un teléfono real **Probar motor** ya devuelve Device ID + `loopback verificado`;
-- **FALLO UX DETECTADO EN LA MISMA PRUEBA:** al crecer el panel técnico de transferencia, la superficie OclAx no permite desplazar verticalmente todo el contenido; corrección implementada en rama `fix/transfer-panel-scroll`, pendiente CI/validación física;
+- **FALLO UX CORREGIDO EN MAIN:** el panel técnico, búsqueda, filtros y tarjetas comparten ahora un único scroll vertical; PR #55 y main run 196 quedaron verdes; falta validación física explícita del desplazamiento completo;
+- **DIAGNÓSTICO LAN IMPLEMENTADO:** cuando la búsqueda vence, OclAx consulta el cache oficial de discovery local y distingue si el segundo teléfono nunca apareció, si apareció pero no conectó o si el peer quedó pausado; no muestra IPs ni amplía permisos;
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta validar el segundo teléfono y luego la conexión LAN;
 - todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
 
 ## Bloqueos
 
 - **TRANSFER-001 AVANZÓ:** un teléfono ya supera la preparación privada y obtiene Device ID + loopback; falta confirmar el segundo teléfono antes de cerrar la validación del arranque;
-- **UX DE PRUEBA BLOQUEADA PARCIALMENTE:** el panel técnico largo impide hacer scroll completo en OclAx; el fix está implementado y pendiente CI/validación física;
+- **UX DE PRUEBA:** fix de scroll ya fusionado y con CI main verde; falta confirmación física explícita;
 - siguen pendientes validaciones físicas del borrado corregido y otros puntos de Mi dispositivo antes de declarar esos bloques DONE.
 
 ## Siguiente paso exacto
 
-1. Completar CI y merge del fix de scroll del panel técnico.
-2. Instalar la nueva build firmada en el teléfono ya validado y confirmar que toda la superficie OclAx puede desplazarse hasta el final.
-3. Instalar la misma build en el segundo teléfono y tocar **Probar motor** una vez; debe mostrar Device ID + loopback.
+1. Completar CI/merge del diagnóstico LAN mejorado y generar build firmada.
+2. Mañana, en el teléfono disponible, confirmar que toda la superficie OclAx puede desplazarse hasta el final y que **Probar motor** sigue devolviendo Device ID + loopback.
+3. Cuando esté disponible el segundo teléfono, instalar la misma build y tocar **Probar motor** una vez; debe mostrar Device ID + loopback.
 4. Compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
-5. En la misma Wi-Fi, tocar **Probar LAN** en ambos y confirmar **Conectado por LAN**; después desconectar y comprobar retorno a modo aislado.
+5. En la misma Wi-Fi, tocar **Probar LAN** en ambos dentro de la misma ventana. Si no conecta, registrar el nuevo diagnóstico: `no apareció en discovery local`, `apareció pero no conectó` o `quedó pausado`; después desconectar y comprobar retorno a modo aislado.
 6. Crear el canal privado de transferencia de archivos + progreso solo después de validar esa conexión.
 7. Mantener en paralelo las validaciones pendientes de PDF/borrado/apps/vistas/fecha-hora en Mi dispositivo.
