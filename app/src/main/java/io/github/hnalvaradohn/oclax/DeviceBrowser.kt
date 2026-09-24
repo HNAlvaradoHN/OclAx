@@ -189,7 +189,7 @@ fun DeviceBrowser(
 
         if (filter == null && query.isBlank()) {
             CategoryOverviewGrid(
-                items = categoryOverview,
+                categories = categoryOverview,
                 onSelect = { selected ->
                     val next = DeviceFilter.entries.firstOrNull { it.key == selected.key }
                         ?: return@CategoryOverviewGrid
