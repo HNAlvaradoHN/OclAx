@@ -55,7 +55,9 @@
 - una build posterior se instaló encima de la versión con firma estable sin conflicto;
 - la actualización conservó los datos internos;
 - miniaturas de imágenes en las tarjetas de Recientes/OclAx confirmadas físicamente en dispositivo;
-- en un teléfono real **Probar motor** devuelve Device ID + `loopback verificado` después del fix XML.
+- en un teléfono real **Probar motor** devuelve Device ID + `loopback verificado` después del fix XML;
+- con la build main run 207, el scroll completo de OclAx quedó confirmado físicamente;
+- con la build main run 207, **Mi dispositivo** muestra fecha y hora de modificación físicamente en el teléfono.
 
 ## Implementado recientemente
 
@@ -79,7 +81,7 @@
 - el arranque seguro mantiene discovery global/local, relay y NAT desactivados en modo aislado; telemetría y crash reporting desactivados;
 - conexión LAN-only está implementada con peer pausado por defecto, discovery local temporal, listener TCP restringido a redes privadas y retorno fail-closed a modo aislado;
 - el parser XML incompatible en Android fue corregido y validado físicamente en un teléfono;
-- el panel técnico, búsqueda, filtros y tarjetas comparten un único scroll vertical; PR #55 y main run 196 verdes; falta validación física explícita del desplazamiento completo;
+- el panel técnico, búsqueda, filtros y tarjetas comparten un único scroll vertical; PR #55/main run 196 y validación física con main run 207 confirman desplazamiento completo;
 - el diagnóstico LAN mejorado ya está fusionado y validado automáticamente; falta validación física con dos teléfonos;
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta validar el segundo teléfono y luego la conexión LAN;
 - todavía no existe transferencia de archivos: el canal privado + progreso permanece bloqueado hasta validar LAN con dos teléfonos.
@@ -87,16 +89,14 @@
 ## Bloqueos
 
 - **TRANSFER-001/003:** falta confirmar el motor en el segundo teléfono y completar la prueba LAN física con ambos dispositivos en la misma Wi-Fi;
-- **UX DE PRUEBA:** fix de scroll ya fusionado y con CI main verde; falta confirmación física explícita;
-- siguen pendientes validaciones físicas del borrado corregido, PDF/apps/vistas y fecha/hora en Mi dispositivo;
+- siguen pendientes validaciones físicas del borrado corregido, PDF/apps y persistencia de vistas en Mi dispositivo;
 - Internet directo, relay y canal real de archivos no deben implementarse antes de validar físicamente LAN según la autorización vigente.
 
 ## Siguiente paso exacto
 
-1. En el teléfono disponible, instalar la build firmada más reciente y confirmar scroll completo, **Probar motor** y fecha/hora en Mi dispositivo.
-2. Cuando esté disponible el segundo teléfono, instalar exactamente la misma build y confirmar Device ID + loopback.
-3. Compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
-4. En la misma Wi-Fi, tocar **Probar LAN** en ambos dentro de la misma ventana. Si no conecta, registrar el diagnóstico exacto: `no apareció en discovery local`, `apareció pero no conectó` o `quedó pausado`.
-5. Confirmar **Desconectar LAN** y retorno a modo aislado.
-6. Solo después de validar LAN, diseñar/implementar el canal privado de archivos + progreso; Internet/relay continúa fuera de alcance hasta esa validación.
-7. Mantener en paralelo las validaciones físicas pendientes de PDF/borrado/apps/vistas/fecha-hora en Mi dispositivo.
+1. Cuando esté disponible el segundo teléfono, instalar exactamente la build main run 207 o una posterior equivalente y confirmar Device ID + loopback.
+2. Compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
+3. En la misma Wi-Fi, tocar **Probar LAN** en ambos dentro de la misma ventana. Si no conecta, registrar el diagnóstico exacto: `no apareció en discovery local`, `apareció pero no conectó` o `quedó pausado`.
+4. Confirmar **Desconectar LAN** y retorno a modo aislado.
+5. Solo después de validar LAN, diseñar/implementar el canal privado de archivos + progreso; Internet/relay continúa fuera de alcance hasta esa validación.
+6. Mantener en paralelo las validaciones físicas pendientes de PDF/borrado/apps y persistencia de vistas en Mi dispositivo.
