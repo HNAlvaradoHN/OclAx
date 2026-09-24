@@ -342,6 +342,7 @@ class MainActivity : ComponentActivity() {
 
         transferRuntimeBusy = true
         lanBusyDeviceId = device.deviceId
+        transferRuntimeStatus = "Buscando dispositivo por LAN…"
         lanStatusByDevice = lanStatusByDevice + (
             device.deviceId to "Buscando por LAN… Abrí OclAx en ambos teléfonos."
             )
@@ -371,7 +372,7 @@ class MainActivity : ComponentActivity() {
                         device.deviceId to
                             ("No se conectó por LAN: " + (error.message ?: "error desconocido"))
                         )
-                    transferRuntimeStatus = "Prueba LAN cerrada de forma segura."
+                    transferRuntimeStatus = "LAN no conectó · motor volvió a modo aislado."
                 }
             }
         }
