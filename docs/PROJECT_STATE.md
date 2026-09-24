@@ -108,7 +108,7 @@
 - conexión LAN-only fusionada en main mediante PR #42: peer pausado por defecto, discovery local temporal, listener TCP restringido a redes privadas y retorno fail-closed a modo aislado al desconectar;
 - **VERIFICADO EN CI MAIN:** run 150 terminó verde con tests, lint, build multi-ABI, verificación de runtimes y APK debug publicado;
 - **FALLO FÍSICO REPRODUCIDO EN DOS TELÉFONOS:** `Probar motor` agotó el tiempo antes de obtener Device ID, por lo que la prueba LAN no puede comenzar aún;
-- **CORRECCIÓN IMPLEMENTADA PENDIENTE DE CI/VALIDACIÓN FÍSICA:** ejecutar Syncthing en Android como proceso interno ya supervisado (`STMONITORED=yes`), usar almacenamiento temporal privado para SQLite y aportar gateway IPv4 del sistema como fallback para Android 14+;
+- **CORRECCIÓN IMPLEMENTADA PENDIENTE DE CI/VALIDACIÓN FÍSICA:** ejecutar Syncthing en Android como proceso interno ya supervisado (`STMONITORED=yes`), usar almacenamiento temporal privado para SQLite;
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** porque primero debe pasar nuevamente `Probar motor` en ambos teléfonos y luego la prueba LAN;
 - todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
 
