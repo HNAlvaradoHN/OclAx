@@ -73,6 +73,8 @@ import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import java.text.DateFormat
+import java.util.Date
 
 private enum class DeviceFilter(
     val key: String,
@@ -501,6 +503,12 @@ private fun DeviceFileListCard(
                     file.type.label + " · " + formatDeviceBytes(file.byteSize),
                     style = MaterialTheme.typography.bodySmall,
                 )
+                formatDeviceModifiedAt(file.modifiedAt)?.let { modified ->
+                    Text(
+                        "Modificado · $modified",
+                        style = MaterialTheme.typography.labelSmall,
+                    )
+                }
                 if (!file.relativePath.isNullOrBlank()) {
                     Text(
                         file.relativePath,
@@ -550,6 +558,13 @@ private fun DeviceFileGridCard(
                 formatDeviceBytes(file.byteSize),
                 style = MaterialTheme.typography.labelSmall,
             )
+            formatDeviceModifiedAt(file.modifiedAt)?.let { modified ->
+                Text(
+                    "Modificado · $modified",
+                    style = MaterialTheme.typography.labelSmall,
+                    maxLines = 1,
+                )
+            }
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
@@ -678,6 +693,15 @@ private fun deviceTypeIcon(type: ContentType): ImageVector = when (type) {
     ContentType.AUDIO -> Icons.Outlined.AudioFile
     ContentType.OTHER -> Icons.Outlined.InsertDriveFile
 }
+
+private fun formatDeviceModifiedAt(modifiedAt: Long): String? =
+    modifiedAt
+        .takeIf { it > 0L }
+        ?.let { timestamp ->
+            DateFormat
+                .getDateTimeInstance(DateFormat.SHORT, DateFormat.SHORT)
+                .format(Date(timestamp))
+        }
 
 private fun formatDeviceBytes(bytes: Long): String {
     if (bytes < 1024) return "$bytes B"
