@@ -108,25 +108,23 @@
 - conexión LAN-only fusionada en main mediante PR #42: peer pausado por defecto, discovery local temporal, listener TCP restringido a redes privadas y retorno fail-closed a modo aislado al desconectar;
 - **VERIFICADO EN CI MAIN:** run 150 terminó verde con tests, lint, build multi-ABI, verificación de runtimes y APK debug publicado;
 - **FALLO FÍSICO REPRODUCIDO EN DOS TELÉFONOS:** `Probar motor` agotó el tiempo antes de obtener Device ID, por lo que la prueba LAN no puede comenzar aún;
-- **CORRECCIÓN IMPLEMENTADA · CI PR VERDE · PENDIENTE VALIDACIÓN FÍSICA:** ejecutar Syncthing en Android como proceso interno ya supervisado (`STMONITORED=1`), usar almacenamiento temporal privado para SQLite;
-- TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** porque primero debe pasar nuevamente `Probar motor` en ambos teléfonos y luego la prueba LAN;
+- **PR #47 / MAIN CI VERDE, PERO FALLÓ LA REPRUEBA FÍSICA:** ejecutar Syncthing como proceso interno ya supervisado (`STMONITORED=1`) y usar almacenamiento temporal privado para SQLite no eliminó el timeout; esa hipótesis queda descartada como solución suficiente;
+- **DIAGNÓSTICO IMPLEMENTADO · PR #48 CI VERDE:** OclAx registra localmente la etapa de arranque, código de salida y una única línea de log sanitizada del intento actual para reemplazar el timeout genérico por evidencia accionable; no añade permisos ni telemetría;
+- TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** porque primero debe identificarse y corregirse la causa real del arranque local, luego repetir `Probar motor` y recién después probar LAN;
 - todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
 
 ## Bloqueos
 
-- **TRANSFER-001 BLOQUEADO EN VALIDACIÓN FÍSICA:** el runtime no respondió a tiempo en dos teléfonos; corrección de arranque Android implementada y validada por CI; falta nueva prueba física;
+- **TRANSFER-001 BLOQUEADO:** la corrección de arranque de PR #47 pasó CI pero la build firmada siguió mostrando el mismo timeout en dispositivo real; la causa exacta sigue DESCONOCIDA y PR #48 añade diagnóstico local seguro para aislarla;
 - siguen pendientes validaciones físicas del borrado corregido y otros puntos de Mi dispositivo antes de declarar esos bloques DONE.
 
 ## Siguiente paso exacto
 
-1. Generar desde `main` la nueva build firmada con la corrección de arranque Android.
-2. Instalar esa build en ambos teléfonos y repetir **Probar motor**; debe devolver Device ID y confirmar loopback.
-3. Confirmar explícitamente portada de PDF en Mi dispositivo/Archivos → OclAx y borrado/cancelación de originales.
-4. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
-5. Confirmar que Lista/Cuadrícula se recuerda de forma independiente por categoría.
-6. Confirmar rendimiento de miniaturas con muchas imágenes/videos/PDF.
-7. En dos dispositivos, compartir/agregar mutuamente los Device ID y validar la lista **Mis dispositivos** + preferencia **Permitir sin aceptar**.
-8. En la misma Wi-Fi, tocar **Probar LAN** para el peer en ambos teléfonos y confirmar **Conectado por LAN**; después **Desconectar LAN** y comprobar retorno a modo aislado.
-9. Crear el canal privado de transferencia de archivos y progreso solo después de validar esa conexión.
-10. Luego validar Internet directo → relay público como fallback.
-11. Aplicar la política de recepción: confiables pueden permitir sin aceptar; los demás preguntan por defecto.
+1. Fusionar PR #48 después de CI verde y generar la build firmada de `main`.
+2. Instalar esa build en **un teléfono primero** y tocar **Probar motor** una sola vez.
+3. Registrar el mensaje de diagnóstico exacto que muestre OclAx; debe indicar etapa/código/último registro sanitizado sin revelar secretos.
+4. Corregir la causa concreta y repetir hasta obtener Device ID + loopback; solo entonces probar el segundo teléfono.
+5. Después compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
+6. En la misma Wi-Fi, tocar **Probar LAN** en ambos y confirmar **Conectado por LAN**; después desconectar y comprobar retorno a modo aislado.
+7. Crear el canal privado de transferencia de archivos + progreso solo después de validar esa conexión.
+8. Mantener en paralelo las validaciones pendientes de PDF/borrado/apps/vistas/fecha-hora en Mi dispositivo.
