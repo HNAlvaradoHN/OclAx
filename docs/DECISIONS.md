@@ -473,3 +473,25 @@ Reglas:
 - OclAx muestra confirmación explícita indicando que se elimina el original.
 - En Android 11+ y con acceso amplio ya concedido, OclAx intenta eliminar mediante ContentResolver; si Android exige confirmación para un medio, usa `MediaStore.createDeleteRequest` con la URI específica de Imagen/Video/Audio.
 - La autolimpieza de OclAx jamás incluye originales del dispositivo.
+
+---
+
+## DEC-025 — Candado inicial con autonomía técnica por objetivo
+
+**Decisión:** OclAx separa dos conceptos: sincronización y autorización.
+
+- Todo chat nuevo inicia en `LOCKED_READ_ONLY` y `UNSYNCED`.
+- `READY` significa que el agente reconstruyó el estado real; no autoriza por sí solo a modificar.
+- Una tarea suficientemente clara autoriza el objetivo completo, no una lista rígida de archivos.
+- El usuario define qué quiere lograr; el agente determina el alcance técnico mínimo y ejecuta las validaciones, documentación, memoria y handoff necesarios sin pedir permisos repetitivos.
+- “sigue” solo autoriza cambios cuando la memoria oficial y el contexto identifican inequívocamente un único siguiente paso.
+- hallazgos fuera de alcance se registran y no frenan la tarea salvo seguridad/privacidad, integridad de datos, arquitectura fundamental, imposibilidad de validar, costo o irreversibilidad.
+
+**Flujo autorizado por defecto para una implementación completa:** rama → implementación → pruebas → revisión → PR → CI → correcciones → merge → CI main → memoria/handoff, siempre que sea reversible, sin costo, sin pérdida de datos, sin secretos ni cambios sensibles no aprobados.
+
+**Revisores/agentes:** los roles aplicables de `docs/REVIEW_ROLES.md` se ejecutan automáticamente en tareas significativas cuando reduzcan errores o aceleren una comprobación útil. Si existen agentes independientes disponibles, se usan cuando aporten valor real; de lo contrario se aplican como revisiones separadas. No sustituyen CI/tests ni amplían alcance.
+
+**Instrucciones de ChatGPT Project:** `docs/CHATGPT_PROJECT_INSTRUCTIONS.txt` contiene una versión compacta (<8000 caracteres) para el campo de instrucciones del Project. Delega sincronización, numeración y handshake mutables a AGENTS.md para evitar deriva.
+
+**Motivo:** mantener un candado fuerte contra cambios espontáneos sin obligar al usuario a microgestionar archivos, tests, PR, CI, memoria o handoff.
+

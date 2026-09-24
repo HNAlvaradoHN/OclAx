@@ -6,6 +6,12 @@ AGENTS.md es la constitución y tiene prioridad. Este archivo define el detalle 
 
 Los roles son perspectivas independientes de revisión. No requieren contratar múltiples servicios de IA.
 
+Para toda tarea significativa autorizada, el coordinador debe activar automáticamente los roles aplicables cuando su revisión pueda reducir errores, aportar independencia real o acelerar una comprobación útil. No hace falta una autorización adicional del usuario para ejecutar estas revisiones.
+
+Si la plataforma ofrece agentes/revisores independientes, deben usarse cuando sean realmente útiles y no impliquen costo no autorizado, exposición de datos privados o trabajo duplicado. Si no están disponibles, el coordinador ejecuta esas perspectivas como pasadas separadas.
+
+No se ejecutan roles claramente irrelevantes. El objetivo es reducir errores y tiempo total, no crear burocracia.
+
 Un revisor:
 - busca problemas reales;
 - no modifica por iniciativa propia salvo delegación explícita;
@@ -229,8 +235,10 @@ Gustos subjetivos menores no son BLOQUEANTES salvo que afecten accesibilidad o u
 
 ## Matriz de activación
 
+La matriz es automática para tareas significativas: si una fila aplica, esos roles deben revisarla antes del cierre/merge, salvo que exista una razón concreta de no aplicabilidad.
+
 Cambio visual:
-- Diseño/UX;
+- Diseño/UX/Accesibilidad;
 - Calidad si hay reemplazo/limpieza.
 
 Datos/almacenamiento:
@@ -275,6 +283,9 @@ Release:
 
 El coordinador consolida duplicados y registra solo acciones útiles.
 
-Si un BLOQUEANTE es válido, se corrige antes de continuar.
-Si es NO BLOQUEANTE, se registra y agrupa.
+Si un BLOQUEANTE válido está dentro del objetivo autorizado, se corrige antes de continuar sin pedir una autorización adicional.
+Si un hallazgo necesario para validar la tarea está dentro del objetivo, también puede corregirse.
+Si es NO BLOQUEANTE y no es necesario para completar la tarea, se registra y agrupa como fuera de alcance.
 Si dos revisores discrepan, gana la evidencia; seguridad y privacidad tienen prioridad.
+
+La ejecución de revisores nunca reemplaza tests, lint, build, CI ni validación física cuando corresponda.

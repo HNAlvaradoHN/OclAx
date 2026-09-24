@@ -5,7 +5,7 @@
 **Fase:** primera prueba vertical Android.  
 **Aplicación:** base funcional validada por CI; validación física en progreso.  
 **Repositorio:** público.  
-**Protocol version:** 4.
+**Protocol version:** 5.
 
 ## Qué ya está definido
 
@@ -15,11 +15,20 @@
 - Identidad del agente: OclAx 📲.
 - Antes del primer handshake de un chat nuevo se exige inventario y lectura exhaustiva de todo el repositorio versionado legible; el handshake aparece en todas las respuestas READY y el número permanece fijo por hilo visible de chat.
 - Repositorio como fuente técnica de verdad.
+- Candado `LOCKED_READ_ONLY`: un chat puede quedar READY tras sincronizar, pero solo modifica con una tarea autorizada; la autorización es por objetivo y el agente asume pruebas, revisión, memoria y handoff sin microgestión del usuario.
+- Revisores/agentes aplicables de `docs/REVIEW_ROLES.md` son automáticos en tareas significativas cuando reduzcan errores o aceleren validación útil.
 - Prioridad máxima a seguridad, privacidad e integridad.
 - Aplicación Android local-first orientada a contenido temporal.
 - OclAx mantiene una bandeja temporal, pero el alcance aprobado ahora incluye una superficie **Mi dispositivo** para explorar contenido real del teléfono con permisos amplios cuando el usuario los conceda.
 - Autolimpieza limitada exclusivamente a copias privadas de OclAx.
 - Retención predeterminada de 24 horas; Fijados nunca expiran mientras sigan fijados.
+
+## Gobernanza en actualización
+
+- protocol v5 implementado en rama de gobernanza y pendiente de merge/CI main;
+- instrucciones compactas para ChatGPT Project versionadas en `docs/CHATGPT_PROJECT_INSTRUCTIONS.txt`;
+- la nueva política conserva sincronización exhaustiva y handshake, pero permite autonomía técnica completa dentro de una tarea autorizada;
+- revisores/agentes aplicables pasan a activación automática condicional por utilidad.
 
 ## Qué funciona
 

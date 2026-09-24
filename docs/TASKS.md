@@ -39,6 +39,25 @@ Incluye:
 - registro del fallo sistemático en ERR-012.
 
 
+### GOV-004 — Autonomía controlada y revisores automáticos
+**Estado:** IMPLEMENTED_PENDING_VALIDATION
+
+Implementado en la rama de gobernanza:
+- LOCKED_READ_ONLY separado del estado de sincronización;
+- autorización por objetivo, sin exigir listas manuales de archivos;
+- tests, lint, build, documentación, memoria y handoff incluidos en una tarea autorizada;
+- flujo Git completo permitido dentro del objetivo y límites seguros;
+- hallazgos fuera de alcance no bloquean salvo riesgo crítico;
+- revisores/agentes aplicables activados automáticamente cuando aportan valor;
+- instrucciones compactas de ChatGPT Project versionadas en `docs/CHATGPT_PROJECT_INSTRUCTIONS.txt` y mantenidas bajo 8000 caracteres;
+- protocol_version sube a 5.
+
+Pendiente para DONE:
+- PR de gobernanza fusionado;
+- CI de `main` verde;
+- resincronización completa bajo protocol v5.
+
+
 ## PENDING
 
 ### SEC-001 — Configurar protecciones del repositorio público
