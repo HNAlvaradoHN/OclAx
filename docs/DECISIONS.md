@@ -495,3 +495,23 @@ Reglas:
 
 **Motivo:** mantener un candado fuerte contra cambios espontáneos sin obligar al usuario a microgestionar archivos, tests, PR, CI, memoria o handoff.
 
+---
+
+## DEC-026 — Paquete maestro V4, bootstrap protegido y revisores condicionales obligatorios
+
+**Decisión:** alinear el marco general reutilizable, AGENTS.md de OclAx y las instrucciones compactas del Project bajo un mismo modelo de autonomía controlada.
+
+Reglas duraderas:
+- todo chat nuevo inicia en `LOCKED_READ_ONLY` y debe sincronizar antes de modificar;
+- bootstrap solo con la frase exacta `BOOTSTRAP AUTORIZADO`;
+- el usuario define el objetivo y no necesita enumerar archivos, clases, tests o docs;
+- una tarea autorizada incluye pruebas, revisión, Git/CI, memoria oficial y handoff dentro de su objetivo y límites seguros;
+- `sigue` solo autoriza escritura cuando GitHub/memoria oficial muestran inequívocamente un único siguiente paso;
+- los revisores definidos en `docs/REVIEW_ROLES.md` son obligatorios de forma condicional: si la matriz aplica y aportan valor, deben ejecutarse antes del cierre/merge salvo razón concreta de no aplicabilidad;
+- roles irrelevantes no se ejecutan;
+- el paquete general vive en `docs/MASTER_RULES_CHATGPT_GITHUB_V4.txt`; AGENTS.md sigue siendo la constitución específica de OclAx.
+
+**Motivo:** evitar dos extremos: agentes que modifican por iniciativa propia y agentes que obligan al usuario a microgestionar cada archivo, test, actualización de memoria o paso normal de Git.
+
+**Consecuencia:** `protocol_version` sube a 6 y cualquier sesión activa debe resincronizar después de que el cambio llegue a `main`.
+
