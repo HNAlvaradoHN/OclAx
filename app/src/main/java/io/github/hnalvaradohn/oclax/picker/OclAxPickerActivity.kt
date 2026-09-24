@@ -5,6 +5,7 @@ import android.app.Activity
 import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -18,8 +19,10 @@ import androidx.compose.runtime.setValue
 import androidx.core.content.FileProvider
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.StoredItem
+import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.platform.DeviceContentRepository
 import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
+import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import java.util.concurrent.Executors
 
@@ -33,6 +36,7 @@ internal data class PickerSelection(
 class OclAxPickerActivity : ComponentActivity() {
     private val store by lazy { ItemStore(applicationContext) }
     private val deviceContentRepository by lazy { DeviceContentRepository(applicationContext) }
+    private val thumbnailLoader by lazy { ThumbnailLoader(applicationContext) }
     private val executor = Executors.newSingleThreadExecutor()
 
     private var oclaxItems by mutableStateOf<List<StoredItem>>(emptyList())
@@ -73,6 +77,8 @@ class OclAxPickerActivity : ComponentActivity() {
                     onRequestBroadAccess = ::requestBroadFileAccess,
                     onSelectOclAxItem = ::selectOclAxItem,
                     onSelectDeviceFile = ::selectDeviceFile,
+                    onLoadOclAxThumbnail = ::loadOclAxThumbnail,
+                    onLoadDeviceThumbnail = thumbnailLoader::loadDevice,
                     onConfirmSelection = { finishWithSelections(selected) },
                 )
             }
@@ -162,6 +168,15 @@ class OclAxPickerActivity : ComponentActivity() {
             )
         }
     }
+
+    private fun loadOclAxThumbnail(item: StoredItem, targetPx: Int): Bitmap? =
+        runCatching {
+            thumbnailLoader.loadFile(
+                store.payloadFile(item),
+                contentTypeFor(item.mimeType),
+                targetPx,
+            )
+        }.getOrNull()
 
     private fun selectOclAxItem(item: StoredItem) {
         val selection = runCatching {
