@@ -311,3 +311,33 @@ Ajuste obligatorio:
 - Mi dispositivo muestra fecha/hora de modificación y ruta relativa;
 - OclAx muestra fecha/hora de la copia;
 - el picker sigue sin mostrar acciones de Compartir/Copiar/Eliminar/Fijar: tocar significa seleccionar.
+
+
+## Navegación por tarjetas visuales — 2026-09-24
+
+Decisión aprobada tras comparar la lista/categoría compacta con una presentación más visual:
+
+- la **entrada** a OclAx, **Mi dispositivo** y **Elegir con OclAx** muestra tarjetas de categorías en dos columnas;
+- cada tarjeta usa icono reconocible, nombre, cantidad y, cuando exista, tamaño agregado;
+- tocar una tarjeta entra a la lista/cuadrícula detallada de esa categoría;
+- dentro de una categoría se conserva el patrón actual de miniaturas, nombre, tipo, tamaño, fecha/ruta y acciones que correspondan;
+- las tarjetas son navegación, no sustituyen la lista detallada;
+- en pantallas pequeñas el resumen de tarjetas debe desplazarse verticalmente sin cortar categorías.
+
+### Buscador
+
+El buscador permanece visible antes de entrar a una categoría.
+
+- búsqueda vacía → tarjetas visuales;
+- escribir un nombre desde la vista inicial → resultados directos de todos los tipos permitidos;
+- en **Mi dispositivo**, la búsqueda global cubre aplicaciones por nombre/paquete y archivos por nombre/MIME/ruta;
+- dentro de una categoría, buscar limita resultados a esa categoría;
+- **Categorías** vuelve al resumen y limpia la búsqueda.
+
+### Identidad / logo
+
+El dueño pidió explícitamente no perder el logo/identidad OclAx.
+
+- mantener visible la marca **OclAx** y el naranja aprobado;
+- no copiar literalmente la apariencia de otro gestor de archivos: las tarjetas deben sentirse propias de OclAx;
+- **NO VERIFICADO / PENDIENTE:** no existe actualmente un asset gráfico oficial de logo/icono versionado en el repositorio. No inventar uno como si fuera oficial; integrar el asset aprobado cuando esté disponible.
