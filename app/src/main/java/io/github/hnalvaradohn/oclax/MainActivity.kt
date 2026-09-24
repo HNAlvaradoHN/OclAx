@@ -946,27 +946,6 @@ private fun OclAxHome(
             )
             Spacer(Modifier.height(12.dp))
 
-            if (BuildConfig.DEBUG && sourceMode == SourceMode.OCLAX) {
-                TransferDevicesSection(
-                    status = transferRuntimeStatus,
-                    busy = transferRuntimeBusy,
-                    ownDeviceId = transferDeviceId,
-                    devices = pairedDevices,
-                    lanBusyDeviceId = lanBusyDeviceId,
-                    activeLanDeviceId = activeLanDeviceId,
-                    lanStatusByDevice = lanStatusByDevice,
-                    onProbe = onProbeTransferRuntime,
-                    onStop = onStopTransferRuntime,
-                    onShareOwnId = onShareTransferDeviceId,
-                    onAddDevice = onAddPairedDevice,
-                    onSetAllowWithoutAccept = onSetAllowWithoutAccept,
-                    onRemoveDevice = onRemovePairedDevice,
-                    onTestLan = onTestLan,
-                    onDisconnectLan = onDisconnectLan,
-                )
-                Spacer(Modifier.height(12.dp))
-            }
-
             if (sourceMode == SourceMode.DEVICE) {
                 DeviceBrowser(
                     files = deviceFiles,
@@ -985,47 +964,75 @@ private fun OclAxHome(
                     onSaveViewMode = onSaveDeviceViewMode,
                 )
             } else {
-                OutlinedTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    label = { Text("Buscar en OclAx") },
-                )
-                Spacer(Modifier.height(10.dp))
-
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.Top,
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                    contentPadding = PaddingValues(bottom = 18.dp),
                 ) {
-                    ContentFilterMenu(
-                        selected = filter,
-                        onSelect = { filter = it },
-                    )
-                    Spacer(Modifier.width(12.dp))
-                    RetentionControl(
-                        retentionHours = retentionHours,
-                        onRetentionChange = onRetentionChange,
-                        modifier = Modifier.weight(1f),
-                    )
-                }
+                    if (BuildConfig.DEBUG) {
+                        item(key = "transfer-devices") {
+                            TransferDevicesSection(
+                                status = transferRuntimeStatus,
+                                busy = transferRuntimeBusy,
+                                ownDeviceId = transferDeviceId,
+                                devices = pairedDevices,
+                                lanBusyDeviceId = lanBusyDeviceId,
+                                activeLanDeviceId = activeLanDeviceId,
+                                lanStatusByDevice = lanStatusByDevice,
+                                onProbe = onProbeTransferRuntime,
+                                onStop = onStopTransferRuntime,
+                                onShareOwnId = onShareTransferDeviceId,
+                                onAddDevice = onAddPairedDevice,
+                                onSetAllowWithoutAccept = onSetAllowWithoutAccept,
+                                onRemoveDevice = onRemovePairedDevice,
+                                onTestLan = onTestLan,
+                                onDisconnectLan = onDisconnectLan,
+                            )
+                        }
+                    }
 
-                Spacer(Modifier.height(10.dp))
+                    item(key = "oclax-search") {
+                        OutlinedTextField(
+                            value = query,
+                            onValueChange = { query = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            singleLine = true,
+                            label = { Text("Buscar en OclAx") },
+                        )
+                    }
 
-                if (visibleItems.isEmpty()) {
-                    Text(
-                        if (allItems.isEmpty()) {
-                            "Todavía no hay elementos. Compartí contenido hacia OclAx."
-                        } else {
-                            "No hay elementos en ${filter.label.lowercase()} para esa búsqueda."
-                        },
-                        style = MaterialTheme.typography.bodyLarge,
-                    )
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                    ) {
+                    item(key = "oclax-controls") {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.Top,
+                        ) {
+                            ContentFilterMenu(
+                                selected = filter,
+                                onSelect = { filter = it },
+                            )
+                            Spacer(Modifier.width(12.dp))
+                            RetentionControl(
+                                retentionHours = retentionHours,
+                                onRetentionChange = onRetentionChange,
+                                modifier = Modifier.weight(1f),
+                            )
+                        }
+                    }
+
+                    if (visibleItems.isEmpty()) {
+                        item(key = "oclax-empty") {
+                            Text(
+                                if (allItems.isEmpty()) {
+                                    "Todavía no hay elementos. Compartí contenido hacia OclAx."
+                                } else {
+                                    "No hay elementos en ${filter.label.lowercase()} para esa búsqueda."
+                                },
+                                style = MaterialTheme.typography.bodyLarge,
+                            )
+                        }
+                    } else {
                         items(visibleItems, key = { it.id }) { item ->
                             ItemCard(
                                 item = item,

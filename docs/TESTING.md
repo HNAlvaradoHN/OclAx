@@ -231,8 +231,13 @@ Corrección automática validada:
 - PR #53 y main run 192 terminaron verdes en runtime nativo, tests, lint, build multi-ABI y verificación del APK;
 - la APK firmada de main run 192 quedó publicada para la siguiente prueba física.
 
+Validación física confirmada — 2026-09-23:
+- en un teléfono con la build de main run 192, **Probar motor** muestra `Listo`, Device ID y `loopback verificado`;
+- la corrección de compatibilidad XML supera físicamente la etapa que antes fallaba;
+- en esa misma pantalla se detectó que el panel técnico largo no permite desplazar verticalmente todo OclAx; existe fix de layout pendiente de CI y nueva validación física.
+
 Pendiente de validación física:
-- después de **Probar motor**, aparece el ID propio;
+- confirmar el mismo arranque correcto en el segundo teléfono;
 - **Compartir ID** abre Sharesheet sin incluir API keys, archivos ni datos personales;
 - en otro teléfono puede pegarse ese ID y guardarlo con un nombre;
 - el propio ID no puede agregarse;

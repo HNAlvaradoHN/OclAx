@@ -3,7 +3,7 @@
 ## Abiertos
 
 ### ERR-013 — Runtime Syncthing no responde a tiempo en Android
-**Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
+**Estado:** CORREGIDO_VALIDADO_1_DISPOSITIVO
 
 **Síntoma:**
 - en dos teléfonos distintos, `Probar motor` termina con `El motor no respondió a tiempo`;
@@ -43,11 +43,41 @@
 - PR #53 fue fusionado en `main`;
 - main run 192 terminó verde y publicó una APK firmada estable con el fix.
 
+**Validación física — 2026-09-23:**
+- un teléfono con la APK de main run 192 supera la preparación privada;
+- **Probar motor** devuelve Device ID y `loopback verificado`;
+- falta confirmar el segundo teléfono antes de mover ERR-013 a resuelto.
+
 **Siguiente validación física:**
-- instalar la APK firmada de main run 192 en un solo teléfono;
-- tocar **Probar motor** una vez;
-- confirmar que ya supera **preparando la configuración privada** y obtiene Device ID + loopback, o capturar el siguiente diagnóstico exacto;
-- solo después continuar con el segundo teléfono y LAN.
+- instalar la build siguiente en el segundo teléfono;
+- confirmar Device ID + loopback;
+- solo después continuar con emparejamiento y LAN.
+
+
+### ERR-014 — El panel técnico de transferencia impide hacer scroll completo en OclAx
+**Estado:** CORREGIDO_PENDIENTE_CI_Y_VALIDACION_FISICA
+
+**Síntoma:**
+- con el motor ya operativo y un dispositivo emparejado visible, el panel técnico ocupa suficiente altura para que búsqueda, filtros y contenido queden por debajo;
+- la pantalla OclAx no permite desplazar verticalmente ese conjunto completo.
+
+**Causa verificada en código:**
+- el encabezado y `TransferDevicesSection` estaban fuera del único `LazyColumn`;
+- solo la lista final de elementos OclAx era desplazable;
+- cuando el panel técnico crecía, el contenido superior consumía el alto disponible y el usuario no podía desplazar el conjunto.
+
+**Corrección implementada:**
+- mantener encabezado y selector de fuente fijos;
+- usar una única `LazyColumn` para la superficie OclAx;
+- incluir dentro del mismo scroll el panel técnico, búsqueda, filtros/retención y tarjetas;
+- conservar `DeviceBrowser` separado con su propio comportamiento existente.
+
+**Validación requerida:**
+- CI verde;
+- instalar build firmada en teléfono real;
+- confirmar desplazamiento desde el panel técnico hasta la última tarjeta y vuelta hacia arriba;
+- confirmar que búsqueda, filtros, acciones y panel LAN siguen siendo utilizables.
+
 
 
 ## Resueltos
