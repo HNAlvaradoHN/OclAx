@@ -291,11 +291,23 @@ Implementado en PR #62:
 - DocumentsProvider/`ACTION_OPEN_DOCUMENT` sin cambios;
 - tests unitarios de matching MIME.
 
+Validación física parcial — 2026-09-24:
+- **Elegir con OclAx** aparece desde una app compatible y abre correctamente la UI propia;
+- **Mi dispositivo** carga archivos reales;
+- la primera UI resultó demasiado plana: mezclaba tipos sin el mismo orden visual/categorías/miniaturas de la aplicación principal.
+
+Corrección en curso:
+- alinear selector de origen con el control compacto de la app;
+- añadir categorías OclAx/Mi dispositivo;
+- reutilizar miniaturas para Imagen/Video/PDF;
+- mostrar fecha/hora y ruta donde aplique;
+- compactar tarjetas para que se sientan como la navegación principal.
+
 Pendiente:
-- CI verde del PR;
-- validar físicamente desde una app que invoque `ACTION_GET_CONTENT`;
-- probar selección desde OclAx y Mi dispositivo;
-- probar filtro por tipo, selección múltiple, cancelar y permiso de almacenamiento negado.
+- CI verde del fix;
+- revalidar físicamente el orden visual;
+- confirmar devolución del archivo a la app llamadora;
+- probar selección múltiple, cancelar y permiso de almacenamiento negado.
 
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
 **Estado:** IN_PROGRESS  

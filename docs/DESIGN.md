@@ -295,3 +295,19 @@ Cuando una aplicación use `ACTION_GET_CONTENT` y el usuario elija **Elegir con 
 - si falta acceso amplio, Mi dispositivo muestra una explicación breve + **Conceder acceso** sin bloquear OclAx;
 - no se muestran acciones destructivas, Fijar, retención, Compartir ni controles Syncthing dentro del picker;
 - el objetivo es elegir y volver a la aplicación llamadora con el mínimo de pasos.
+
+
+### Corrección visual tras primera prueba física del picker — 2026-09-24
+
+La primera prueba confirmó que **Elegir con OclAx** aparece y abre, pero la lista inicial de **Mi dispositivo** se percibe desordenada frente a la aplicación principal.
+
+Ajuste obligatorio:
+- reutilizar la misma jerarquía visual de OclAx: encabezado de marca, selector compacto **OclAx / Mi dispositivo**, búsqueda y selector compacto de categoría;
+- no presentar todos los tipos como una lista plana sin contexto;
+- categorías: Recientes, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros; Fijados solo en OclAx;
+- cuando la app llamadora pide un MIME específico, iniciar en la categoría equivalente cuando sea posible;
+- tarjetas con densidad, borde, tipografía y espaciado equivalentes a Mi dispositivo;
+- Imagen/Video/PDF muestran miniatura real cuando pueda generarse;
+- Mi dispositivo muestra fecha/hora de modificación y ruta relativa;
+- OclAx muestra fecha/hora de la copia;
+- el picker sigue sin mostrar acciones de Compartir/Copiar/Eliminar/Fijar: tocar significa seleccionar.
