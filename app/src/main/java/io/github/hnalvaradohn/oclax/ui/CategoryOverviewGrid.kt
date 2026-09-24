@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -38,27 +40,54 @@ fun CategoryOverviewGrid(
     items: List<CategoryOverviewItem>,
     onSelect: (CategoryOverviewItem) -> Unit,
     modifier: Modifier = Modifier,
+    scrollable: Boolean = false,
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-    ) {
-        items.chunked(2).forEach { rowItems ->
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(10.dp),
-            ) {
-                rowItems.forEach { item ->
-                    CategoryOverviewCard(
-                        item = item,
-                        onClick = { onSelect(item) },
-                        modifier = Modifier.weight(1f),
-                    )
-                }
-                if (rowItems.size == 1) {
-                    Spacer(Modifier.weight(1f))
-                }
+    val rows = items.chunked(2)
+    if (scrollable) {
+        LazyColumn(
+            modifier = modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            items(rows, key = { row -> row.joinToString("|") { it.key } }) { rowItems ->
+                CategoryOverviewRow(
+                    items = rowItems,
+                    onSelect = onSelect,
+                )
             }
+        }
+    } else {
+        Column(
+            modifier = modifier.fillMaxWidth(),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            rows.forEach { rowItems ->
+                CategoryOverviewRow(
+                    items = rowItems,
+                    onSelect = onSelect,
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun CategoryOverviewRow(
+    items: List<CategoryOverviewItem>,
+    onSelect: (CategoryOverviewItem) -> Unit,
+) {
+    Row(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.spacedBy(10.dp),
+    ) {
+        items.forEach { item ->
+            CategoryOverviewCard(
+                item = item,
+                onClick = { onSelect(item) },
+                modifier = Modifier.weight(1f),
+            )
+        }
+        if (items.size == 1) {
+            Spacer(Modifier.weight(1f))
         }
     }
 }
