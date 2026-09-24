@@ -257,7 +257,7 @@ class OclAxPickerActivity : ComponentActivity() {
     private fun resolveRequestedMimeTypes(request: Intent): List<String> {
         val extras = request.getStringArrayExtra(Intent.EXTRA_MIME_TYPES)
             ?.asSequence()
-            ?.map(String::trim)
+            ?.map { it.trim() }
             ?.filter { it.isNotBlank() && it.length <= MAX_MIME_LENGTH }
             ?.take(MAX_REQUESTED_MIME_TYPES)
             ?.toList()
