@@ -329,3 +329,54 @@ Fix a validar:
 5. tarjetas compactas equivalentes a la app;
 6. selección y retorno correctos a la aplicación llamadora;
 7. selección múltiple y Cancelar.
+
+
+## PRODUCT-004 — Tarjetas visuales y búsqueda global
+
+Validación automática/CI requerida:
+- unit tests existentes de clasificación/categorías siguen verdes;
+- lint;
+- assembleDebug;
+- el cambio no añade permisos, dependencias ni acceso a red.
+
+Validación funcional:
+1. OclAx abre mostrando tarjetas de categorías cuando no hay búsqueda;
+2. tocar una tarjeta entra a su contenido y **Categorías** vuelve al resumen;
+3. escribir desde la entrada muestra resultados directos por nombre;
+4. Mi dispositivo busca también apps por nombre/paquete y archivos por nombre/MIME/ruta;
+5. las preferencias Lista/Cuadrícula siguen funcionando dentro de cada categoría de Mi dispositivo;
+6. el picker propio muestra solo tarjetas/resultados compatibles con los MIME solicitados por el caller;
+7. selección simple/múltiple del picker conserva el retorno de URI de solo lectura;
+8. tarjetas pueden desplazarse en pantallas pequeñas;
+9. modo claro/oscuro mantiene contraste y naranja de identidad.
+
+Revisión de Diseño/UX/Accesibilidad:
+- **INFORMATIVO:** jerarquía coherente: marca → origen → búsqueda → categorías → detalle;
+- **INFORMATIVO:** la tarjeta completa es táctil y cada categoría mantiene icono + texto, no depende solo del color;
+- **PENDIENTE FÍSICO:** densidad final, legibilidad, scroll y búsqueda con inventario real.
+
+Revisión de Calidad/Limpieza:
+- **INFORMATIVO:** componente de tarjetas compartido entre las tres superficies;
+- **INFORMATIVO:** se retiran los dropdowns de categoría reemplazados y la regla de categoría inicial del picker que dejó de tener consumidores;
+- **PENDIENTE CI:** confirmar imports/código muerto con lint/build.
+
+### LAN — nueva evidencia física 2026-09-24
+
+VERIFICADO:
+- ya hay dos dispositivos disponibles;
+- el teléfono mostrado tiene un peer guardado;
+- un intento LAN terminó indicando que el otro dispositivo **no apareció en discovery local** y el motor volvió al modo aislado.
+
+NO VERIFICADO:
+- si ambos teléfonos tocaron **Probar LAN** dentro de la misma ventana;
+- si el segundo motor/ID ya quedó validado con la misma build;
+- si la Wi-Fi permite multicast/comunicación directa entre clientes.
+
+Por tanto, este resultado no demuestra todavía un defecto del motor ni de la red; TRANSFER-003 continúa pendiente.
+
+
+### PICKER-001 — revalidación visual main run 229
+
+VERIFICADO físicamente:
+- el dueño confirmó que la versión corregida de **Elegir con OclAx** “ya aparece bien”.
+- ERR-015 queda resuelto para el problema visual reportado; las variantes funcionales restantes siguen en PICKER-001.
