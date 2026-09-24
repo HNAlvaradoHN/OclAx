@@ -3,7 +3,7 @@
 ## Abiertos
 
 ### ERR-015 — Picker propio funcional pero visualmente desordenado
-**Estado:** CORREGIDO_PENDIENTE_VALIDACION
+**Estado:** RESUELTO
 
 **Síntoma físico — 2026-09-24:**
 - **Elegir con OclAx** aparece y abre correctamente desde una aplicación externa;
@@ -24,10 +24,13 @@
 - tarjetas compactas alineadas a la densidad visual de OclAx;
 - tests unitarios para matching de categorías y selección inicial.
 
-**Validación pendiente:**
-- CI del fix;
-- revalidación visual en el mismo teléfono;
-- confirmar retorno del archivo y selección múltiple.
+**Validación:**
+- PR #63 terminó con CI verde y fue fusionado;
+- main run 229 terminó verde;
+- el dueño confirmó físicamente que la presentación corregida **ya aparece bien**.
+
+**Pendientes que no reabren ERR-015:**
+- variantes funcionales de selección múltiple/cancelar/permiso negado permanecen en PICKER-001.
 
 
 ### ERR-013 — Runtime Syncthing no responde a tiempo en Android
