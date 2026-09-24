@@ -282,3 +282,30 @@ Revisión aplicada según `docs/REVIEW_ROLES.md` después de detectar que el cam
 - **Calidad/Limpieza — INFORMATIVO.** Evidencia: el bloque viejo de diagnóstico fue reemplazado, no quedó duplicado activo. Recomendación: mantener esta regla al reemplazar el panel técnico.
 - **Release — NO APLICA aún.** Sigue siendo build de validación; release estable requiere además SEC-001/CodeQL, licencias/atribuciones y validación física.
 
+
+
+## Selector propio ACTION_GET_CONTENT
+
+Validación automática:
+- `PickerMimeMatcherTest` cubre `*/*`, familias como `image/*`, MIME exacto, múltiples tipos, normalización y entradas inválidas fail-closed.
+
+Pendiente de validación física:
+1. abrir desde una app que use `ACTION_GET_CONTENT`;
+2. confirmar que aparece **Elegir con OclAx** como opción;
+3. entrar a **OclAx**, buscar y devolver un archivo compatible;
+4. entrar a **Mi dispositivo**, buscar y devolver un archivo compatible;
+5. confirmar que la app llamadora puede leer el URI devuelto pero no obtiene permiso de escritura;
+6. repetir con `image/*` y confirmar que no se ofrecen PDF/audio/etc.;
+7. repetir con selección múltiple y confirmar que se devuelven todos los elementos elegidos;
+8. cancelar y confirmar que la app llamadora recibe resultado cancelado;
+9. sin acceso amplio, confirmar que OclAx sigue disponible y Mi dispositivo muestra **Conceder acceso**;
+10. confirmar que `ACTION_OPEN_DOCUMENT`/Archivos → OclAx conserva su flujo anterior.
+
+Revisión obligatoria PICKER-001:
+- **Seguridad — INFORMATIVO.** Activity exportada pero restringida por acción y selección explícita; MIME externos y cantidad de selección acotados; FileProvider sigue no exportado y solo concede lectura temporal.
+- **Privacidad — INFORMATIVO.** La app llamadora no recibe el inventario ni el contenido de OclAx automáticamente; solo el URI de lo seleccionado por el usuario.
+- **Arquitectura — INFORMATIVO.** Activity/plataforma, UI Compose y matching MIME quedaron separados; reutilizan ItemStore y DeviceContentRepository.
+- **Plataforma Android — INFORMATIVO.** `ACTION_GET_CONTENT` devuelve `data` para selección simple y `ClipData` para múltiple, con `FLAG_GRANT_READ_URI_PERMISSION`; DocumentsProvider no cambia.
+- **QA — PENDIENTE FÍSICO.** CI cubre build/lint/tests; falta interoperabilidad real con aplicaciones externas.
+- **Diseño/UX/Accesibilidad — NO BLOQUEANTE.** Dos orígenes claros, búsqueda, cancelar, estado de selección y botón final para múltiple; miniaturas pueden añadirse después sin bloquear el flujo.
+- **Calidad/Limpieza — INFORMATIVO.** La nueva UI no se incrusta en MainActivity y no añade dependencias.
