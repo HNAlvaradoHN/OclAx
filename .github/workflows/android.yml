@@ -23,18 +23,31 @@ jobs:
       GO_VERSION: "1.27.1"
       NDK_VERSION: "30.0.16248370"
       MIN_ANDROID_API: "26"
+      # Increment when the native build recipe changes outside the pinned inputs below.
+      NATIVE_CACHE_SCHEMA: "1"
 
     steps:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Restore pinned native runtime cache
+        id: native-cache
+        uses: actions/cache@v6.1.0
+        with:
+          path: |
+            ${{ runner.temp }}/syncthing-jni
+            ${{ runner.temp }}/syncthing-commit.txt
+          key: oclax-native-${{ runner.os }}-schema-${{ env.NATIVE_CACHE_SCHEMA }}-syncthing-${{ env.SYNCTHING_COMMIT }}-go-${{ env.GO_VERSION }}-ndk-${{ env.NDK_VERSION }}-api-${{ env.MIN_ANDROID_API }}
+
       - name: Set up Go
+        if: steps.native-cache.outputs.cache-hit != 'true'
         uses: actions/setup-go@v6
         with:
           go-version: ${{ env.GO_VERSION }}
           cache: false
 
       - name: Resolve pinned Android NDK
+        if: steps.native-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -55,6 +68,7 @@ jobs:
           echo "OCLAX_NDK_CC=${CLANG}" >> "${GITHUB_ENV}"
 
       - name: Fetch pinned Syncthing source
+        if: steps.native-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -66,6 +80,7 @@ jobs:
           printf '%s\n' "${ACTUAL_COMMIT}" > "${RUNNER_TEMP}/syncthing-commit.txt"
 
       - name: Build Android runtimes
+        if: steps.native-cache.outputs.cache-hit != 'true'
         shell: bash
         run: |
           set -euo pipefail
@@ -99,6 +114,19 @@ jobs:
           build_target arm armeabi-v7a "${TOOLCHAIN}/armv7a-linux-androideabi${MIN_ANDROID_API}-clang"
           build_target amd64 x86_64 "${TOOLCHAIN}/x86_64-linux-android${MIN_ANDROID_API}-clang"
           build_target 386 x86 "${TOOLCHAIN}/i686-linux-android${MIN_ANDROID_API}-clang"
+
+      - name: Verify cached or built native runtimes
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          test "$(cat "${RUNNER_TEMP}/syncthing-commit.txt")" = "${SYNCTHING_COMMIT}"
+          for abi in arm64-v8a armeabi-v7a x86_64 x86; do
+            cd "${RUNNER_TEMP}/syncthing-jni/${abi}"
+            test -s libsyncthingnative.so
+            sha256sum --check libsyncthingnative.so.sha256
+            file libsyncthingnative.so
+          done
 
       - name: Upload native runtimes
         uses: actions/upload-artifact@v4
