@@ -3,7 +3,7 @@
 ## Abiertos
 
 ### ERR-013 — Runtime Syncthing no responde a tiempo en Android
-**Estado:** ABIERTO_EN_DIAGNOSTICO
+**Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
 
 **Síntoma:**
 - en dos teléfonos distintos, `Probar motor` termina con `El motor no respondió a tiempo`;
@@ -16,8 +16,11 @@
 - `STMONITORED=1` + `SQLITE_TMPDIR` pasaron CI pero no eliminaron el timeout físicamente;
 - la UI anterior ocultaba si el fallo ocurría al preparar configuración, arrancar el binario, abrir REST o endurecer opciones privadas.
 
-**Causa:**
-- **DESCONOCIDA.** La hipótesis de que el monitor externo/re-exec era por sí solo la causa quedó refutada como solución suficiente por la prueba física posterior a PR #47.
+**Causa verificada — 2026-09-23:**
+- la build diagnóstica de main llegó a la etapa **preparando la configuración privada** y falló antes de arrancar Syncthing;
+- Android rechazó la llamada obligatoria a `DocumentBuilderFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)`;
+- esa feature específica de Xerces no está disponible de forma uniforme en los parsers XML de Android, por lo que la protección defensiva abortaba el flujo antes de que Syncthing pudiera iniciar;
+- la hipótesis anterior de monitor externo/re-exec sigue descartada como solución suficiente.
 
 **Diagnóstico implementado en PR #48:**
 - registrar localmente la etapa exacta de arranque;
@@ -28,11 +31,19 @@
 - tests unitarios cubren el formateo y la sanitización;
 - CI del PR terminó verde en tests, lint, build multi-ABI y verificación de runtimes.
 
+**Corrección implementada:**
+- las flags XML dependientes del parser pasan a ser defensa en profundidad y no abortan si Android no las soporta;
+- antes de parsear, OclAx rechaza explícitamente declaraciones `DOCTYPE` y `ENTITY`;
+- el `DocumentBuilder` instala además un `EntityResolver` que rechaza cualquier resolución externa;
+- `snapshot()` reutiliza la misma ruta segura;
+- se añade regresión unitaria para una feature XML no soportada y se conservan las pruebas de rechazo de XXE/DOCTYPE.
+
 **Siguiente validación:**
-- instalar la build firmada generada desde `main` tras fusionar PR #48;
-- probar primero un solo teléfono;
-- capturar el diagnóstico exacto;
-- corregir la causa evidenciada y repetir hasta obtener Device ID + loopback;
+- pasar tests, lint y build multi-ABI en CI;
+- fusionar solo con CI verde;
+- generar la build firmada de `main`;
+- probar primero un solo teléfono y tocar **Probar motor** una vez;
+- confirmar que ya supera **preparando la configuración privada** y obtiene Device ID + loopback, o capturar el siguiente diagnóstico exacto;
 - solo después continuar con el segundo teléfono y LAN.
 
 
