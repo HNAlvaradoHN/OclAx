@@ -6,9 +6,10 @@ object PickerMimeMatcher {
         requestedMimeTypes: Collection<String>,
     ): Boolean {
         val candidate = normalize(candidateMimeType) ?: return false
-        val requested = requestedMimeTypes
-            .mapNotNull(::normalize)
-            .ifEmpty { listOf("*/*") }
+        if (requestedMimeTypes.isEmpty()) return true
+
+        val requested = requestedMimeTypes.mapNotNull(::normalize)
+        if (requested.isEmpty()) return false
 
         return requested.any { request ->
             when {
