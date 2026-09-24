@@ -109,6 +109,11 @@ Cuando exista UI, también:
 Cuando existan herramientas externas relevantes:
 - `docs/TOOLS.md`
 
+Bootstrap compacto para ChatGPT Project:
+- `docs/CHATGPT_PROJECT_INSTRUCTIONS.txt`
+
+Ese archivo existe para el límite de caracteres del Project y debe delegar aquí las reglas mutables. Si diverge, manda AGENTS.md vigente.
+
 Responsabilidad:
 
 ### PROJECT_STATE
