@@ -124,21 +124,23 @@
 - **FALLO FÍSICO REPRODUCIDO EN DOS TELÉFONOS:** `Probar motor` agotó el tiempo antes de obtener Device ID, por lo que la prueba LAN no puede comenzar aún;
 - **PR #47 / MAIN CI VERDE, PERO FALLÓ LA REPRUEBA FÍSICA:** ejecutar Syncthing como proceso interno ya supervisado (`STMONITORED=1`) y usar almacenamiento temporal privado para SQLite no eliminó el timeout; esa hipótesis queda descartada como solución suficiente;
 - **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** OclAx registra localmente la etapa de arranque, código de salida y una única línea de log sanitizada del intento actual para reemplazar el timeout genérico por evidencia accionable; no añade permisos ni telemetría; la build diagnóstica identificó el fallo en la preparación de configuración privada por una feature XML no soportada en Android;
-- **CAUSA DE ARRANQUE VERIFICADA Y FIX FUSIONADO:** el parser XML de Android rechazaba la feature Xerces `disallow-doctype-decl` antes de iniciar Syncthing; PR #53 reemplaza esa dependencia por controles portables que conservan bloqueo de DOCTYPE/ENTITY y resolución externa; PR CI y main run 192 quedaron verdes;
-- TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta que la nueva build obtenga Device ID + loopback y recién después se pruebe LAN;
+- **CAUSA DE ARRANQUE VERIFICADA, FIX FUSIONADO Y VALIDACIÓN FÍSICA PARCIAL SUPERADA:** el parser XML de Android rechazaba la feature Xerces `disallow-doctype-decl` antes de iniciar Syncthing; PR #53 reemplazó esa dependencia por controles portables, main run 192 quedó verde y en un teléfono real **Probar motor** ya devuelve Device ID + `loopback verificado`;
+- **FALLO UX DETECTADO EN LA MISMA PRUEBA:** al crecer el panel técnico de transferencia, la superficie OclAx no permite desplazar verticalmente todo el contenido; corrección implementada en rama `fix/transfer-panel-scroll`, pendiente CI/validación física;
+- TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta validar el segundo teléfono y luego la conexión LAN;
 - todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
 
 ## Bloqueos
 
-- **TRANSFER-001 BLOQUEADO_PENDIENTE_VALIDACION_FISICA:** la causa inmediata del arranque ya está VERIFICADA y el fix pasó CI/merge/main; falta comprobar en dispositivo que supera la preparación privada y obtiene Device ID + loopback;
+- **TRANSFER-001 AVANZÓ:** un teléfono ya supera la preparación privada y obtiene Device ID + loopback; falta confirmar el segundo teléfono antes de cerrar la validación del arranque;
+- **UX DE PRUEBA BLOQUEADA PARCIALMENTE:** el panel técnico largo impide hacer scroll completo en OclAx; el fix está implementado y pendiente CI/validación física;
 - siguen pendientes validaciones físicas del borrado corregido y otros puntos de Mi dispositivo antes de declarar esos bloques DONE.
 
 ## Siguiente paso exacto
 
-1. Instalar la APK firmada publicada por **main run 192** en **un teléfono primero**.
-2. Tocar **Probar motor** una sola vez.
-3. Confirmar que supera la etapa de configuración privada y obtiene Device ID + loopback; si aparece otro fallo, registrar el diagnóstico exacto y corregir esa causa.
-4. Solo después probar el segundo teléfono, compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
+1. Completar CI y merge del fix de scroll del panel técnico.
+2. Instalar la nueva build firmada en el teléfono ya validado y confirmar que toda la superficie OclAx puede desplazarse hasta el final.
+3. Instalar la misma build en el segundo teléfono y tocar **Probar motor** una vez; debe mostrar Device ID + loopback.
+4. Compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
 5. En la misma Wi-Fi, tocar **Probar LAN** en ambos y confirmar **Conectado por LAN**; después desconectar y comprobar retorno a modo aislado.
 6. Crear el canal privado de transferencia de archivos + progreso solo después de validar esa conexión.
 7. Mantener en paralelo las validaciones pendientes de PDF/borrado/apps/vistas/fecha-hora en Mi dispositivo.
