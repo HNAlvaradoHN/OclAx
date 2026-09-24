@@ -22,6 +22,23 @@ internal data class LanPeerConnectionResult(
     val connectionType: String,
 )
 
+internal fun describeLanTimeout(
+    discoveredLocally: Boolean,
+    peerPaused: Boolean?,
+): String = when {
+    peerPaused == true ->
+        "El dispositivo quedó pausado en el motor local. Volvé a intentar la prueba LAN."
+
+    discoveredLocally ->
+        "El otro teléfono apareció en discovery local, pero no se completó la conexión. " +
+            "Confirmá que ambos tengan agregado el ID del otro y que ambos hayan tocado Probar LAN."
+
+    else ->
+        "El otro teléfono no apareció en discovery local. " +
+            "Abrí OclAx en ambos teléfonos y tocá Probar LAN en los dos dentro de la misma ventana. " +
+            "Si ambos lo hacen y sigue igual, la Wi-Fi puede estar aislando dispositivos o multicast."
+}
+
 internal class SyncthingRestClient(
     private val config: SyncthingRuntimeConfig,
 ) {
@@ -206,9 +223,25 @@ internal class SyncthingRestClient(
             Thread.sleep(500L)
         }
 
+        val connection = runCatching {
+            getJson("/rest/system/connections")
+                .optJSONObject("connections")
+                ?.optJSONObject(deviceId)
+        }.getOrNull()
+        val discoveredLocally = runCatching {
+            val discovery = getJson("/rest/system/discovery")
+            val addresses = discovery.optJSONArray(deviceId)
+            addresses != null && addresses.length() > 0
+        }.getOrDefault(false)
+        val peerPaused = connection
+            ?.takeIf { it.has("paused") }
+            ?.optBoolean("paused")
+
         throw IOException(
-            "No se encontró el otro dispositivo en la red local. " +
-                "Abrí OclAx en ambos teléfonos y probá LAN en los dos.",
+            describeLanTimeout(
+                discoveredLocally = discoveredLocally,
+                peerPaused = peerPaused,
+            ),
         )
     }
 

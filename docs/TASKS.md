@@ -297,11 +297,12 @@ Spike técnico, en orden:
 9. **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** registrar etapa exacta, código de salida y una línea de log del intento actual sanitizada; sin permisos, telemetría ni subida de logs.
 10. **CAUSA VERIFICADA EN DISPOSITIVO:** Android falla al preparar la configuración porque su parser no soporta obligatoriamente la feature Xerces `disallow-doctype-decl`.
 11. **FIX VALIDADO EN UN TELÉFONO REAL:** PR #53 fusionado; main run 192 verde; la APK firmada supera la preparación privada y **Probar motor** devuelve Device ID + `loopback verificado`.
-12. **FALLO UX DETECTADO Y FIX IMPLEMENTADO_PENDIENTE_CI/FÍSICA:** el panel técnico de transferencia quedó fuera del scroll principal cuando creció; la rama `fix/transfer-panel-scroll` convierte OclAx en una única lista desplazable para panel, búsqueda, controles y tarjetas.
-13. **SIGUIENTE:** CI → merge → nueva build firmada → validar scroll en el primer teléfono y motor en el segundo.
-14. emparejar dos instalaciones de prueba y validar conexión LAN;
-15. validar conexión Internet directa y relay público como fallback;
-16. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
+12. **FALLO UX CORREGIDO_PENDIENTE_VALIDACIÓN_FÍSICA:** PR #55 fusionado y main run 196 verde; OclAx usa una única lista desplazable para panel, búsqueda, controles y tarjetas.
+13. **DIAGNÓSTICO LAN IMPLEMENTADO_PENDIENTE_CI/FÍSICA:** al vencer la búsqueda, consulta `/rest/system/discovery` y diferencia `no visto por discovery`, `visto sin conexión` y `peer pausado`, sin exponer IPs.
+14. **SIGUIENTE:** build firmada → validar scroll/motor en el primer teléfono; con el segundo disponible, probar motor, emparejamiento y LAN usando el nuevo diagnóstico si falla.
+15. emparejar dos instalaciones de prueba y validar conexión LAN;
+16. validar conexión Internet directa y relay público como fallback;
+17. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;
@@ -349,7 +350,8 @@ Implementado:
 - Android mantiene un MulticastLock solo durante la búsqueda por discovery local y lo libera en cuanto la conexión LAN queda confirmada;
 - la conexión solo se considera válida cuando Syncthing informa `connected=true` e `isLocal=true`;
 - **Desconectar LAN** pausa el peer, restaura el motor a modo aislado y libera el MulticastLock; si la restauración falla, el runtime se detiene por seguridad;
-- no se comparte ninguna carpeta ni archivo todavía.
+- al vencer la búsqueda, el diagnóstico consulta el cache local de discovery de Syncthing y distingue si el peer nunca apareció, apareció pero no conectó o quedó pausado;
+- no se muestran direcciones IP del cache en UI y no se comparte ninguna carpeta ni archivo todavía.
 
 Validado:
 - PR #42 fusionado;
