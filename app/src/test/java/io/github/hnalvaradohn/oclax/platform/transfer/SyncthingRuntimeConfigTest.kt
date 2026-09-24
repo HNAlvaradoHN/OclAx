@@ -32,7 +32,7 @@ class SyncthingRuntimeConfigTest {
             apiKey = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFG",
         )
 
-        assertEquals("yes", environment["STMONITORED"])
+        assertEquals("1", environment["STMONITORED"])
         assertEquals("/private/home", environment["STHOMEDIR"])
         assertEquals("/private/cache", environment["SQLITE_TMPDIR"])
         assertEquals("127.0.0.1:8384", environment["STGUIADDRESS"])
