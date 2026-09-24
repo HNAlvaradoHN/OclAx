@@ -1,3 +1,7 @@
+# ERRORS
+
+## Abiertos
+
 ### ERR-015 — Picker propio funcional pero visualmente desordenado
 **Estado:** CORREGIDO_PENDIENTE_VALIDACION
 
@@ -25,9 +29,6 @@
 - revalidación visual en el mismo teléfono;
 - confirmar retorno del archivo y selección múltiple.
 
-# ERRORS
-
-## Abiertos
 
 ### ERR-013 — Runtime Syncthing no responde a tiempo en Android
 **Estado:** CORREGIDO_VALIDADO_1_DISPOSITIVO
