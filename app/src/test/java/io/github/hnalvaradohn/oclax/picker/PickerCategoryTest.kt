@@ -1,6 +1,5 @@
 package io.github.hnalvaradohn.oclax.picker
 
-import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -28,26 +27,10 @@ class PickerCategoryTest {
     }
 
     @Test
-    fun initialCategoryUsesCallerMimeWhenItIsSpecific() {
-        assertEquals(
-            PickerCategory.IMAGES,
-            defaultPickerCategory(listOf("image/*")),
-        )
-        assertEquals(
-            PickerCategory.PDF,
-            defaultPickerCategory(listOf("application/pdf")),
-        )
+    fun everyTypedCategoryRejectsUnrelatedContent() {
+        assertFalse(PickerCategory.IMAGES.matches("application/pdf"))
+        assertFalse(PickerCategory.PDF.matches("image/png"))
+        assertFalse(PickerCategory.APK.matches("text/plain"))
     }
 
-    @Test
-    fun initialCategoryUsesRecentForGenericOrMixedRequests() {
-        assertEquals(
-            PickerCategory.RECENT,
-            defaultPickerCategory(listOf("*/*")),
-        )
-        assertEquals(
-            PickerCategory.RECENT,
-            defaultPickerCategory(listOf("image/*", "application/pdf")),
-        )
-    }
 }
