@@ -54,6 +54,7 @@ internal class SyncthingRuntimeService : Service() {
     private val worker = Executors.newSingleThreadExecutor()
     private val processLock = Any()
     private lateinit var runtimeConfig: SyncthingRuntimeConfig
+    private lateinit var startupDiagnostics: RuntimeStartupDiagnostics
 
     @Volatile
     private var stopping = false
@@ -64,6 +65,7 @@ internal class SyncthingRuntimeService : Service() {
     override fun onCreate() {
         super.onCreate()
         runtimeConfig = SyncthingRuntimeConfig(applicationContext)
+        startupDiagnostics = RuntimeStartupDiagnostics(applicationContext)
         createNotificationChannel()
     }
 
@@ -113,16 +115,22 @@ internal class SyncthingRuntimeService : Service() {
     private fun requestStart() {
         stopping = false
         worker.execute {
+            var stage = RuntimeStartupStage.PREPARING_PRIVATE_CONFIG
             try {
                 val alreadyRunning = synchronized(processLock) {
                     runtimeProcess?.isAlive == true
                 }
                 if (alreadyRunning) {
+                    startupDiagnostics.markStage(RuntimeStartupStage.PRIVATE_MODE_VERIFIED)
                     updateNotification("Motor de envío activo.")
                     return@execute
                 }
 
+                startupDiagnostics.markStage(stage)
                 runtimeConfig.prepare()
+
+                stage = RuntimeStartupStage.PRIVATE_CONFIG_READY
+                startupDiagnostics.markStage(stage)
 
                 val builder = ProcessBuilder(runtimeConfig.command())
                     .directory(runtimeConfig.homeDir)
@@ -134,6 +142,8 @@ internal class SyncthingRuntimeService : Service() {
                 synchronized(processLock) {
                     runtimeProcess = process
                 }
+                stage = RuntimeStartupStage.PROCESS_STARTED
+                startupDiagnostics.markStage(stage)
 
                 Thread(
                     {
@@ -146,6 +156,7 @@ internal class SyncthingRuntimeService : Service() {
                             ownedProcess && !stopping
                         }
                         if (shouldStopService) {
+                            startupDiagnostics.markExited(exitCode)
                             updateNotification("Motor detenido (código $exitCode).")
                             stopForegroundAndSelf()
                         }
@@ -158,7 +169,12 @@ internal class SyncthingRuntimeService : Service() {
 
                 val restClient = SyncthingRestClient(runtimeConfig)
                 restClient.awaitReady()
+                stage = RuntimeStartupStage.REST_READY
+                startupDiagnostics.markStage(stage)
+
                 restClient.enforcePrivateOptions()
+                stage = RuntimeStartupStage.PRIVATE_MODE_VERIFIED
+                startupDiagnostics.markStage(stage)
 
                 if (stopping) {
                     requestStop()
@@ -167,6 +183,7 @@ internal class SyncthingRuntimeService : Service() {
 
                 updateNotification("Motor de envío activo.")
             } catch (error: Exception) {
+                startupDiagnostics.markFailure(stage, error.message)
                 synchronized(processLock) {
                     runtimeProcess?.destroyForcibly()
                     runtimeProcess = null
@@ -205,6 +222,7 @@ internal class SyncthingRuntimeService : Service() {
                     runtimeProcess = null
                 }
             }
+            startupDiagnostics.markStage(RuntimeStartupStage.STOPPED)
             stopForegroundAndSelf()
         }
     }
