@@ -271,7 +271,9 @@ class OclAxPickerActivity : ComponentActivity() {
         }
 
         val result = Intent().apply {
-            data = first.uri
+            if (selections.size == 1) {
+                data = first.uri
+            }
             type = resultMimeType(selections)
             clipData = clip
             addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
