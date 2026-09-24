@@ -309,3 +309,23 @@ Revisión obligatoria PICKER-001:
 - **QA — PENDIENTE FÍSICO.** CI cubre build/lint/tests; falta interoperabilidad real con aplicaciones externas.
 - **Diseño/UX/Accesibilidad — NO BLOQUEANTE.** Dos orígenes claros, búsqueda, cancelar, estado de selección y botón final para múltiple; miniaturas pueden añadirse después sin bloquear el flujo.
 - **Calidad/Limpieza — INFORMATIVO.** La nueva UI no se incrusta en MainActivity y no añade dependencias.
+
+
+### Primera validación física del picker — 2026-09-24
+
+VERIFICADO físicamente:
+- una aplicación externa compatible muestra **Elegir con OclAx**;
+- al elegirlo se abre la pantalla propia;
+- **Mi dispositivo** muestra archivos reales del teléfono.
+
+HALLAZGO BLOQUEANTE DE UX:
+- la primera pantalla mezcló todos los tipos en una lista plana y no se veía/ordenaba como la navegación principal de OclAx.
+
+Fix a validar:
+1. selector **OclAx / Mi dispositivo** con la misma densidad que la app;
+2. selector de categorías;
+3. miniaturas para Imagen/Video/PDF;
+4. fecha/hora y ruta en Mi dispositivo;
+5. tarjetas compactas equivalentes a la app;
+6. selección y retorno correctos a la aplicación llamadora;
+7. selección múltiple y Cancelar.
