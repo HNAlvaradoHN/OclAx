@@ -38,11 +38,14 @@
 - `snapshot()` reutiliza la misma ruta segura;
 - se añade regresión unitaria para una feature XML no soportada y se conservan las pruebas de rechazo de XXE/DOCTYPE.
 
-**Siguiente validación:**
-- pasar tests, lint y build multi-ABI en CI;
-- fusionar solo con CI verde;
-- generar la build firmada de `main`;
-- probar primero un solo teléfono y tocar **Probar motor** una vez;
+**Validación automática:**
+- PR #53 terminó verde en runtime nativo, tests, lint, build multi-ABI y verificación del APK;
+- PR #53 fue fusionado en `main`;
+- main run 192 terminó verde y publicó una APK firmada estable con el fix.
+
+**Siguiente validación física:**
+- instalar la APK firmada de main run 192 en un solo teléfono;
+- tocar **Probar motor** una vez;
 - confirmar que ya supera **preparando la configuración privada** y obtiene Device ID + loopback, o capturar el siguiente diagnóstico exacto;
 - solo después continuar con el segundo teléfono y LAN.
 
