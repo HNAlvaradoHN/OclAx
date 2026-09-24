@@ -266,7 +266,7 @@ Pendiente:
 - comprobar cantidad/categorías de archivos reales;
 - miniaturas reales para imágenes/video;
 - validar rendimiento en teléfonos con muchos archivos;
-- mostrar fecha y hora de modificación en las tarjetas de **Mi dispositivo**, igual que en Recientes, dejando claro que no equivale necesariamente a la hora de recepción OclAx.
+- **VALIDADO FÍSICAMENTE:** fecha y hora de modificación visibles en las tarjetas de **Mi dispositivo** con main run 207; describe modificación del archivo, no hora de recepción OclAx.
 
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
 **Estado:** IN_PROGRESS  
@@ -299,10 +299,11 @@ Spike técnico, en orden:
 11. **FIX VALIDADO EN UN TELÉFONO REAL:** PR #53 fusionado; main run 192 verde; la APK firmada supera la preparación privada y **Probar motor** devuelve Device ID + `loopback verificado`.
 12. **FALLO UX CORREGIDO_PENDIENTE_VALIDACIÓN_FÍSICA:** PR #55 fusionado y main run 196 verde; OclAx usa una única lista desplazable para panel, búsqueda, controles y tarjetas.
 13. **DIAGNÓSTICO LAN IMPLEMENTADO_PENDIENTE_CI/FÍSICA:** al vencer la búsqueda, consulta `/rest/system/discovery` y diferencia `no visto por discovery`, `visto sin conexión` y `peer pausado`, sin exponer IPs.
-14. **SIGUIENTE:** build firmada → validar scroll/motor en el primer teléfono; con el segundo disponible, probar motor, emparejamiento y LAN usando el nuevo diagnóstico si falla.
-15. emparejar dos instalaciones de prueba y validar conexión LAN;
-16. validar conexión Internet directa y relay público como fallback;
-17. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
+14. **VALIDADO EN PRIMER TELÉFONO:** main run 207 confirma scroll completo, Device ID + loopback y fecha/hora en Mi dispositivo.
+15. **SIGUIENTE:** con el segundo teléfono disponible, probar motor, emparejamiento y LAN usando el nuevo diagnóstico si falla.
+16. emparejar dos instalaciones de prueba y validar conexión LAN;
+17. validar conexión Internet directa y relay público como fallback;
+18. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;
