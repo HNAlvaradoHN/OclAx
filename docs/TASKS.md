@@ -296,11 +296,12 @@ Spike técnico, en orden:
 8. **REPRUEBA FÍSICA FALLIDA:** la build firmada de `main` siguió mostrando `El motor no respondió a tiempo`; por tanto esa hipótesis no resolvió la causa real.
 9. **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** registrar etapa exacta, código de salida y una línea de log del intento actual sanitizada; sin permisos, telemetría ni subida de logs.
 10. **CAUSA VERIFICADA EN DISPOSITIVO:** Android falla al preparar la configuración porque su parser no soporta obligatoriamente la feature Xerces `disallow-doctype-decl`.
-11. **FIX IMPLEMENTADO_PENDIENTE_VALIDACIÓN_FÍSICA:** PR #53 fusionado; PR CI y main run 192 verdes; las flags dependientes del parser son opcionales y el bloqueo de DOCTYPE/ENTITY + resolución externa se mantiene con controles independientes.
-12. **SIGUIENTE:** instalar la APK firmada de main run 192 y probar un teléfono hasta obtener Device ID + loopback.
-13. emparejar dos instalaciones de prueba y validar conexión LAN;
-14. validar conexión Internet directa y relay público como fallback;
-15. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
+11. **FIX VALIDADO EN UN TELÉFONO REAL:** PR #53 fusionado; main run 192 verde; la APK firmada supera la preparación privada y **Probar motor** devuelve Device ID + `loopback verificado`.
+12. **FALLO UX DETECTADO Y FIX IMPLEMENTADO_PENDIENTE_CI/FÍSICA:** el panel técnico de transferencia quedó fuera del scroll principal cuando creció; la rama `fix/transfer-panel-scroll` convierte OclAx en una única lista desplazable para panel, búsqueda, controles y tarjetas.
+13. **SIGUIENTE:** CI → merge → nueva build firmada → validar scroll en el primer teléfono y motor en el segundo.
+14. emparejar dos instalaciones de prueba y validar conexión LAN;
+15. validar conexión Internet directa y relay público como fallback;
+16. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;
