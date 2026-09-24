@@ -284,3 +284,16 @@ Controles:
 - PDF/documentos no se disfrazan como contenido multimedia para forzar una confirmación incompatible.
 - El borrado de originales nunca participa en retención/autolimpieza y no cambia la regla de que ItemStore solo elimina copias privadas de OclAx.
 - Cancelar una confirmación deja el original intacto.
+
+
+## Selector exportado ACTION_GET_CONTENT
+
+- `OclAxPickerActivity` está exportada únicamente para integrarse con aplicaciones que solicitan `ACTION_GET_CONTENT`.
+- La Activity verifica la acción al arrancar y cancela cualquier otra invocación explícita.
+- Abrir el picker no entrega datos: el caller recibe un URI solo después de una selección visible del usuario.
+- El picker no expone rutas `file://`, no concede escritura y no cambia el estado de los elementos.
+- Las copias privadas usan FileProvider `exported=false` con `FLAG_GRANT_READ_URI_PERMISSION` en el resultado.
+- Mi dispositivo reutiliza URIs de contenido ya indexadas y no copia el archivo por el simple hecho de seleccionarlo.
+- Los MIME suministrados por una app externa se tratan como no confiables: longitud/cantidad acotadas y matching fail-closed para entradas inválidas.
+- La selección múltiple tiene un límite defensivo para evitar resultados/transactions desproporcionados.
+- No se añaden permisos, telemetría, red ni ejecución de archivos por esta integración.

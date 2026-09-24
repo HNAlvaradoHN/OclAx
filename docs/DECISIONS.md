@@ -515,3 +515,23 @@ Reglas duraderas:
 
 **Consecuencia:** `protocol_version` sube a 6 y cualquier sesión activa debe resincronizar después de que el cambio llegue a `main`.
 
+
+
+---
+
+## DEC-027 — Selector propio para ACTION_GET_CONTENT sin sustituir SAF
+
+**Decisión:** OclAx soporta dos caminos de selección complementarios.
+
+1. `ACTION_OPEN_DOCUMENT` / SAF continúa atendido por `OclAxDocumentsProvider` dentro de la UI de Android.
+2. `ACTION_GET_CONTENT` puede abrir `OclAxPickerActivity`, una UI propia de OclAx que permite elegir desde la bandeja privada o desde **Mi dispositivo**.
+
+Reglas:
+- no registrar el picker propio como manejador de `ACTION_OPEN_DOCUMENT`;
+- no duplicar almacenamiento ni importar un original solo para devolverlo al caller;
+- devolver únicamente URIs `content://` con lectura temporal;
+- respetar el MIME solicitado y selección múltiple cuando corresponda;
+- ninguna app externa obtiene listado/contenido sin interacción visible del usuario;
+- mantener la lógica del picker separada de MainActivity.
+
+**Motivo:** algunas aplicaciones permiten proveedores visuales propios mediante `ACTION_GET_CONTENT`. OclAx puede ofrecer una experiencia más rápida que navegar carpetas tradicionales, sin perder compatibilidad con el selector SAF ya implementado.

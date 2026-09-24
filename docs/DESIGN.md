@@ -280,3 +280,18 @@ Si falta el permiso amplio, mostrar una explicación corta y un único botón **
 - Los archivos originales muestran acción destructiva **Eliminar original** en rojo y con confirmación explícita.
 - El texto de confirmación debe dejar claro que no se trata de la autolimpieza de OclAx.
 - Dentro del selector de archivos de Android, OclAx ofrece miniaturas y una preferencia inicial; los controles de vista del selector pertenecen al sistema y el usuario conserva la decisión final.
+
+
+## Selector propio invocado desde otra app
+
+Cuando una aplicación use `ACTION_GET_CONTENT` y el usuario elija **Elegir con OclAx**:
+- la pantalla usa el tema OclAx normal, no una UI técnica;
+- encabezado: **Elegir con OclAx** + acción **Cancelar**;
+- selector principal: **OclAx / Mi dispositivo**;
+- búsqueda específica del origen actual;
+- solo se muestran tipos compatibles con el MIME solicitado por la app llamadora;
+- selección simple: tocar un archivo lo devuelve inmediatamente;
+- selección múltiple: tocar alterna selección, muestra estado visual y un botón inferior **Usar N archivos**;
+- si falta acceso amplio, Mi dispositivo muestra una explicación breve + **Conceder acceso** sin bloquear OclAx;
+- no se muestran acciones destructivas, Fijar, retención, Compartir ni controles Syncthing dentro del picker;
+- el objetivo es elegir y volver a la aplicación llamadora con el mínimo de pasos.

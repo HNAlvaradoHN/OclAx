@@ -117,6 +117,40 @@ Principios:
 - la bandeja temporal y su ItemStore conservan la propiedad exclusiva de sus copias;
 - denegar/revocar permisos no debe romper la bandeja OclAx.
 
+## Selector propio desde otras aplicaciones — ACTION_GET_CONTENT
+
+OclAx mantiene dos integraciones complementarias con el selector de Android:
+
+```text
+Otra aplicación
+   │
+   ├─ ACTION_OPEN_DOCUMENT / selector SAF
+   │       ↓
+   │  DocumentsProvider OclAx
+   │
+   └─ ACTION_GET_CONTENT
+           ↓
+      OclAxPickerActivity
+           ↓
+   ┌───────┴────────┐
+   ↓                ↓
+ItemStore     DeviceContentRepository
+   └───────┬────────┘
+           ↓
+     content:// URI
+           ↓
+   aplicación llamadora
+```
+
+Reglas:
+- `OclAxPickerActivity` es una superficie exportada solo para `ACTION_GET_CONTENT`; cualquier otra acción termina cancelada;
+- la UI del picker vive separada de la Activity y reutiliza ItemStore/Mi dispositivo en vez de duplicar almacenamiento;
+- la aplicación llamadora solo recibe el contenido que el usuario selecciona explícitamente;
+- las copias privadas OclAx salen mediante FileProvider con permiso temporal de lectura; los archivos de Mi dispositivo conservan su URI de contenido;
+- se respeta el MIME solicitado por la aplicación llamadora y se soporta selección múltiple cuando `EXTRA_ALLOW_MULTIPLE` está presente;
+- el picker no borra, modifica, ejecuta ni instala contenido;
+- `ACTION_OPEN_DOCUMENT` sigue usando la UI del sistema y el DocumentsProvider actual; OclAx no intenta reemplazar el selector SAF.
+
 ## Transferencia entre dispositivos
 
 El emparejamiento se divide en dos capas para no abrir red antes de tiempo:

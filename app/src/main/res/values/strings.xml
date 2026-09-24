@@ -2,4 +2,5 @@
 <resources>
     <string name="app_name">OclAx</string>
     <string name="share_target_label">Guardar en OclAx</string>
+    <string name="picker_target_label">Elegir con OclAx</string>
 </resources>

@@ -73,6 +73,7 @@
 - diagnóstico LAN mejorado fusionado: distingue peer no descubierto, descubierto sin conexión y pausado, sin exponer IP;
 - PR #57 añadió caché del runtime nativo; main run 200 pobló el caché y runs posteriores restauran el runtime sin recompilar las cuatro ABI, manteniendo verificación SHA-256;
 - ERR-005 reconciliado con la implementación vigente mediante PR #59; main run 205 terminó verde.
+- selector propio `ACTION_GET_CONTENT` implementado en PR #62: OclAx/Mi dispositivo, búsqueda, MIME solicitado y selección múltiple; pendiente CI/validación física.
 
 ## En desarrollo
 
@@ -86,6 +87,7 @@
 - el diagnóstico LAN mejorado ya está fusionado y validado automáticamente; falta validación física con dos teléfonos;
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta validar el segundo teléfono y luego la conexión LAN;
 - todavía no existe transferencia de archivos: el canal privado + progreso permanece bloqueado hasta validar LAN con dos teléfonos.
+- PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION** hasta confirmar el flujo desde una aplicación real que use `ACTION_GET_CONTENT`.
 
 ## Bloqueos
 
@@ -101,3 +103,4 @@
 4. Confirmar **Desconectar LAN** y retorno a modo aislado.
 5. Solo después de validar LAN, diseñar/implementar el canal privado de archivos + progreso; Internet/relay continúa fuera de alcance hasta esa validación.
 6. Mantener en paralelo las validaciones físicas pendientes de miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes.
+7. Tras disponer de una build con PR #62, validar el selector propio desde una app compatible con `ACTION_GET_CONTENT`: OclAx, Mi dispositivo, MIME, múltiple y cancelar.

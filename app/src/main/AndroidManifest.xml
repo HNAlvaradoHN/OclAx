@@ -49,6 +49,19 @@
         </activity>
 
         <activity
+            android:name=".picker.OclAxPickerActivity"
+            android:excludeFromRecents="true"
+            android:exported="true"
+            android:label="@string/picker_target_label">
+            <intent-filter>
+                <action android:name="android.intent.action.GET_CONTENT" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.OPENABLE" />
+                <data android:mimeType="*/*" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".MainActivity"
             android:exported="true">
             <intent-filter>
