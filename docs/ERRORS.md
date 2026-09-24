@@ -19,7 +19,7 @@
 - **HIPÓTESIS PRINCIPAL, AÚN NO CONFIRMADA FÍSICAMENTE:** el monitor externo/re-exec de Syncthing no es adecuado para este empaquetado Android y evita que el proceso interno llegue a servir REST correctamente.
 
 **Corrección implementada:**
-- ejecutar el core Android como proceso interno ya supervisado mediante `STMONITORED=yes`;
+- ejecutar el core Android como proceso interno ya supervisado mediante `STMONITORED=1`;
 - usar `SQLITE_TMPDIR` dentro del cache privado;
 - fijar `STHOMEDIR` al directorio privado ya usado por OclAx;
 - añadir test unitario del entorno de arranque;
