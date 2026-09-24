@@ -166,15 +166,16 @@
 
 **Síntoma:** tras actualizar físicamente, la categoría de apps instaladas no mostró las aplicaciones esperadas y el selector de archivos del sistema siguió mostrando únicamente elementos recientes sin organización por categorías.
 
-**Causa probable verificada en implementación:** la primera versión consultaba actividades lanzables mediante PackageManager y el DocumentsProvider seguía plano. La UI además usaba etiquetas demasiado parecidas entre APK y aplicaciones instaladas.
+**Causa histórica:** la primera versión se limitó a aplicaciones lanzables y el DocumentsProvider seguía plano. Esa estrategia quedó sustituida cuando el dueño aprobó que **Mi dispositivo** mostrara el inventario completo de aplicaciones.
 
-**Corrección aplicada:**
-- usar `LauncherApps.getActivityList()` para obtener actividades lanzables del perfil actual;
-- separar visualmente `Apps instaladas` y `APK guardados`;
-- añadir carpetas virtuales por categoría en DocumentsProvider manteniendo también los elementos recientes directos;
-- eliminar la declaración `<queries>` que dejó de ser necesaria.
+**Corrección vigente verificada en código y DEC-023:**
+- `InstalledAppsRepository` usa `PackageManager.getInstalledApplications(0)` para inventariar aplicaciones visibles al sistema, excluyendo únicamente OclAx;
+- `QUERY_ALL_PACKAGES` permanece declarado para el inventario completo aprobado en DEC-023;
+- se separan visualmente `Apps instaladas` y `APK guardados`;
+- DocumentsProvider mantiene carpetas virtuales por categoría además del acceso a recientes;
+- la referencia anterior a `LauncherApps.getActivityList()` ya no describe la implementación vigente.
 
-**Validación pendiente:** confirmar en el mismo teléfono que Apps instaladas muestra iconos/nombres y que Archivos → OclAx presenta carpetas de categorías sin perder acceso directo a recientes.
+**Validación pendiente:** confirmar en el mismo teléfono que Apps instaladas muestra el inventario esperado con iconos/nombres y que Archivos → OclAx presenta carpetas de categorías sin perder acceso directo a recientes.
 
 
 ### ERR-006 — Primera CI de Mi dispositivo falló al materializar apps y por lint de visibilidad total
@@ -266,4 +267,3 @@
 **Validación:** la CI posterior del PR #40 terminó verde en tests, lint y build antes de fusionar la base de emparejamiento.
 
 **Prevención:** para extensiones scoped de Compose como `weight`, preferir el patrón ya usado en el proyecto y no importar símbolos internos solo porque el IDE/autocompletado los sugiera.
-
