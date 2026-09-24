@@ -55,7 +55,7 @@
 
 
 ### ERR-014 — El panel técnico de transferencia impide hacer scroll completo en OclAx
-**Estado:** CORREGIDO_PENDIENTE_CI_Y_VALIDACION_FISICA
+**Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
 
 **Síntoma:**
 - con el motor ya operativo y un dispositivo emparejado visible, el panel técnico ocupa suficiente altura para que búsqueda, filtros y contenido queden por debajo;
@@ -72,8 +72,11 @@
 - incluir dentro del mismo scroll el panel técnico, búsqueda, filtros/retención y tarjetas;
 - conservar `DeviceBrowser` separado con su propio comportamiento existente.
 
+**Validación automática:**
+- PR #55 fusionado;
+- main run 196 verde en runtime nativo, tests, lint, build y APK.
+
 **Validación requerida:**
-- CI verde;
 - instalar build firmada en teléfono real;
 - confirmar desplazamiento desde el panel técnico hasta la última tarjeta y vuelta hacia arriba;
 - confirmar que búsqueda, filtros, acciones y panel LAN siguen siendo utilizables.
