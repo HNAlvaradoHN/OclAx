@@ -13,7 +13,7 @@
 - el mismo APK reproduce el fallo en dos dispositivos;
 - la REST local nunca llega a responder dentro del timeout;
 - el wrapper Android comunitario mantenido ejecuta Syncthing con `STMONITORED=1`, evitando el monitor externo que vuelve a ejecutar el binario;
-- OclAx no establecía esa variable y tampoco aportaba el fallback de gateway IPv4 que Syncthing contempla específicamente para Android 14+.
+- OclAx no establecía esa variable. El wrapper Android también aporta un fallback de gateway para Android 14+, pero esa ruta pertenece al soporte NAT y no es necesaria mientras OclAx mantiene NAT desactivado.
 
 **Causa:**
 - **HIPÓTESIS PRINCIPAL, AÚN NO CONFIRMADA FÍSICAMENTE:** el monitor externo/re-exec de Syncthing no es adecuado para este empaquetado Android y evita que el proceso interno llegue a servir REST correctamente.
@@ -22,8 +22,8 @@
 - ejecutar el core Android como proceso interno ya supervisado mediante `STMONITORED=yes`;
 - usar `SQLITE_TMPDIR` dentro del cache privado;
 - fijar `STHOMEDIR` al directorio privado ya usado por OclAx;
-- aportar `FALLBACK_NET_GATEWAY_IPV4` obtenido desde las APIs Android cuando exista;
-- añadir test unitario del entorno de arranque.
+- añadir test unitario del entorno de arranque;
+- el primer intento de CI detectó que consultar el gateway exigiría `ACCESS_NETWORK_STATE`; se eliminó ese fallback opcional en vez de ampliar permisos sin necesidad.
 
 **Validación requerida:**
 - CI verde;
