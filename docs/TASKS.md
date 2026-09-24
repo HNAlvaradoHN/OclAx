@@ -272,6 +272,31 @@ Pendiente:
 - miniaturas de video cuando el formato sea compatible;
 - validar rendimiento en teléfonos con muchos archivos.
 
+### PICKER-001 — Elegir contenido con UI propia de OclAx desde otras apps
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Objetivo:
+- cuando otra aplicación use `ACTION_GET_CONTENT`, permitir elegir **OclAx** como origen y abrir una pantalla propia;
+- desde esa pantalla elegir contenido de la bandeja OclAx o de **Mi dispositivo** y devolverlo a la aplicación llamadora.
+
+Implementado en PR #62:
+- Activity exportada limitada a `ACTION_GET_CONTENT`;
+- selector **OclAx / Mi dispositivo** con búsqueda;
+- filtrado por MIME solicitado;
+- selección simple y múltiple;
+- retorno mediante `content://` y permiso temporal de solo lectura;
+- acceso amplio opcional para Mi dispositivo reutilizando la política vigente;
+- límites defensivos para MIME externos y cantidad máxima de selección;
+- DocumentsProvider/`ACTION_OPEN_DOCUMENT` sin cambios;
+- tests unitarios de matching MIME.
+
+Pendiente:
+- CI verde del PR;
+- validar físicamente desde una app que invoque `ACTION_GET_CONTENT`;
+- probar selección desde OclAx y Mi dispositivo;
+- probar filtro por tipo, selección múltiple, cancelar y permiso de almacenamiento negado.
+
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
 **Estado:** IN_PROGRESS  
 **Prioridad:** alta  
