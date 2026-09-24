@@ -218,7 +218,7 @@ Automático:
 
 Fallo físico observado antes del emparejamiento:
 - en dos teléfonos, **Probar motor** agotó el tiempo antes de devolver Device ID;
-- se implementó una corrección del entorno Android para ejecutar el core como proceso ya supervisado (`STMONITORED=yes`), fijar temp SQLite privado y aportar gateway IPv4 del sistema como fallback;
+- se implementó una corrección del entorno Android para ejecutar el core como proceso ya supervisado (`STMONITORED=yes`) y fijar temp SQLite privado;
 - CI y nueva prueba física deben pasar antes de continuar.
 
 Pendiente de validación física:
