@@ -221,7 +221,7 @@ internal fun PickerScreen(
 
                 query.isBlank() && category == null -> {
                     CategoryOverviewGrid(
-                        items = categoryOverview,
+                        categories = categoryOverview,
                         onSelect = { selectedCategory ->
                             category = PickerCategory.entries
                                 .firstOrNull { it.name == selectedCategory.key }
