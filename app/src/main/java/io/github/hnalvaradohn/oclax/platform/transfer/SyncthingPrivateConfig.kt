@@ -1,6 +1,8 @@
 package io.github.hnalvaradohn.oclax.platform.transfer
 
+import org.w3c.dom.Document
 import org.w3c.dom.Element
+import org.xml.sax.SAXException
 import java.io.File
 import java.nio.file.AtomicMoveNotSupportedException
 import java.nio.file.Files
@@ -14,6 +16,15 @@ import javax.xml.transform.stream.StreamResult
 internal object SyncthingPrivateConfig {
     const val SAFE_LISTEN_ADDRESS = "tcp://127.0.0.1:0"
 
+    private const val DISALLOW_DOCTYPE =
+        "http://apache.org/xml/features/disallow-doctype-decl"
+    private const val EXTERNAL_GENERAL_ENTITIES =
+        "http://xml.org/sax/features/external-general-entities"
+    private const val EXTERNAL_PARAMETER_ENTITIES =
+        "http://xml.org/sax/features/external-parameter-entities"
+    private const val LOAD_EXTERNAL_DTD =
+        "http://apache.org/xml/features/nonvalidating/load-external-dtd"
+
     fun harden(
         configFile: File,
         apiKey: String,
@@ -21,21 +32,7 @@ internal object SyncthingPrivateConfig {
         require(apiKey.length >= 32) { "La API key local es demasiado corta." }
         check(configFile.isFile) { "No existe la configuración del motor." }
 
-        val documentBuilderFactory = DocumentBuilderFactory.newInstance().apply {
-            isNamespaceAware = false
-            setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-            setFeature("http://xml.org/sax/features/external-general-entities", false)
-            setFeature("http://xml.org/sax/features/external-parameter-entities", false)
-            runCatching {
-                setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-            }
-            runCatching { isXIncludeAware = false }
-            isExpandEntityReferences = false
-        }
-
-        val document = documentBuilderFactory
-            .newDocumentBuilder()
-            .parse(configFile)
+        val document = parsePrivateConfig(configFile)
         document.documentElement.normalize()
 
         val root = document.documentElement
@@ -96,14 +93,7 @@ internal object SyncthingPrivateConfig {
     }
 
     internal fun snapshot(configFile: File): SyncthingPrivateConfigSnapshot {
-        val factory = DocumentBuilderFactory.newInstance().apply {
-            isNamespaceAware = false
-            setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-            setFeature("http://xml.org/sax/features/external-general-entities", false)
-            setFeature("http://xml.org/sax/features/external-parameter-entities", false)
-            isExpandEntityReferences = false
-        }
-        val document = factory.newDocumentBuilder().parse(configFile)
+        val document = parsePrivateConfig(configFile)
         val root = document.documentElement
         val gui = root.directChild("gui") ?: error("GUI ausente.")
         val options = root.directChild("options") ?: error("Opciones ausentes.")
@@ -121,6 +111,53 @@ internal object SyncthingPrivateConfig {
             crashReporting = options.directChildText("crashReportingEnabled").toBooleanStrict(),
         )
     }
+
+    private fun parsePrivateConfig(configFile: File): Document {
+        rejectUnsafeDeclarations(configFile)
+
+        val factory = DocumentBuilderFactory.newInstance().apply {
+            isNamespaceAware = false
+
+            // Android vendors do not expose an identical set of Xerces features.
+            // These flags are defense-in-depth only: the pre-scan and entity resolver below
+            // enforce the security boundary even when a feature is unsupported.
+            applyOptionalXmlFeature(DISALLOW_DOCTYPE, true, ::setFeature)
+            applyOptionalXmlFeature(EXTERNAL_GENERAL_ENTITIES, false, ::setFeature)
+            applyOptionalXmlFeature(EXTERNAL_PARAMETER_ENTITIES, false, ::setFeature)
+            applyOptionalXmlFeature(LOAD_EXTERNAL_DTD, false, ::setFeature)
+            runCatching { isXIncludeAware = false }
+            isExpandEntityReferences = false
+        }
+
+        val builder = factory.newDocumentBuilder().apply {
+            setEntityResolver { _, _ ->
+                throw SAXException("La configuración del motor referencia una entidad externa.")
+            }
+        }
+
+        return builder.parse(configFile)
+    }
+
+    private fun rejectUnsafeDeclarations(configFile: File) {
+        configFile.bufferedReader(Charsets.UTF_8).useLines { lines ->
+            lines.forEach { line ->
+                check(!line.contains("<!DOCTYPE", ignoreCase = true)) {
+                    "La configuración del motor contiene una declaración DOCTYPE no permitida."
+                }
+                check(!line.contains("<!ENTITY", ignoreCase = true)) {
+                    "La configuración del motor contiene una declaración ENTITY no permitida."
+                }
+            }
+        }
+    }
+
+    internal fun applyOptionalXmlFeature(
+        feature: String,
+        value: Boolean,
+        setter: (String, Boolean) -> Unit,
+    ): Boolean = runCatching {
+        setter(feature, value)
+    }.isSuccess
 
     private fun Element.directChild(name: String): Element? =
         directChildren(name).firstOrNull()
