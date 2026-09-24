@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">OclAx</string>
-    <string name="share_target_label">Guardar en OclAx</string>
+    <string name="share_target_label">Guardar en OclAx</string>\n    <string name="picker_target_label">Elegir con OclAx</string>
 </resources>
