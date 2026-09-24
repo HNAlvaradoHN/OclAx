@@ -223,11 +223,13 @@ Fallo físico observado antes del emparejamiento:
 - la build diagnóstica posterior identificó la etapa exacta: **preparando la configuración privada**;
 - el mensaje mostró la feature `http://apache.org/xml/features/disallow-doctype-decl`, confirmando que el parser XML de Android abortaba antes de iniciar Syncthing.
 
-Corrección automática a validar:
+Corrección automática validada:
 - las features XML específicas del parser se aplican solo si están soportadas;
 - OclAx rechaza `DOCTYPE` y `ENTITY` antes del parseo y bloquea resolución externa mediante `EntityResolver`;
 - test unitario nuevo simula una feature no soportada y confirma que la preparación no aborta por esa razón;
-- se conservan las pruebas de endurecimiento de red/telemetría y rechazo XXE/DOCTYPE.
+- se conservan las pruebas de endurecimiento de red/telemetría y rechazo XXE/DOCTYPE;
+- PR #53 y main run 192 terminaron verdes en runtime nativo, tests, lint, build multi-ABI y verificación del APK;
+- la APK firmada de main run 192 quedó publicada para la siguiente prueba física.
 
 Pendiente de validación física:
 - después de **Probar motor**, aparece el ID propio;

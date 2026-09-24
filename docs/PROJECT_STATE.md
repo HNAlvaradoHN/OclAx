@@ -124,22 +124,21 @@
 - **FALLO FÍSICO REPRODUCIDO EN DOS TELÉFONOS:** `Probar motor` agotó el tiempo antes de obtener Device ID, por lo que la prueba LAN no puede comenzar aún;
 - **PR #47 / MAIN CI VERDE, PERO FALLÓ LA REPRUEBA FÍSICA:** ejecutar Syncthing como proceso interno ya supervisado (`STMONITORED=1`) y usar almacenamiento temporal privado para SQLite no eliminó el timeout; esa hipótesis queda descartada como solución suficiente;
 - **DIAGNÓSTICO IMPLEMENTADO Y FUSIONADO · MAIN CI VERDE:** OclAx registra localmente la etapa de arranque, código de salida y una única línea de log sanitizada del intento actual para reemplazar el timeout genérico por evidencia accionable; no añade permisos ni telemetría; la build diagnóstica identificó el fallo en la preparación de configuración privada por una feature XML no soportada en Android;
-- **CAUSA DE ARRANQUE VERIFICADA:** el parser XML de Android rechazaba la feature Xerces `disallow-doctype-decl` antes de iniciar Syncthing; la corrección mantiene bloqueo de DOCTYPE/ENTITY y resolución externa sin depender de esa feature, pendiente CI y validación física;
+- **CAUSA DE ARRANQUE VERIFICADA Y FIX FUSIONADO:** el parser XML de Android rechazaba la feature Xerces `disallow-doctype-decl` antes de iniciar Syncthing; PR #53 reemplaza esa dependencia por controles portables que conservan bloqueo de DOCTYPE/ENTITY y resolución externa; PR CI y main run 192 quedaron verdes;
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta que la nueva build obtenga Device ID + loopback y recién después se pruebe LAN;
 - todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
 
 ## Bloqueos
 
-- **TRANSFER-001 BLOQUEADO_PENDIENTE_VALIDACION:** la causa inmediata del arranque ya está VERIFICADA en el parser XML; el fix está implementado en rama y debe pasar CI, merge y prueba física antes de declarar resuelto el bloqueo;
+- **TRANSFER-001 BLOQUEADO_PENDIENTE_VALIDACION_FISICA:** la causa inmediata del arranque ya está VERIFICADA y el fix pasó CI/merge/main; falta comprobar en dispositivo que supera la preparación privada y obtiene Device ID + loopback;
 - siguen pendientes validaciones físicas del borrado corregido y otros puntos de Mi dispositivo antes de declarar esos bloques DONE.
 
 ## Siguiente paso exacto
 
-1. Completar CI y merge del fix de compatibilidad XML Android.
-2. Generar la build firmada de `main`.
-3. Instalarla en **un teléfono primero** y tocar **Probar motor** una sola vez.
-4. Confirmar que supera la etapa de configuración privada y obtiene Device ID + loopback; si aparece otro fallo, registrar el diagnóstico exacto y corregir esa causa.
-5. Solo después probar el segundo teléfono, compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
-6. En la misma Wi-Fi, tocar **Probar LAN** en ambos y confirmar **Conectado por LAN**; después desconectar y comprobar retorno a modo aislado.
-7. Crear el canal privado de transferencia de archivos + progreso solo después de validar esa conexión.
-8. Mantener en paralelo las validaciones pendientes de PDF/borrado/apps/vistas/fecha-hora en Mi dispositivo.
+1. Instalar la APK firmada publicada por **main run 192** en **un teléfono primero**.
+2. Tocar **Probar motor** una sola vez.
+3. Confirmar que supera la etapa de configuración privada y obtiene Device ID + loopback; si aparece otro fallo, registrar el diagnóstico exacto y corregir esa causa.
+4. Solo después probar el segundo teléfono, compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
+5. En la misma Wi-Fi, tocar **Probar LAN** en ambos y confirmar **Conectado por LAN**; después desconectar y comprobar retorno a modo aislado.
+6. Crear el canal privado de transferencia de archivos + progreso solo después de validar esa conexión.
+7. Mantener en paralelo las validaciones pendientes de PDF/borrado/apps/vistas/fecha-hora en Mi dispositivo.
