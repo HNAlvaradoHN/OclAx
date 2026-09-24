@@ -135,14 +135,20 @@ internal fun PickerScreen(
                 SourceButton(
                     label = PickerSource.OCLAX.label,
                     selected = source == PickerSource.OCLAX,
-                    onClick = {\n                        source = PickerSource.OCLAX\n                        query = \"\"\n                    },
+                    onClick = {
+                        source = PickerSource.OCLAX
+                        query = ""
+                    },
                     modifier = Modifier.weight(1f),
                 )
                 Spacer(Modifier.width(8.dp))
                 SourceButton(
                     label = PickerSource.DEVICE.label,
                     selected = source == PickerSource.DEVICE,
-                    onClick = {\n                        source = PickerSource.DEVICE\n                        query = \"\"\n                    },
+                    onClick = {
+                        source = PickerSource.DEVICE
+                        query = ""
+                    },
                     modifier = Modifier.weight(1f),
                 )
             }
