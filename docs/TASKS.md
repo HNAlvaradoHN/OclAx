@@ -40,7 +40,7 @@ Incluye:
 
 
 ### GOV-004 — Autonomía controlada y revisores automáticos
-**Estado:** IMPLEMENTED_PENDING_VALIDATION
+**Estado:** DONE
 
 Implementado en la rama de gobernanza:
 - LOCKED_READ_ONLY separado del estado de sincronización;
@@ -52,10 +52,11 @@ Implementado en la rama de gobernanza:
 - instrucciones compactas de ChatGPT Project versionadas en `docs/CHATGPT_PROJECT_INSTRUCTIONS.txt` y mantenidas bajo 8000 caracteres;
 - protocol_version sube a 5.
 
-Pendiente para DONE:
-- PR de gobernanza fusionado;
-- CI de `main` verde;
-- resincronización completa bajo protocol v5.
+Validado:
+- PR #49 fusionado en `main`;
+- CI de `main` run 183 verde;
+- resincronización exhaustiva completada bajo protocol v5;
+- registro persistente e identidad técnica alineados a protocol 5.
 
 
 ## PENDING

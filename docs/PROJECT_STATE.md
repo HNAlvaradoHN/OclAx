@@ -23,12 +23,14 @@
 - Autolimpieza limitada exclusivamente a copias privadas de OclAx.
 - Retención predeterminada de 24 horas; Fijados nunca expiran mientras sigan fijados.
 
-## Gobernanza en actualización
+## Gobernanza vigente
 
-- protocol v5 implementado en rama de gobernanza y pendiente de merge/CI main;
-- instrucciones compactas para ChatGPT Project versionadas en `docs/CHATGPT_PROJECT_INSTRUCTIONS.txt`;
-- la nueva política conserva sincronización exhaustiva y handshake, pero permite autonomía técnica completa dentro de una tarea autorizada;
-- revisores/agentes aplicables pasan a activación automática condicional por utilidad.
+- protocol v5 fusionado y validado en `main`;
+- `LOCKED_READ_ONLY` separado del estado de sincronización READY/UNSYNCED;
+- autorización por objetivo: el usuario define el resultado y el agente asume alcance técnico mínimo, pruebas, revisión, PR/CI, memoria y handoff dentro de límites seguros;
+- revisores/agentes aplicables de `docs/REVIEW_ROLES.md` se activan automáticamente cuando reducen errores o aceleran una validación útil;
+- instrucciones compactas para ChatGPT Project versionadas en `docs/CHATGPT_PROJECT_INSTRUCTIONS.txt` (7,730 caracteres);
+- resincronización exhaustiva bajo protocol v5 completada tras el merge.
 
 ## Qué funciona
 
