@@ -37,12 +37,12 @@ data class CategoryOverviewItem(
 
 @Composable
 fun CategoryOverviewGrid(
-    items: List<CategoryOverviewItem>,
+    categories: List<CategoryOverviewItem>,
     onSelect: (CategoryOverviewItem) -> Unit,
     modifier: Modifier = Modifier,
     scrollable: Boolean = false,
 ) {
-    val rows = items.chunked(2)
+    val rows = categories.chunked(2)
     if (scrollable) {
         LazyColumn(
             modifier = modifier.fillMaxWidth(),
