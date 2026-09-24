@@ -1,10 +1,8 @@
 package io.github.hnalvaradohn.oclax.platform.transfer
 
 import android.content.Context
-import android.net.ConnectivityManager
 import android.util.Base64
 import java.io.File
-import java.net.Inet4Address
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 
@@ -55,7 +53,6 @@ internal class SyncthingRuntimeConfig(
             homePath: String,
             tempPath: String,
             apiKey: String,
-            gatewayIpv4: String?,
         ): Map<String, String> = buildMap {
             put("HOME", homePath)
             put("TMPDIR", tempPath)
@@ -71,9 +68,6 @@ internal class SyncthingRuntimeConfig(
             // core directly as the already-monitored child process instead.
             put("STMONITORED", "yes")
 
-            gatewayIpv4?.takeIf { it.isNotBlank() }?.let {
-                put("FALLBACK_NET_GATEWAY_IPV4", it)
-            }
         }
     }
 
@@ -168,25 +162,8 @@ internal class SyncthingRuntimeConfig(
                 homePath = homeDir.absolutePath,
                 tempPath = tempDir.absolutePath,
                 apiKey = apiKey(),
-                gatewayIpv4 = defaultGatewayIpv4(),
             ),
         )
     }
 
-    private fun defaultGatewayIpv4(): String? = runCatching {
-        val connectivityManager = context
-            .getSystemService(Context.CONNECTIVITY_SERVICE) as? ConnectivityManager
-            ?: return@runCatching null
-        val network = connectivityManager.activeNetwork ?: return@runCatching null
-        val properties = connectivityManager.getLinkProperties(network)
-            ?: return@runCatching null
-
-        properties.routes
-            .asSequence()
-            .filter { it.isDefaultRoute }
-            .mapNotNull { it.gateway }
-            .filterIsInstance<Inet4Address>()
-            .mapNotNull { it.hostAddress }
-            .firstOrNull()
-    }.getOrNull()
 }
