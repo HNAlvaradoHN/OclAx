@@ -66,8 +66,7 @@ internal class SyncthingRuntimeConfig(
 
             // Syncthing's outer monitor re-execs the binary. Android wrappers run the
             // core directly as the already-monitored child process instead.
-            put("STMONITORED", "yes")
-
+            put("STMONITORED", "1")
         }
     }
 
@@ -165,5 +164,4 @@ internal class SyncthingRuntimeConfig(
             ),
         )
     }
-
 }
