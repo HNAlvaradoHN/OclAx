@@ -108,18 +108,18 @@
 - conexión LAN-only fusionada en main mediante PR #42: peer pausado por defecto, discovery local temporal, listener TCP restringido a redes privadas y retorno fail-closed a modo aislado al desconectar;
 - **VERIFICADO EN CI MAIN:** run 150 terminó verde con tests, lint, build multi-ABI, verificación de runtimes y APK debug publicado;
 - **FALLO FÍSICO REPRODUCIDO EN DOS TELÉFONOS:** `Probar motor` agotó el tiempo antes de obtener Device ID, por lo que la prueba LAN no puede comenzar aún;
-- **CORRECCIÓN IMPLEMENTADA PENDIENTE DE CI/VALIDACIÓN FÍSICA:** ejecutar Syncthing en Android como proceso interno ya supervisado (`STMONITORED=1`), usar almacenamiento temporal privado para SQLite;
+- **CORRECCIÓN IMPLEMENTADA · CI PR VERDE · PENDIENTE VALIDACIÓN FÍSICA:** ejecutar Syncthing en Android como proceso interno ya supervisado (`STMONITORED=1`), usar almacenamiento temporal privado para SQLite;
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** porque primero debe pasar nuevamente `Probar motor` en ambos teléfonos y luego la prueba LAN;
 - todavía no existe transferencia de archivos: el siguiente bloque será canal privado + progreso solo después de validar LAN.
 
 ## Bloqueos
 
-- **TRANSFER-001 BLOQUEADO EN VALIDACIÓN FÍSICA:** el runtime no respondió a tiempo en dos teléfonos; corrección de arranque Android implementada y pendiente de CI + nueva prueba física;
+- **TRANSFER-001 BLOQUEADO EN VALIDACIÓN FÍSICA:** el runtime no respondió a tiempo en dos teléfonos; corrección de arranque Android implementada y validada por CI; falta nueva prueba física;
 - siguen pendientes validaciones físicas del borrado corregido y otros puntos de Mi dispositivo antes de declarar esos bloques DONE.
 
 ## Siguiente paso exacto
 
-1. Ejecutar CI de la corrección de arranque Android y generar una nueva build firmada de prueba.
+1. Generar desde `main` la nueva build firmada con la corrección de arranque Android.
 2. Instalar esa build en ambos teléfonos y repetir **Probar motor**; debe devolver Device ID y confirmar loopback.
 3. Confirmar explícitamente portada de PDF en Mi dispositivo/Archivos → OclAx y borrado/cancelación de originales.
 4. Validar compartir una app de APK único y otra con splits confirmando que no viajan datos privados.
