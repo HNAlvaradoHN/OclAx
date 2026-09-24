@@ -1,6 +1,6 @@
 PROTOCOLO DE ARRANQUE Y AUTONOMÍA CONTROLADA
 
-GitHub es la fuente técnica de verdad. No confíes solo en memoria del modelo, chats anteriores, resúmenes ni intuición.
+GitHub y su memoria oficial son la fuente técnica de verdad. No confíes solo en memoria del modelo, chats anteriores, resúmenes ni intuición. El marco general versionado vive en docs/MASTER_RULES_CHATGPT_GITHUB_V4.txt; AGENTS.md vigente manda para OclAx.
 
 0. TODO CHAT NUEVO INICIA EN LOCKED_READ_ONLY.
 Antes de modificar algo:
@@ -49,7 +49,7 @@ El usuario no debe tener que recordar pruebas, memoria ni handoff.
 Para código:
 rama → implementación → pruebas → revisión → PR → CI → correcciones → merge → CI main → memoria/handoff.
 
-Una tarea de implementación completa autoriza ese flujo si es reversible, sin costo, sin pérdida de datos, sin secretos, sin cambios sensibles de permisos/seguridad y sin decisión arquitectónica importante no aprobada.
+Una tarea de implementación completa autoriza ese flujo si es reversible, sin costo, sin pérdida de datos/secretos, sin cambios sensibles de permisos/seguridad y sin decisión arquitectónica importante no aprobada.
 Si la tarea se limita a análisis, diagnóstico, rama o PR, respetá ese límite.
 Nunca mergear con CI fallando.
 No force-push, reescritura de historial, pérdida de datos, costos ni acciones irreversibles sin autorización explícita.
@@ -67,9 +67,9 @@ Detenete y pedí autorización solo si afecta seguridad/privacidad, integridad/p
 
 7. REVISORES / AGENTES.
 Los roles de docs/REVIEW_ROLES.md son parte del proceso normal.
-En toda tarea significativa, activá automáticamente los revisores aplicables según su matriz cuando reduzcan errores o aceleren una comprobación útil. No requieren autorización separada.
+En toda tarea significativa, activá automáticamente los revisores aplicables. Si la matriz marca una fila aplicable, son obligatorios antes del cierre/merge salvo razón concreta de no aplicabilidad. No requieren autorización separada.
 No ejecutes roles irrelevantes ni dupliques revisiones sin valor.
-Si la plataforma permite agentes/revisores independientes, usalos cuando aporten independencia, rapidez o menor riesgo; si no, ejecutá esas perspectivas como revisiones separadas.
+Si existen agentes/revisores independientes, usalos solo cuando aporten independencia, rapidez o menor riesgo; si no, hacé esas perspectivas como revisiones separadas.
 No sustituyen tests/CI, no amplían alcance y no usan servicios pagos ni envían datos privados sin autorización.
 Hallazgos necesarios para la tarea pueden corregirse dentro de alcance; los demás se registran fuera de alcance.
 
@@ -78,7 +78,7 @@ Feedback no bloqueante (colores, iconos, tamaños, espaciado, textos, posiciones
 Feedback bloqueante dentro de la tarea se corrige antes de terminar.
 
 9. MEMORIA Y HANDOFF AUTOMÁTICOS.
-Después de cambios significativos actualizá automáticamente la memoria oficial aplicable: estado, tareas, decisiones, arquitectura, seguridad/privacidad, pruebas, CI, errores, causa/solución, validaciones físicas pendientes y siguiente paso.
+Después de cambios significativos actualizá automáticamente la memoria oficial aplicable: estado, tareas, decisiones, arquitectura, seguridad/privacidad, pruebas, CI, errores, validaciones físicas pendientes y siguiente paso.
 Conservá errores resueltos útiles para evitar reincidencias.
 El handoff debe permitir que un chat nuevo continúe leyendo GitHub sin depender del chat anterior.
 Esto es obligación del agente y no requiere recordatorio.
