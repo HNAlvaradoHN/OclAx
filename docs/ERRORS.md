@@ -54,8 +54,10 @@
 - solo después continuar con emparejamiento y LAN.
 
 
+## Resueltos
+
 ### ERR-014 — El panel técnico de transferencia impide hacer scroll completo en OclAx
-**Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
+**Estado:** RESUELTO
 
 **Síntoma:**
 - con el motor ya operativo y un dispositivo emparejado visible, el panel técnico ocupa suficiente altura para que búsqueda, filtros y contenido queden por debajo;
@@ -76,14 +78,10 @@
 - PR #55 fusionado;
 - main run 196 verde en runtime nativo, tests, lint, build y APK.
 
-**Validación requerida:**
-- instalar build firmada en teléfono real;
-- confirmar desplazamiento desde el panel técnico hasta la última tarjeta y vuelta hacia arriba;
-- confirmar que búsqueda, filtros, acciones y panel LAN siguen siendo utilizables.
+**Validación física — 2026-09-24:**
+- con main run 207, el usuario confirmó que el scroll funciona correctamente en el teléfono;
+- la pantalla puede desplazarse después de expandirse el panel técnico.
 
-
-
-## Resueltos
 
 ### ERR-012 — Contador de chat derivó a 11 y el handshake no probaba lectura completa
 **Estado:** RESUELTO
