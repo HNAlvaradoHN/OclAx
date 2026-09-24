@@ -57,7 +57,7 @@ private enum class PickerSource(val label: String) {
 }
 
 @Composable
-private fun PickerScreen(
+internal fun PickerScreen(
     oclaxItems: List<StoredItem>,
     deviceFiles: List<DeviceFileInfo>,
     requestedMimeTypes: List<String>,
@@ -189,7 +189,7 @@ private fun PickerScreen(
                 source == PickerSource.OCLAX -> {
                     PickerList(
                         emptyMessage = "No hay contenido compatible en OclAx.",
-                        items = visibleOClAxItemsToRows(visibleOclAxItems, onSelectOclAxItem),
+                        items = oclaxItemsToRows(visibleOclAxItems, onSelectOclAxItem),
                         selectedKeys = selectedKeys,
                         allowMultiple = allowMultiple,
                         modifier = Modifier.weight(1f),
@@ -226,7 +226,7 @@ private fun PickerScreen(
     }
 }
 
-private fun visibleOClAxItemsToRows(
+private fun oclaxItemsToRows(
     items: List<StoredItem>,
     onSelect: (StoredItem) -> Unit,
 ): List<PickerListItem> = items.map { item ->
