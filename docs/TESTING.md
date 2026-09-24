@@ -233,6 +233,8 @@ Corrección automática validada:
 
 Validación física confirmada — 2026-09-23:
 - en un teléfono con la build de main run 192, **Probar motor** muestra `Listo`, Device ID y `loopback verificado`;
+- con main run 207, el scroll completo de OclAx quedó confirmado físicamente;
+- con main run 207, **Mi dispositivo** muestra fecha y hora de modificación en las tarjetas;
 - la corrección de compatibilidad XML supera físicamente la etapa que antes fallaba;
 - en esa misma pantalla se detectó que el panel técnico largo no permitía desplazar verticalmente todo OclAx; PR #55 + main run 196 quedaron verdes y falta confirmar físicamente el scroll corregido.
 
