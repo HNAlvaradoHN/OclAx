@@ -325,7 +325,7 @@
 
 **Prevención:** para extensiones scoped de Compose como `weight`, preferir el patrón ya usado en el proyecto y no importar símbolos internos solo porque el IDE/autocompletado los sugiera.
 
-### ERR-012 — Atrás desde categorías cerraba OclAx
+### ERR-017 — Atrás desde categorías cerraba OclAx
 **Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
 
 **Síntoma:** dentro de una categoría como PDF, el gesto/botón Atrás terminaba la Activity principal en vez de regresar al resumen de categorías.
@@ -338,5 +338,7 @@
 - la raíz de OclAx muestra confirmación y un segundo Atrás cierra;
 - el picker propio desenrolla su jerarquía antes de volver a la app llamadora;
 - la política principal tiene pruebas unitarias.
+
+**Validación automática:** PR #71 y main run 281 quedaron verdes en tests, lint, build y verificación del APK.
 
 **Prevención:** cualquier nueva superficie navegable debe declarar explícitamente su jerarquía de Atrás y cubrirla con prueba de política o UI.

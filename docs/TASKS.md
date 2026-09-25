@@ -540,6 +540,9 @@ Implementado:
 - BackHandler en OclAx, Mi dispositivo y picker propio;
 - confirmación explícita de salida sin alterar almacenamiento, permisos, red ni transferencias.
 
+Validación automática:
+- PR #71 fusionado después de CI verde;
+- main run 281 verde en runtime nativo, tests, lint, build, verificación de APK y artefacto.
+
 Pendiente:
-- CI de PR #71;
 - validación física con gesto Atrás y botón Atrás en OclAx/PDF, Mi dispositivo y picker.
