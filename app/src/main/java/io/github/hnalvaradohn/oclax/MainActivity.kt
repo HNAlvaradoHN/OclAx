@@ -1057,6 +1057,10 @@ private fun OclAxHome(
     lanBusyDeviceId: String?,
     activeLanDeviceId: String?,
     lanStatusByDevice: Map<String, String>,
+    fileTransferBusy: Boolean,
+    itemTransferStatusById: Map<String, String>,
+    pendingIncomingTransfers: List<IncomingTransferOffer>,
+    incomingTransferStatusById: Map<String, String>,
     onProbeTransferRuntime: () -> Unit,
     onStopTransferRuntime: () -> Unit,
     onShareTransferDeviceId: () -> Unit,
@@ -1065,6 +1069,10 @@ private fun OclAxHome(
     onRemovePairedDevice: (String) -> Unit,
     onTestLan: (PairedDevice) -> Unit,
     onDisconnectLan: (PairedDevice) -> Unit,
+    onSendItem: (StoredItem) -> Unit,
+    onRefreshIncomingTransfers: () -> Unit,
+    onAcceptIncomingTransfer: (IncomingTransferOffer) -> Unit,
+    onRejectIncomingTransfer: (IncomingTransferOffer) -> Unit,
 ) {
     var sourceMode by remember { mutableStateOf(SourceMode.OCLAX) }
     var query by remember { mutableStateOf("") }
@@ -1178,6 +1186,9 @@ private fun OclAxHome(
                                 lanBusyDeviceId = lanBusyDeviceId,
                                 activeLanDeviceId = activeLanDeviceId,
                                 lanStatusByDevice = lanStatusByDevice,
+                                fileTransferBusy = fileTransferBusy,
+                                pendingIncomingTransfers = pendingIncomingTransfers,
+                                incomingTransferStatusById = incomingTransferStatusById,
                                 onProbe = onProbeTransferRuntime,
                                 onStop = onStopTransferRuntime,
                                 onShareOwnId = onShareTransferDeviceId,
@@ -1186,6 +1197,9 @@ private fun OclAxHome(
                                 onRemoveDevice = onRemovePairedDevice,
                                 onTestLan = onTestLan,
                                 onDisconnectLan = onDisconnectLan,
+                                onRefreshIncoming = onRefreshIncomingTransfers,
+                                onAcceptIncoming = onAcceptIncomingTransfer,
+                                onRejectIncoming = onRejectIncomingTransfer,
                             )
                         }
                     }
@@ -1265,6 +1279,9 @@ private fun OclAxHome(
                                     onOpen = onOpen,
                                     onShare = onShare,
                                     onCopy = onCopy,
+                                    onSend = onSendItem,
+                                    sendEnabled = activeLanDeviceId != null && !fileTransferBusy,
+                                    transferStatus = itemTransferStatusById[item.id],
                                     onLoadThumbnail = onLoadItemThumbnail,
                                 )
                             }
@@ -1420,6 +1437,9 @@ private fun ItemCard(
     onOpen: (StoredItem) -> Unit,
     onShare: (StoredItem) -> Unit,
     onCopy: (StoredItem) -> Unit,
+    onSend: (StoredItem) -> Unit,
+    sendEnabled: Boolean,
+    transferStatus: String?,
     onLoadThumbnail: (StoredItem, Int) -> Bitmap?,
 ) {
     val type = contentTypeFor(item.mimeType)
@@ -1462,6 +1482,13 @@ private fun ItemCard(
                             .format(Date(item.createdAt)),
                         style = MaterialTheme.typography.labelSmall,
                     )
+                    transferStatus?.let { status ->
+                        Text(
+                            status,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                 }
             }
 
@@ -1473,6 +1500,13 @@ private fun ItemCard(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
+                CompactActionButton(
+                    icon = Icons.Outlined.SendToMobile,
+                    description = "Enviar ${item.displayName} a dispositivo",
+                    enabled = sendEnabled,
+                    onClick = { onSend(item) },
+                )
+
                 CompactActionButton(
                     icon = Icons.Outlined.Share,
                     description = "Compartir ${item.displayName}",
@@ -1614,9 +1648,11 @@ private fun CompactActionButton(
     description: String,
     onClick: () -> Unit,
     tint: Color? = null,
+    enabled: Boolean = true,
 ) {
     IconButton(
         onClick = onClick,
+        enabled = enabled,
         modifier = Modifier.size(48.dp),
     ) {
         Icon(
