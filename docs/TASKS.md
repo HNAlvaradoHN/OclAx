@@ -399,8 +399,20 @@ Validado:
 - PR #42 fusionado;
 - CI final de main (run 150) verde en tests, lint, build multi-ABI, verificación de runtimes y APK debug.
 
+Evidencia física — 2026-09-24:
+- los dos dispositivos ya están disponibles y al menos un intento llegó a timeout seguro;
+- el diagnóstico indicó que el peer **no apareció en discovery local** y el motor volvió a modo aislado;
+- esta evidencia todavía no distingue entre fallo interno del discovery/listener y filtrado de broadcast/aislamiento de la Wi-Fi.
+
+Diagnóstico adicional implementado:
+- al vencer la prueba, OclAx consulta `/rest/system/status`;
+- distingue si discovery IPv4 local no quedó activo, si el listener LAN falló o si ambos están sanos pero el peer no apareció;
+- nunca muestra el error bruto, IPs ni Device IDs en el diagnóstico;
+- si discovery+listener están sanos, el mensaje orienta a probar ambos teléfonos en la misma ventana y revisar aislamiento/broadcast de la Wi-Fi.
+
 Pendiente:
-- prueba física con dos teléfonos en la misma Wi‑Fi;
+- CI verde del diagnóstico;
+- repetir **Probar LAN** en ambos teléfonos dentro de la misma ventana;
 - confirmar que ambos muestran **Conectado por LAN**;
 - confirmar que desconectar vuelve al modo aislado;
 - solo después crear el canal privado de archivos y progreso.
