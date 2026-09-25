@@ -22,21 +22,104 @@ internal data class LanPeerConnectionResult(
     val connectionType: String,
 )
 
+internal data class LanRuntimeHealth(
+    val ipv4LocalDiscoveryHealthy: Boolean?,
+    val lanListenerHealthy: Boolean?,
+)
+
+internal data class LanRuntimeStatusEntry(
+    val key: String,
+    val healthy: Boolean,
+)
+
+internal fun evaluateLanRuntimeHealth(
+    discoveryStatusPresent: Boolean,
+    discoveryEntries: List<LanRuntimeStatusEntry>,
+    connectionStatusPresent: Boolean,
+    connectionEntries: List<LanRuntimeStatusEntry>,
+): LanRuntimeHealth {
+    val ipv4DiscoveryEntries = discoveryEntries.filter { entry ->
+        val normalized = entry.key.lowercase()
+        normalized.contains("ipv4") &&
+            normalized.contains("local") &&
+            !normalized.contains("global")
+    }
+    val ipv4LocalDiscoveryHealthy = when {
+        !discoveryStatusPresent -> null
+        ipv4DiscoveryEntries.isEmpty() -> false
+        else -> ipv4DiscoveryEntries.all { it.healthy }
+    }
+
+    val lanListenerEntries = connectionEntries.filter { entry ->
+        val normalized = entry.key.lowercase()
+        normalized.startsWith("tcp") &&
+            normalized.contains("0.0.0.0:${SyncthingLanPolicy.SYNC_PORT}")
+    }
+    val lanListenerHealthy = when {
+        !connectionStatusPresent -> null
+        lanListenerEntries.isEmpty() -> false
+        else -> lanListenerEntries.any { it.healthy }
+    }
+
+    return LanRuntimeHealth(
+        ipv4LocalDiscoveryHealthy = ipv4LocalDiscoveryHealthy,
+        lanListenerHealthy = lanListenerHealthy,
+    )
+}
+
+internal fun inspectLanRuntimeHealth(status: JSONObject): LanRuntimeHealth {
+    val discoveryStatus = status.optJSONObject("discoveryStatus")
+    val connectionStatus = status.optJSONObject("connectionServiceStatus")
+
+    return evaluateLanRuntimeHealth(
+        discoveryStatusPresent = discoveryStatus != null,
+        discoveryEntries = discoveryStatus.toHealthEntries(),
+        connectionStatusPresent = connectionStatus != null,
+        connectionEntries = connectionStatus.toHealthEntries(),
+    )
+}
+
+private fun JSONObject?.toHealthEntries(): List<LanRuntimeStatusEntry> {
+    val source = this ?: return emptyList()
+    return source.keys().asSequence().map { key ->
+        val entry = source.optJSONObject(key)
+        LanRuntimeStatusEntry(
+            key = key,
+            healthy = entry != null && (!entry.has("error") || entry.isNull("error")),
+        )
+    }.toList()
+}
+
 internal fun describeLanTimeout(
     discoveredLocally: Boolean,
     peerPaused: Boolean?,
+    runtimeHealth: LanRuntimeHealth? = null,
 ): String = when {
     peerPaused == true ->
         "El dispositivo quedó pausado en el motor local. Volvé a intentar la prueba LAN."
+
+    runtimeHealth?.lanListenerHealthy == false ->
+        "El listener LAN del motor no quedó activo. OclAx volvió a modo aislado; " +
+            "repetí Probar LAN para confirmar el diagnóstico."
+
+    runtimeHealth?.ipv4LocalDiscoveryHealthy == false ->
+        "Discovery local IPv4 no quedó activo en este teléfono. OclAx volvió a modo aislado; " +
+            "repetí Probar LAN para confirmar el diagnóstico."
 
     discoveredLocally ->
         "El otro teléfono apareció en discovery local, pero no se completó la conexión. " +
             "Confirmá que ambos tengan agregado el ID del otro y que ambos hayan tocado Probar LAN."
 
+    runtimeHealth?.ipv4LocalDiscoveryHealthy == true &&
+        runtimeHealth.lanListenerHealthy == true ->
+        "Discovery local y el listener LAN están activos en este teléfono, pero el otro no apareció. " +
+            "Tocá Probar LAN en ambos teléfonos dentro de la misma ventana y confirmá que estén " +
+            "en la misma Wi-Fi sin aislamiento de clientes/broadcast."
+
     else ->
         "El otro teléfono no apareció en discovery local. " +
             "Abrí OclAx en ambos teléfonos y tocá Probar LAN en los dos dentro de la misma ventana. " +
-            "Si ambos lo hacen y sigue igual, la Wi-Fi puede estar aislando dispositivos o multicast."
+            "Si ambos lo hacen y sigue igual, la Wi-Fi puede estar aislando dispositivos o broadcast."
 }
 
 internal class SyncthingRestClient(
@@ -236,11 +319,15 @@ internal class SyncthingRestClient(
         val peerPaused = connection
             ?.takeIf { it.has("paused") }
             ?.optBoolean("paused")
+        val runtimeHealth = runCatching {
+            inspectLanRuntimeHealth(getJson("/rest/system/status"))
+        }.getOrNull()
 
         throw IOException(
             describeLanTimeout(
                 discoveredLocally = discoveredLocally,
                 peerPaused = peerPaused,
+                runtimeHealth = runtimeHealth,
             ),
         )
     }

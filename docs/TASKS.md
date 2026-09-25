@@ -425,6 +425,7 @@ Implementado:
 - la conexión solo se considera válida cuando Syncthing informa `connected=true` e `isLocal=true`;
 - **Desconectar LAN** pausa el peer, restaura el motor a modo aislado y libera el MulticastLock; si la restauración falla, el runtime se detiene por seguridad;
 - al vencer la búsqueda, el diagnóstico consulta el cache local de discovery de Syncthing y distingue si el peer nunca apareció, apareció pero no conectó o quedó pausado;
+- el diagnóstico de timeout también consulta `/rest/system/status` para distinguir discovery IPv4 local inactivo, listener LAN inactivo o motor local sano con peer ausente, sin mostrar el error bruto;
 - no se muestran direcciones IP del cache en UI y no se comparte ninguna carpeta ni archivo todavía.
 
 Validado:
@@ -440,6 +441,7 @@ Validación física parcial — 2026-09-24:
 Pendiente:
 - confirmar motor/ID del segundo teléfono si aún falta;
 - confirmar emparejamiento mutuo;
+- CI verde del diagnóstico adicional;
 - repetir **Probar LAN** en ambos dentro de la misma ventana y misma Wi-Fi;
 - confirmar que ambos muestran **Conectado por LAN**;
 - confirmar que desconectar vuelve al modo aislado;

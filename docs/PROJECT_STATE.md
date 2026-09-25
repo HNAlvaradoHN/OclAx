@@ -91,6 +91,7 @@
 - todavía no existe transferencia de archivos: el canal privado + progreso permanece bloqueado hasta validar LAN con dos teléfonos.
 - PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION**: apertura/presentación ya están confirmadas; todavía faltan selección múltiple, cancelar, MIME/permiso negado y retorno de más variantes.
 - dos dispositivos físicos ya están disponibles. En el teléfono mostrado existe un peer guardado, pero un intento LAN terminó con diagnóstico **no apareció en discovery local**; causa todavía **NO VERIFICADA** y LAN sigue pendiente.
+- diagnóstico LAN adicional implementado en PR #65: al timeout distingue salud de discovery IPv4 local y del listener LAN sin exponer errores brutos, IPs ni Device IDs; pendiente CI y repetición física.
 
 ## Bloqueos
 

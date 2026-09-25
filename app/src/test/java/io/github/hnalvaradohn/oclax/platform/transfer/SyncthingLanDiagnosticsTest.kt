@@ -1,5 +1,6 @@
 package io.github.hnalvaradohn.oclax.platform.transfer
 
+import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -31,8 +32,120 @@ class SyncthingLanDiagnosticsTest {
         val message = describeLanTimeout(
             discoveredLocally = true,
             peerPaused = true,
+            runtimeHealth = LanRuntimeHealth(
+                ipv4LocalDiscoveryHealthy = false,
+                lanListenerHealthy = false,
+            ),
         )
 
         assertTrue(message.contains("quedó pausado"))
+    }
+
+    @Test
+    fun runtimeHealthRecognizesHealthyLocalDiscoveryAndListener() {
+        val health = evaluateLanRuntimeHealth(
+            discoveryStatusPresent = true,
+            discoveryEntries = listOf(
+                LanRuntimeStatusEntry("IPv4 local", healthy = true),
+                LanRuntimeStatusEntry("IPv6 local", healthy = true),
+            ),
+            connectionStatusPresent = true,
+            connectionEntries = listOf(
+                LanRuntimeStatusEntry("tcp://0.0.0.0:22000", healthy = true),
+            ),
+        )
+
+        assertEquals(true, health.ipv4LocalDiscoveryHealthy)
+        assertEquals(true, health.lanListenerHealthy)
+    }
+
+    @Test
+    fun runtimeHealthReportsDiscoveryFailureWithoutLeakingRawError() {
+        val health = evaluateLanRuntimeHealth(
+            discoveryStatusPresent = true,
+            discoveryEntries = listOf(
+                LanRuntimeStatusEntry("IPv4 local", healthy = false),
+            ),
+            connectionStatusPresent = true,
+            connectionEntries = listOf(
+                LanRuntimeStatusEntry("tcp://0.0.0.0:22000", healthy = true),
+            ),
+        )
+        val message = describeLanTimeout(
+            discoveredLocally = false,
+            peerPaused = false,
+            runtimeHealth = health,
+        )
+
+        assertEquals(false, health.ipv4LocalDiscoveryHealthy)
+        assertTrue(message.contains("Discovery local IPv4 no quedó activo"))
+    }
+
+    @Test
+    fun isolatedLoopbackListenerDoesNotCountAsLanListener() {
+        val health = evaluateLanRuntimeHealth(
+            discoveryStatusPresent = true,
+            discoveryEntries = listOf(
+                LanRuntimeStatusEntry("IPv4 local", healthy = true),
+            ),
+            connectionStatusPresent = true,
+            connectionEntries = listOf(
+                LanRuntimeStatusEntry("tcp4://127.0.0.1:22000", healthy = true),
+            ),
+        )
+
+        assertEquals(true, health.ipv4LocalDiscoveryHealthy)
+        assertEquals(false, health.lanListenerHealthy)
+    }
+
+    @Test
+    fun runtimeHealthReportsListenerFailureBeforeNetworkAdvice() {
+        val health = evaluateLanRuntimeHealth(
+            discoveryStatusPresent = true,
+            discoveryEntries = listOf(
+                LanRuntimeStatusEntry("IPv4 local", healthy = true),
+            ),
+            connectionStatusPresent = true,
+            connectionEntries = listOf(
+                LanRuntimeStatusEntry("tcp4://0.0.0.0:22000", healthy = false),
+            ),
+        )
+        val message = describeLanTimeout(
+            discoveredLocally = false,
+            peerPaused = false,
+            runtimeHealth = health,
+        )
+
+        assertEquals(false, health.lanListenerHealthy)
+        assertTrue(message.contains("listener LAN"))
+    }
+
+    @Test
+    fun missingRuntimeSectionsRemainUnknown() {
+        val health = evaluateLanRuntimeHealth(
+            discoveryStatusPresent = false,
+            discoveryEntries = emptyList(),
+            connectionStatusPresent = false,
+            connectionEntries = emptyList(),
+        )
+
+        assertEquals(null, health.ipv4LocalDiscoveryHealthy)
+        assertEquals(null, health.lanListenerHealthy)
+    }
+
+    @Test
+    fun healthyRuntimePointsToLanBroadcastPathWhenPeerIsMissing() {
+        val message = describeLanTimeout(
+            discoveredLocally = false,
+            peerPaused = false,
+            runtimeHealth = LanRuntimeHealth(
+                ipv4LocalDiscoveryHealthy = true,
+                lanListenerHealthy = true,
+            ),
+        )
+
+        assertTrue(message.contains("Discovery local y el listener LAN están activos"))
+        assertTrue(message.contains("misma Wi-Fi"))
+        assertTrue(message.contains("broadcast"))
     }
 }

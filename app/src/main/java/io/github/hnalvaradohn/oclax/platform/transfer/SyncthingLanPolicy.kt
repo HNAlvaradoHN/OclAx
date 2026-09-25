@@ -4,6 +4,7 @@ import org.json.JSONArray
 import org.json.JSONObject
 
 internal object SyncthingLanPolicy {
+    const val SYNC_PORT = 22000
     const val LISTEN_ADDRESS = "tcp4://0.0.0.0:22000"
 
     val ALLOWED_NETWORKS: List<String> = listOf(
