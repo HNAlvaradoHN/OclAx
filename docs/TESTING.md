@@ -490,3 +490,10 @@ Revisión aplicable:
 - **Diseño/UX/Accesibilidad — INFORMATIVO.** La salida deja de ser accidental y conserva confirmación explícita.
 - **QA — PENDIENTE FÍSICO.** El orden de pantallas requiere comprobar gesto predictivo/botón real en dispositivo.
 - **Arquitectura/Calidad — INFORMATIVO.** La decisión de back principal vive en una política JVM-testable y los estados locales se resuelven en su superficie.
+
+
+## Validación física adicional — 2026-09-25
+
+- **Mi dispositivo:** el dueño reporta funcionamiento correcto en las rutas probadas, incluyendo la revisión visual actual.
+- **Compartir app/APK:** confirmado funcional en el dispositivo probado; no se afirma todavía cobertura específica de paquete con splits.
+- **Picker múltiple:** no es una función de producto solicitada por el dueño. La ruta técnica existente solo se conserva como compatibilidad cuando una app externa solicite selección múltiple y no se usa como gate prioritario de UX.
