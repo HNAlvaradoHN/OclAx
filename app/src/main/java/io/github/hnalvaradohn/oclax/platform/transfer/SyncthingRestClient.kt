@@ -22,21 +22,90 @@ internal data class LanPeerConnectionResult(
     val connectionType: String,
 )
 
+internal data class LanRuntimeHealth(
+    val ipv4LocalDiscoveryHealthy: Boolean?,
+    val lanListenerHealthy: Boolean?,
+)
+
+internal fun inspectLanRuntimeHealth(status: JSONObject): LanRuntimeHealth {
+    val discoveryStatus = status.optJSONObject("discoveryStatus")
+    val ipv4DiscoveryKeys = discoveryStatus
+        ?.keys()
+        ?.asSequence()
+        ?.filter { key ->
+            val normalized = key.lowercase()
+            normalized.contains("ipv4") &&
+                normalized.contains("local") &&
+                !normalized.contains("global")
+        }
+        ?.toList()
+        .orEmpty()
+
+    val ipv4LocalDiscoveryHealthy = when {
+        discoveryStatus == null -> null
+        ipv4DiscoveryKeys.isEmpty() -> false
+        else -> ipv4DiscoveryKeys.all { key ->
+            val entry = discoveryStatus.optJSONObject(key)
+            entry != null && (!entry.has("error") || entry.isNull("error"))
+        }
+    }
+
+    val connectionStatus = status.optJSONObject("connectionServiceStatus")
+    val listenerKeys = connectionStatus
+        ?.keys()
+        ?.asSequence()
+        ?.filter { key ->
+            key.startsWith("tcp", ignoreCase = true) &&
+                key.contains(":${SyncthingLanPolicy.SYNC_PORT}")
+        }
+        ?.toList()
+        .orEmpty()
+
+    val lanListenerHealthy = when {
+        connectionStatus == null -> null
+        listenerKeys.isEmpty() -> false
+        else -> listenerKeys.any { key ->
+            val entry = connectionStatus.optJSONObject(key)
+            entry != null && (!entry.has("error") || entry.isNull("error"))
+        }
+    }
+
+    return LanRuntimeHealth(
+        ipv4LocalDiscoveryHealthy = ipv4LocalDiscoveryHealthy,
+        lanListenerHealthy = lanListenerHealthy,
+    )
+}
+
 internal fun describeLanTimeout(
     discoveredLocally: Boolean,
     peerPaused: Boolean?,
+    runtimeHealth: LanRuntimeHealth? = null,
 ): String = when {
     peerPaused == true ->
         "El dispositivo quedó pausado en el motor local. Volvé a intentar la prueba LAN."
+
+    runtimeHealth?.lanListenerHealthy == false ->
+        "El listener LAN del motor no quedó activo. OclAx volvió a modo aislado; " +
+            "repetí Probar LAN para confirmar el diagnóstico."
+
+    runtimeHealth?.ipv4LocalDiscoveryHealthy == false ->
+        "Discovery local IPv4 no quedó activo en este teléfono. OclAx volvió a modo aislado; " +
+            "repetí Probar LAN para confirmar el diagnóstico."
 
     discoveredLocally ->
         "El otro teléfono apareció en discovery local, pero no se completó la conexión. " +
             "Confirmá que ambos tengan agregado el ID del otro y que ambos hayan tocado Probar LAN."
 
+    runtimeHealth?.ipv4LocalDiscoveryHealthy == true &&
+        runtimeHealth.lanListenerHealthy == true ->
+        "Discovery local y el listener LAN están activos en este teléfono, pero el otro no apareció. " +
+            "Tocá Probar LAN en ambos teléfonos dentro de la misma ventana y confirmá que estén " +
+            "en la misma Wi-Fi sin aislamiento de clientes/broadcast."
+
     else ->
         "El otro teléfono no apareció en discovery local. " +
             "Abrí OclAx en ambos teléfonos y tocá Probar LAN en los dos dentro de la misma ventana. " +
-            "Si ambos lo hacen y sigue igual, la Wi-Fi puede estar aislando dispositivos o multicast."
+            "Si ambos lo hacen y sigue igual, la Wi-Fi puede estar aislando dispositivos o broadcast."
 }
 
 internal class SyncthingRestClient(
@@ -236,11 +305,15 @@ internal class SyncthingRestClient(
         val peerPaused = connection
             ?.takeIf { it.has("paused") }
             ?.optBoolean("paused")
+        val runtimeHealth = runCatching {
+            inspectLanRuntimeHealth(getJson("/rest/system/status"))
+        }.getOrNull()
 
         throw IOException(
             describeLanTimeout(
                 discoveredLocally = discoveredLocally,
                 peerPaused = peerPaused,
+                runtimeHealth = runtimeHealth,
             ),
         )
     }
