@@ -49,6 +49,7 @@ import androidx.compose.material.icons.outlined.InsertDriveFile
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Share
+import androidx.compose.material.icons.outlined.SendToMobile
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -102,7 +103,9 @@ import io.github.hnalvaradohn.oclax.platform.InstalledAppExporter
 import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
+import io.github.hnalvaradohn.oclax.platform.transfer.IncomingTransferOffer
 import io.github.hnalvaradohn.oclax.platform.transfer.TransferRuntimeController
+import io.github.hnalvaradohn.oclax.transfer.FileTransferCoordinator
 import io.github.hnalvaradohn.oclax.ui.CategoryOverviewGrid
 import io.github.hnalvaradohn.oclax.ui.CategoryOverviewItem
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
@@ -126,8 +129,12 @@ class MainActivity : ComponentActivity() {
     private val viewModePreferences by lazy { ViewModePreferences(applicationContext) }
     private val contentOpener by lazy { ContentOpener(this) }
     private val transferRuntimeController by lazy { TransferRuntimeController(applicationContext) }
+    private val fileTransferCoordinator by lazy {
+        FileTransferCoordinator(store, transferRuntimeController)
+    }
     private val deviceExecutor = Executors.newSingleThreadExecutor()
     private val transferExecutor = Executors.newSingleThreadExecutor()
+    private val fileTransferExecutor = Executors.newFixedThreadPool(2)
     private var items by mutableStateOf<List<StoredItem>>(emptyList())
     private var installedApps by mutableStateOf<List<InstalledAppInfo>>(emptyList())
     private var deviceFiles by mutableStateOf<List<DeviceFileInfo>>(emptyList())
@@ -141,6 +148,10 @@ class MainActivity : ComponentActivity() {
     private var lanBusyDeviceId by mutableStateOf<String?>(null)
     private var activeLanDeviceId by mutableStateOf<String?>(null)
     private var lanStatusByDevice by mutableStateOf<Map<String, String>>(emptyMap())
+    private var fileTransferBusy by mutableStateOf(false)
+    private var itemTransferStatusById by mutableStateOf<Map<String, String>>(emptyMap())
+    private var pendingIncomingTransfers by mutableStateOf<List<IncomingTransferOffer>>(emptyList())
+    private var incomingTransferStatusById by mutableStateOf<Map<String, String>>(emptyMap())
     private var pendingSystemDeleteName: String? = null
 
     private val deviceDeleteLauncher = registerForActivityResult(
@@ -220,6 +231,10 @@ class MainActivity : ComponentActivity() {
                     lanBusyDeviceId = lanBusyDeviceId,
                     activeLanDeviceId = activeLanDeviceId,
                     lanStatusByDevice = lanStatusByDevice,
+                    fileTransferBusy = fileTransferBusy,
+                    itemTransferStatusById = itemTransferStatusById,
+                    pendingIncomingTransfers = pendingIncomingTransfers,
+                    incomingTransferStatusById = incomingTransferStatusById,
                     onProbeTransferRuntime = ::probeTransferRuntime,
                     onStopTransferRuntime = ::stopTransferRuntime,
                     onShareTransferDeviceId = ::shareTransferDeviceId,
@@ -228,6 +243,10 @@ class MainActivity : ComponentActivity() {
                     onRemovePairedDevice = ::removePairedDevice,
                     onTestLan = ::testLanConnection,
                     onDisconnectLan = ::disconnectLan,
+                    onSendItem = ::sendItemToActiveDevice,
+                    onRefreshIncomingTransfers = ::refreshIncomingTransfers,
+                    onAcceptIncomingTransfer = ::acceptIncomingTransfer,
+                    onRejectIncomingTransfer = ::rejectIncomingTransfer,
                 )
             }
         }
@@ -241,6 +260,7 @@ class MainActivity : ComponentActivity() {
     override fun onDestroy() {
         deviceExecutor.shutdownNow()
         transferExecutor.shutdownNow()
+        fileTransferExecutor.shutdownNow()
         super.onDestroy()
     }
 
@@ -319,6 +339,7 @@ class MainActivity : ComponentActivity() {
                 activeLanDeviceId = null
                 lanBusyDeviceId = null
                 lanStatusByDevice = emptyMap()
+                pendingIncomingTransfers = emptyList()
                 transferRuntimeStatus = if (stopped) {
                     "Motor de envío detenido correctamente."
                 } else {
@@ -366,6 +387,7 @@ class MainActivity : ComponentActivity() {
                         device.deviceId to "Conectado por LAN."
                         )
                     transferRuntimeStatus = "Motor activo · conexión LAN verificada."
+                    refreshIncomingTransfers()
                 }.onFailure { error ->
                     if (activeLanDeviceId == device.deviceId) {
                         activeLanDeviceId = null
@@ -381,6 +403,14 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun disconnectLan(device: PairedDevice) {
+        if (fileTransferBusy) {
+            Toast.makeText(
+                this,
+                "Esperá a que termine la transferencia antes de desconectar LAN.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
         if (transferRuntimeBusy || lanBusyDeviceId != null) return
         if (activeLanDeviceId != device.deviceId) return
 
@@ -399,6 +429,7 @@ class MainActivity : ComponentActivity() {
                 transferRuntimeBusy = false
                 lanBusyDeviceId = null
                 activeLanDeviceId = null
+                pendingIncomingTransfers = emptyList()
                 lanStatusByDevice = lanStatusByDevice + (
                     device.deviceId to if (result.isSuccess) {
                         "Desconectado · motor aislado."
@@ -410,6 +441,161 @@ class MainActivity : ComponentActivity() {
                     "Motor aislado."
                 } else {
                     "Motor detenido por seguridad."
+                }
+            }
+        }
+    }
+
+    private fun sendItemToActiveDevice(item: StoredItem) {
+        val deviceId = activeLanDeviceId
+        if (deviceId == null) {
+            Toast.makeText(
+                this,
+                "Conectá primero un dispositivo por LAN.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+        if (fileTransferBusy) return
+
+        fileTransferBusy = true
+        itemTransferStatusById = itemTransferStatusById + (
+            item.id to "Preparando envío…"
+            )
+
+        fileTransferExecutor.execute {
+            val result = runCatching {
+                fileTransferCoordinator.send(
+                    item = item,
+                    deviceId = deviceId,
+                    onProgress = { progress ->
+                        runOnUiThread {
+                            itemTransferStatusById = itemTransferStatusById + (
+                                item.id to progress.message
+                                )
+                        }
+                    },
+                )
+            }
+
+            runOnUiThread {
+                fileTransferBusy = false
+                result.onSuccess {
+                    itemTransferStatusById = itemTransferStatusById + (
+                        item.id to "Enviado y recibido."
+                        )
+                    Toast.makeText(
+                        this,
+                        "Transferencia completada.",
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }.onFailure { error ->
+                    itemTransferStatusById = itemTransferStatusById + (
+                        item.id to
+                            ("No se pudo enviar: " + (error.message ?: "error desconocido"))
+                        )
+                }
+            }
+        }
+    }
+
+    private fun refreshIncomingTransfers() {
+        val deviceId = activeLanDeviceId ?: return
+        fileTransferExecutor.execute {
+            val result = runCatching {
+                fileTransferCoordinator.pending(deviceId)
+            }
+            runOnUiThread {
+                result.onSuccess { offers ->
+                    pendingIncomingTransfers = offers
+                    val trusted = pairedDevices
+                        .firstOrNull { it.deviceId == deviceId }
+                        ?.allowWithoutAccept == true
+                    if (trusted && offers.isNotEmpty() && !fileTransferBusy) {
+                        acceptIncomingTransfer(offers.first())
+                    }
+                }.onFailure { error ->
+                    incomingTransferStatusById = incomingTransferStatusById + (
+                        deviceId to
+                            ("No se pudieron revisar solicitudes: " +
+                                (error.message ?: "error desconocido"))
+                        )
+                }
+            }
+        }
+    }
+
+    private fun acceptIncomingTransfer(offer: IncomingTransferOffer) {
+        if (fileTransferBusy) return
+        if (activeLanDeviceId != offer.senderDeviceId) {
+            Toast.makeText(
+                this,
+                "Esa solicitud ya no pertenece a la conexión LAN activa.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+
+        fileTransferBusy = true
+        incomingTransferStatusById = incomingTransferStatusById + (
+            offer.folderId to "Preparando recepción…"
+            )
+
+        fileTransferExecutor.execute {
+            val result = runCatching {
+                fileTransferCoordinator.receive(
+                    offer = offer,
+                    onProgress = { progress ->
+                        runOnUiThread {
+                            incomingTransferStatusById = incomingTransferStatusById + (
+                                offer.folderId to progress.message
+                                )
+                        }
+                    },
+                )
+            }
+
+            runOnUiThread {
+                fileTransferBusy = false
+                result.onSuccess { received ->
+                    incomingTransferStatusById = incomingTransferStatusById + (
+                        offer.folderId to "Recibido en OclAx."
+                        )
+                    pendingIncomingTransfers =
+                        pendingIncomingTransfers.filterNot { it.folderId == offer.folderId }
+                    refresh()
+                    Toast.makeText(
+                        this,
+                        "Recibido: " + received.displayName,
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                    refreshIncomingTransfers()
+                }.onFailure { error ->
+                    incomingTransferStatusById = incomingTransferStatusById + (
+                        offer.folderId to
+                            ("No se pudo recibir: " + (error.message ?: "error desconocido"))
+                        )
+                }
+            }
+        }
+    }
+
+    private fun rejectIncomingTransfer(offer: IncomingTransferOffer) {
+        if (fileTransferBusy) return
+        fileTransferExecutor.execute {
+            val result = runCatching {
+                fileTransferCoordinator.reject(offer)
+            }
+            runOnUiThread {
+                result.onSuccess {
+                    pendingIncomingTransfers =
+                        pendingIncomingTransfers.filterNot { it.folderId == offer.folderId }
+                    incomingTransferStatusById = incomingTransferStatusById - offer.folderId
+                }.onFailure { error ->
+                    incomingTransferStatusById = incomingTransferStatusById + (
+                        offer.folderId to
+                            ("No se pudo rechazar: " + (error.message ?: "error desconocido"))
+                        )
                 }
             }
         }
