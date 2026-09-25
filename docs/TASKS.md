@@ -522,3 +522,24 @@ Validado físicamente — 2026-09-24:
 Pendiente:
 - confirmar compartir APK único y paquete con splits sin datos privados;
 - confirmar experiencia de recepción/instalación para paquetes con splits antes de declararlo DONE.
+
+### NAV-001 — Navegación Atrás jerárquica y salida confirmada
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta  
+**PR:** #71
+
+Objetivo:
+- Atrás desde una categoría/búsqueda vuelve al resumen de categorías en vez de cerrar OclAx;
+- Atrás desde **Mi dispositivo** vuelve primero a OclAx principal;
+- en la pantalla principal, el primer Atrás pide confirmación de salida;
+- después de esa advertencia, un segundo Atrás cierra la app;
+- el picker propio también retrocede categoría → origen → app llamadora.
+
+Implementado:
+- política de navegación principal separada y testeable;
+- BackHandler en OclAx, Mi dispositivo y picker propio;
+- confirmación explícita de salida sin alterar almacenamiento, permisos, red ni transferencias.
+
+Pendiente:
+- CI de PR #71;
+- validación física con gesto Atrás y botón Atrás en OclAx/PDF, Mi dispositivo y picker.
