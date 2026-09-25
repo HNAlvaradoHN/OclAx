@@ -92,18 +92,18 @@
 - PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION**: apertura/presentación ya están confirmadas; todavía faltan selección múltiple, cancelar, MIME/permiso negado y retorno de más variantes.
 - dos dispositivos físicos ya están disponibles y la build main run 234 fue probada en ambos. En ambos extremos el diagnóstico confirmó **discovery IPv4 local activo + listener LAN activo**, pero ninguno vio al otro por discovery local.
 - **CAUSA DEL FALLO DE DISCOVERY: NO VERIFICADA.** La evidencia es compatible con filtrado/aislamiento de broadcast de la Wi‑Fi, pero no lo demuestra por sí sola.
-- para no depender exclusivamente de discovery broadcast, está implementándose un fallback LAN directo y acotado: después de una ventana corta de discovery, OclAx inspecciona solo la red Wi‑Fi/Ethernet local, sondea únicamente TCP/22000 dentro del segmento inmediato (máximo /24) y entrega candidatos privados a Syncthing, que sigue verificando el Device ID.
+- para no depender exclusivamente de discovery broadcast, el fallback LAN directo y acotado ya está fusionado en PR #66: después de una ventana corta de discovery, OclAx inspecciona solo la red Wi‑Fi/Ethernet local, sondea únicamente TCP/22000 dentro del segmento inmediato (máximo /24) y entrega candidatos privados a Syncthing, que sigue verificando el Device ID; main run 237 quedó verde.
 
 ## Bloqueos
 
-- **TRANSFER-001/003:** ambos teléfonos ya demostraron listener + discovery local sanos, pero discovery no cruza entre ellos. LAN sigue sin validar; el fallback directo debe pasar CI y prueba física antes de avanzar al canal real de archivos;
+- **TRANSFER-001/003:** ambos teléfonos ya demostraron listener + discovery local sanos, pero discovery no cruza entre ellos. El fallback directo ya pasó CI en main run 237; LAN sigue sin validar hasta repetir la prueba física en ambos antes de avanzar al canal real de archivos;
 - siguen pendientes validaciones físicas de miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes;
 - Internet directo, relay y canal real de archivos no deben implementarse antes de validar físicamente LAN según la autorización vigente.
 
 ## Siguiente paso exacto
 
-1. Terminar CI/revisión del fallback LAN directo acotado.
-2. Instalar la misma build resultante en ambos teléfonos, mantenerlos en la misma Wi‑Fi y tocar **Probar LAN** en ambos dentro de la misma ventana.
+1. Instalar la build de main run 237 en ambos teléfonos, mantenerlos en la misma Wi‑Fi y tocar **Probar LAN** en ambos dentro de la misma ventana.
+2. Confirmar que, si discovery broadcast vuelve a fallar, el fallback directo se ejecuta sin intervención manual.
 3. Si conecta, confirmar **Desconectar LAN** y retorno a modo aislado.
 4. Si no conecta, registrar solo el nuevo diagnóstico sanitizado: **directo no encontró peer** o **encontró candidato Syncthing pero no verificó el dispositivo emparejado**.
 5. Solo después de validar LAN, diseñar/implementar el canal privado de archivos + progreso; Internet/relay continúa fuera de alcance hasta esa validación.
