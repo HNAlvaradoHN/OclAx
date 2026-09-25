@@ -426,25 +426,28 @@ Implementado:
 - **Desconectar LAN** pausa el peer, restaura el motor a modo aislado y libera el MulticastLock; si la restauración falla, el runtime se detiene por seguridad;
 - al vencer la búsqueda, el diagnóstico consulta el cache local de discovery de Syncthing y distingue si el peer nunca apareció, apareció pero no conectó o quedó pausado;
 - el diagnóstico de timeout también consulta `/rest/system/status` para distinguir discovery IPv4 local inactivo, listener LAN inactivo o motor local sano con peer ausente, sin mostrar el error bruto;
-- no se muestran direcciones IP del cache en UI y no se comparte ninguna carpeta ni archivo todavía.
+- no se muestran direcciones IP del cache en UI y no se comparte ninguna carpeta ni archivo todavía;
+- fallback directo en implementación: si discovery no conecta tras una ventana corta, OclAx limita el sondeo al transporte Wi‑Fi/Ethernet activo, máximo 254 hosts del segmento inmediato y solo TCP/22000; cualquier candidato se configura como dirección privada explícita del peer y Syncthing conserva la verificación criptográfica por Device ID;
+- las direcciones explícitas temporales vuelven a `dynamic` al fallar o desconectar; si la limpieza o aislamiento no se confirma, el runtime se detiene.
 
 Validado:
 - PR #42 fusionado;
 - CI final de main (run 150) verde en tests, lint, build multi-ABI, verificación de runtimes y APK debug.
 
 Validación física parcial — 2026-09-24:
-- el dueño ya dispone de dos dispositivos;
-- en el teléfono mostrado existe un peer agregado;
-- un intento de **Probar LAN** terminó con `no apareció en discovery local`;
-- **CAUSA: NO VERIFICADA**: todavía no consta que ambos probes se ejecutaran simultáneamente ni que la red permita multicast entre clientes.
+- ambos dispositivos ejecutaron la build main run 234;
+- en ambos extremos Syncthing reportó **discovery IPv4 local activo + listener LAN activo**;
+- ninguno vio al otro por discovery local;
+- el cleanup volvió a modo aislado al fallar;
+- **CAUSA DEL FALLO DE DISCOVERY: NO VERIFICADA**. El filtrado/aislamiento de broadcast es una hipótesis compatible con la evidencia, no una conclusión.
 
 Pendiente:
-- confirmar motor/ID del segundo teléfono si aún falta;
-- confirmar emparejamiento mutuo;
-- CI verde del diagnóstico adicional;
-- repetir **Probar LAN** en ambos dentro de la misma ventana y misma Wi-Fi;
+- CI verde del fallback LAN directo;
+- instalar la misma build del fallback en ambos;
+- repetir **Probar LAN** simultáneamente en la misma Wi‑Fi;
 - confirmar que ambos muestran **Conectado por LAN**;
-- confirmar que desconectar vuelve al modo aislado;
+- confirmar que **Desconectar LAN** restaura `dynamic`, pausa el peer y vuelve al modo aislado;
+- si el fallback no encuentra TCP/22000 en el segmento, mantener aislamiento de clientes como hipótesis física;
 - solo después crear el canal privado de archivos y progreso.
 
 ### PLATFORM-001 — Compatibilidad de permisos de red local Android 17
