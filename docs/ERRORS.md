@@ -326,7 +326,7 @@
 **Prevención:** para extensiones scoped de Compose como `weight`, preferir el patrón ya usado en el proyecto y no importar símbolos internos solo porque el IDE/autocompletado los sugiera.
 
 ### ERR-012 — Atrás desde categorías cerraba OclAx
-**Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
+**Estado:** CORREGIDO_PARCIALMENTE_VALIDADO_FISICAMENTE
 
 **Síntoma:** dentro de una categoría como PDF, el gesto/botón Atrás terminaba la Activity principal en vez de regresar al resumen de categorías.
 
@@ -338,5 +338,7 @@
 - la raíz de OclAx muestra confirmación y un segundo Atrás cierra;
 - el picker propio desenrolla su jerarquía antes de volver a la app llamadora;
 - la política principal tiene pruebas unitarias.
+
+**Validación física — 2026-09-25:** con main run 281, el gesto Atrás desde la vista PDF volvió correctamente al nivel anterior y no cerró OclAx. Falta validar físicamente el resto de la jerarquía (raíz, Mi dispositivo, picker y botón Atrás).
 
 **Prevención:** cualquier nueva superficie navegable debe declarar explícitamente su jerarquía de Atrás y cubrirla con prueba de política o UI.

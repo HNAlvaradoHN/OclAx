@@ -387,3 +387,8 @@ Contrato aprobado:
 - la pantalla principal de OclAx no se cierra con un solo Atrás: primero pregunta **¿Salir de OclAx?**;
 - después de esa advertencia, otro Atrás cierra la aplicación, aunque el usuario haya elegido **No** previamente;
 - **Elegir con OclAx** respeta su contexto externo: retrocede dentro del picker y finalmente vuelve a la aplicación llamadora, no fuerza la pantalla principal de OclAx.
+
+
+## Tema claro/oscuro — 2026-09-25
+
+Decisión confirmada por el dueño: OclAx mantiene soporte de tema claro y oscuro siguiendo automáticamente el tema del sistema Android. No se añade por ahora un selector manual dentro de OclAx. La paleta semántica por categoría debe conservar legibilidad en ambos temas.

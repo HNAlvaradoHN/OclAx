@@ -474,11 +474,12 @@ Validación automática:
 - BackNavigationPolicyTest cubre categoría/búsqueda → categorías, Mi dispositivo → OclAx, primer Atrás en inicio → confirmación y segundo Atrás → salida;
 - lint/build deben confirmar integración de BackHandler y DialogProperties.
 
-Validación física requerida:
-1. entrar a **PDF** en OclAx y usar gesto/botón Atrás: debe volver a categorías;
-2. desde categorías OclAx, Atrás debe mostrar **¿Salir de OclAx?**;
-3. elegir **No** y volver a presionar Atrás: debe cerrar;
-4. repetir dejando el diálogo abierto y presionar Atrás de nuevo: debe cerrar;
+Validación física:
+- **VERIFICADO con run 281:** entrar a **PDF** en OclAx y usar el gesto Atrás vuelve al nivel anterior sin cerrar la app.
+
+Validación física todavía requerida:
+1. repetir con el botón Atrás físico/sistema cuando esté disponible;
+- **VERIFICADO:** desde la raíz de OclAx, la confirmación de salida y la secuencia posterior funcionan correctamente según la prueba física del dueño;
 5. entrar a **Mi dispositivo** → categoría → Atrás: categoría → resumen de Mi dispositivo → OclAx principal;
 6. abrir **Elegir con OclAx** desde otra app: categoría → resumen → OclAx/origen → app llamadora, sin matar la app principal.
 
@@ -487,3 +488,10 @@ Revisión aplicable:
 - **Diseño/UX/Accesibilidad — INFORMATIVO.** La salida deja de ser accidental y conserva confirmación explícita.
 - **QA — PENDIENTE FÍSICO.** El orden de pantallas requiere comprobar gesto predictivo/botón real en dispositivo.
 - **Arquitectura/Calidad — INFORMATIVO.** La decisión de back principal vive en una política JVM-testable y los estados locales se resuelven en su superficie.
+
+
+## Validación física adicional — 2026-09-25
+
+- **Mi dispositivo:** el dueño reporta funcionamiento correcto en las rutas probadas, incluyendo la revisión visual actual.
+- **Compartir app/APK:** confirmado funcional en el dispositivo probado; no se afirma todavía cobertura específica de paquete con splits.
+- **Picker múltiple:** no es una función de producto solicitada por el dueño. La ruta técnica existente solo se conserva como compatibilidad cuando una app externa solicite selección múltiple y no se usa como gate prioritario de UX.

@@ -93,7 +93,7 @@
 - TRANSFER-003 queda **DONE** para la conectividad LAN: dos dispositivos conectaron físicamente y ambos restauraron aislamiento al desconectar;
 - TRANSFER-004 está **IMPLEMENTED_PENDING_VALIDATION**: PR #68 ya fue fusionado; el primer canal real OclAx↔OclAx sobre LAN verificada incluye carpetas efímeras Syncthing privadas, aceptación/autoaceptación por dispositivo, progreso, importación a ItemStore y cleanup;
 - la transferencia real pasó CI de main run 269 en verde y requiere validación física de envío/recepción antes de declararse terminada.
-- PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION**: apertura/presentación ya están confirmadas; todavía faltan selección múltiple, cancelar, MIME/permiso negado y retorno de más variantes.
+- PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION**: apertura/presentación ya están confirmadas; todavía faltan cancelar, MIME/permiso negado y retorno de más variantes. La selección múltiple existente es compatibilidad técnica del intent externo, no una función de producto propuesta por el dueño ni un gate prioritario.
 - dos dispositivos físicos ya están disponibles y la build main run 234 fue probada en ambos. En ambos extremos el diagnóstico confirmó **discovery IPv4 local activo + listener LAN activo**, pero ninguno vio al otro por discovery local.
 - **CAUSA DEL FALLO DE DISCOVERY: NO VERIFICADA.** La evidencia es compatible con filtrado/aislamiento de broadcast de la Wi‑Fi, pero no lo demuestra por sí sola.
 - para no depender exclusivamente de discovery broadcast, el fallback LAN directo y acotado ya está fusionado en PR #66: después de una ventana corta de discovery, OclAx inspecciona solo la red Wi‑Fi/Ethernet local, sondea únicamente TCP/22000 dentro del segmento inmediato (máximo /24) y entrega candidatos privados a Syncthing, que sigue verificando el Device ID; main run 237 quedó verde.
@@ -101,7 +101,7 @@
 ## Bloqueos
 
 - **TRANSFER-004:** PR #68 ya está fusionado y main run 269 quedó verde; no se considera DONE hasta la prueba física de envío, aceptación/rechazo, autoaceptación, progreso, recepción y cleanup;
-- siguen pendientes validaciones físicas de miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes;
+- el dueño confirmó que Mi dispositivo funciona correctamente en las rutas probadas y que compartir app/APK funciona; siguen pendientes el caso explícito de APK con splits, revocación de permisos y rendimiento con inventarios grandes;
 - Internet directo y relay continúan fuera de alcance de este bloque; no se habilitan global discovery, NAT ni relay.
 
 ## Siguiente paso exacto
@@ -115,4 +115,4 @@
 
 ## Navegación Atrás — PR #71
 
-**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** se corrigió el cierre accidental al usar Atrás desde categorías/búsquedas. PR #71 implementa desenrollado jerárquico en OclAx, Mi dispositivo y picker propio, más confirmación de salida en la raíz y prueba unitaria de la política. Falta CI/merge y validación física en el teléfono.
+**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** PR #71 está fusionado y main run 281 quedó verde. En prueba física con run 281, el gesto Atrás desde PDF volvió correctamente al nivel anterior y la salida desde la raíz fue confirmada como correcta. Quedan por validar físicamente Mi dispositivo, el picker propio y, cuando aplique, el botón Atrás además del gesto.
