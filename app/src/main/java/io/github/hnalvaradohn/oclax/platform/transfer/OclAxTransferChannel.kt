@@ -15,7 +15,8 @@ internal class OclAxTransferChannel(
     context: Context,
     private val client: SyncthingRestClient,
 ) {
-    private val root = File(context.applicationContext.filesDir, "oclax/transfers").apply { mkdirs() }
+    private val appContext = context.applicationContext
+    private val root = File(appContext.filesDir, "oclax/transfers").apply { mkdirs() }
 
     fun send(
         deviceId: String,
@@ -64,8 +65,7 @@ internal class OclAxTransferChannel(
             cleanupAfterAck(folderId, directory, deviceId)
             onProgress(TransferProgress(100, "Recibido por el otro dispositivo."))
         } catch (error: Exception) {
-            runCatching { client.removeTransferFolder(folderId) }
-            directory.deleteRecursively()
+            cleanupConfiguredTransfer(folderId, directory)
             throw error
         }
     }
@@ -84,11 +84,23 @@ internal class OclAxTransferChannel(
 
     fun reject(offer: IncomingTransferOffer) {
         validateOffer(offer)
-        client.dismissPendingTransferFolder(
+        val directory = transferDirectory("incoming", offer.folderId)
+        try {
+            client.dismissPendingTransferFolder(
+                folderId = offer.folderId,
+                deviceId = offer.senderDeviceId,
+            )
+        } finally {
+            directory.deleteRecursively()
+        }
+    }
+
+    fun abortIncoming(offer: IncomingTransferOffer) {
+        validateOffer(offer)
+        cleanupConfiguredTransfer(
             folderId = offer.folderId,
-            deviceId = offer.senderDeviceId,
+            directory = transferDirectory("incoming", offer.folderId),
         )
-        transferDirectory("incoming", offer.folderId).deleteRecursively()
     }
 
     fun receive(
@@ -155,8 +167,7 @@ internal class OclAxTransferChannel(
                 payloadPath = File(directory, OCLAX_TRANSFER_PAYLOAD).absolutePath,
             )
         } catch (error: Exception) {
-            runCatching { client.removeTransferFolder(offer.folderId) }
-            directory.deleteRecursively()
+            cleanupConfiguredTransfer(offer.folderId, directory)
             throw error
         }
     }
@@ -184,8 +195,23 @@ internal class OclAxTransferChannel(
             Thread.sleep(POLL_MILLIS)
         }
 
-        runCatching { client.removeTransferFolder(payload.offer.folderId) }
-        directory.deleteRecursively()
+        cleanupConfiguredTransfer(payload.offer.folderId, directory)
+    }
+
+    private fun cleanupConfiguredTransfer(
+        folderId: String,
+        directory: File,
+    ) {
+        val removed = runCatching {
+            client.removeTransferFolder(folderId)
+        }.isSuccess
+        val deleted = runCatching {
+            !directory.exists() || directory.deleteRecursively()
+        }.getOrDefault(false)
+
+        if (!removed || !deleted) {
+            runCatching { SyncthingRuntimeService.stop(appContext) }
+        }
     }
 
     private fun waitForAck(
