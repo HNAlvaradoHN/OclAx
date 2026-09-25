@@ -440,3 +440,18 @@ Validación física requerida antes de DONE:
 - **Diseño/UX/Accesibilidad — NO BLOQUEANTE.** Evidencia: acción Enviar tiene descripción accesible y estados son texto además de color; recepción aún vive en panel técnico debug. Recomendación: después de validar transporte, sustituirlo por flujo final elegir dispositivo → progreso.
 - **Calidad/Limpieza — INFORMATIVO.** No se añade dependencia externa ni segundo protocolo; se reutiliza Syncthing ya pinneado.
 - **Release — NO APLICA.** Sigue siendo build de validación, no release candidata.
+
+
+## PRODUCT-004 — paleta semántica de categorías
+
+Validación automática:
+- `CategoryAccentTest` verifica los colores semánticos principales en modo oscuro;
+- verifica aliases compartidos entre superficies (`ALL/RECENT`, `APK/apps`);
+- verifica variantes de modo claro y fallback de categorías desconocidas;
+- lint/build deben confirmar que el componente compartido sigue compilando para OclAx, Mi dispositivo y el picker.
+
+Validación física pendiente:
+1. confirmar en modo oscuro la paleta aprobada en las tarjetas;
+2. confirmar que los iconos siguen siendo claramente legibles y que el color no sustituye nombre/icono;
+3. cambiar a modo claro y verificar contraste;
+4. revisar OclAx, Mi dispositivo y Elegir con OclAx para confirmar consistencia del componente compartido.
