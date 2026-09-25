@@ -333,14 +333,15 @@ Corrección en curso:
 - mostrar fecha/hora y ruta donde aplique;
 - compactar tarjetas para que se sientan como la navegación principal.
 
-Validado físicamente — main run 229:
-- **Elegir con OclAx** aparece y la presentación visual corregida fue confirmada como correcta por el dueño.
+Validado físicamente — main run 229 / run 281:
+- **Elegir con OclAx** aparece y la presentación visual corregida fue confirmada como correcta por el dueño;
+- la entrada por tarjetas y la navegación por categorías funcionan en el dispositivo probado;
+- cancelar devuelve correctamente a la aplicación llamadora;
+- con acceso de almacenamiento negado/revocado, el flujo no falla y permite continuar por la ruta prevista para conceder acceso.
 
 Pendiente:
-- confirmar devolución del archivo en más variantes;
-- probar cancelar y permiso de almacenamiento negado;
-- la selección múltiple existente queda como compatibilidad técnica de `ACTION_GET_CONTENT` cuando la app llamadora la solicite; **no es una función de producto propuesta por el dueño ni una validación prioritaria**;
-- validar la nueva entrada por tarjetas de PRODUCT-004.
+- confirmar devolución efectiva de un archivo seleccionado a la aplicación llamadora en más variantes;
+- la selección múltiple existente queda como compatibilidad técnica de `ACTION_GET_CONTENT` cuando la app llamadora la solicite; **no es una función de producto propuesta por el dueño ni una validación prioritaria**.
 
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
 **Estado:** IN_PROGRESS  
