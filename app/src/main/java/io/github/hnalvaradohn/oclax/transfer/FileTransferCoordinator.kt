@@ -6,6 +6,7 @@ import io.github.hnalvaradohn.oclax.platform.transfer.IncomingTransferOffer
 import io.github.hnalvaradohn.oclax.platform.transfer.TransferProgress
 import io.github.hnalvaradohn.oclax.platform.transfer.TransferRuntimeController
 import java.io.File
+import java.io.IOException
 
 internal class FileTransferCoordinator(
     private val store: ItemStore,
@@ -34,19 +35,28 @@ internal class FileTransferCoordinator(
         onProgress: (TransferProgress) -> Unit,
     ): StoredItem {
         val payload = runtime.receiveTransfer(offer, onProgress)
-        return try {
-            val item = store.importTransferFile(
+        val item = try {
+            store.importTransferFile(
                 source = File(payload.payloadPath),
                 displayName = payload.manifest.displayName,
                 mimeType = payload.manifest.mimeType,
                 expectedBytes = payload.manifest.byteSize,
             )
-            runtime.acknowledgeReceived(payload)
-            item
         } catch (error: Exception) {
             runCatching { runtime.abortReceived(payload.offer) }
             throw error
         }
+
+        try {
+            runtime.acknowledgeReceived(payload)
+        } catch (error: Exception) {
+            runCatching { runtime.abortReceived(payload.offer) }
+            throw IOException(
+                "El archivo se guardó en OclAx, pero no se pudo confirmar al emisor.",
+                error,
+            )
+        }
+        return item
     }
 
     fun reject(offer: IncomingTransferOffer) {
