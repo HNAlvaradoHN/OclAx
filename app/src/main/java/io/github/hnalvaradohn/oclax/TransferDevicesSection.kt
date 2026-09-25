@@ -98,7 +98,7 @@ internal fun TransferDevicesSection(
                 }
                 TextButton(
                     onClick = onStop,
-                    enabled = !busy,
+                    enabled = !uiBusy,
                 ) {
                     Text("Detener")
                 }
@@ -194,7 +194,7 @@ internal fun TransferDevicesSection(
                     ) {
                         TextButton(
                             onClick = onRefreshIncoming,
-                            enabled = !busy,
+                            enabled = !uiBusy,
                         ) {
                             Text("Revisar solicitudes")
                         }
