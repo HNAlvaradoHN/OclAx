@@ -338,7 +338,8 @@ Validado físicamente — main run 229:
 
 Pendiente:
 - confirmar devolución del archivo en más variantes;
-- probar selección múltiple, cancelar y permiso de almacenamiento negado;
+- probar cancelar y permiso de almacenamiento negado;
+- la selección múltiple existente queda como compatibilidad técnica de `ACTION_GET_CONTENT` cuando la app llamadora la solicite; **no es una función de producto propuesta por el dueño ni una validación prioritaria**;
 - validar la nueva entrada por tarjetas de PRODUCT-004.
 
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
@@ -519,9 +520,13 @@ Validado físicamente — 2026-09-24:
 - borrar y cancelar funcionan para imagen y PDF/documento;
 - Lista/Cuadrícula se recuerda correctamente.
 
+Validación física adicional — 2026-09-25:
+- el dueño confirma que **Mi dispositivo** funciona correctamente en las rutas probadas;
+- compartir una app/APK funciona en el dispositivo probado.
+
 Pendiente:
-- confirmar compartir APK único y paquete con splits sin datos privados;
-- confirmar experiencia de recepción/instalación para paquetes con splits antes de declararlo DONE.
+- distinguir y validar explícitamente el caso de paquete con splits antes de declararlo DONE;
+- confirmar experiencia de recepción/instalación para paquetes con splits.
 
 ### NAV-001 — Navegación Atrás jerárquica y salida confirmada
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
