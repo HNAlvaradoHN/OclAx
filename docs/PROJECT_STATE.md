@@ -106,9 +106,9 @@
 
 ## Siguiente paso exacto
 
-1. Instalar la build de main run 269 en los dispositivos disponibles; la prueba completa de TRANSFER-004 espera a tener nuevamente ambos dispositivos.
-2. Conectar ambos por LAN y enviar un archivo pequeño desde una tarjeta OclAx al dispositivo emparejado.
-3. Confirmar que el nuevo resumen de categorías conserva icono + texto y la paleta semántica aprobada en modo oscuro/claro.
+1. Instalar en este dispositivo la próxima build de `main` que incluya la paleta semántica y confirmar visualmente las categorías en modo oscuro/claro.
+2. Cuando vuelvan a estar disponibles ambos dispositivos, instalar en ambos la misma build de `main` y conectar por LAN.
+3. Enviar un archivo pequeño desde una tarjeta OclAx al dispositivo emparejado.
 4. Con **Permitir sin aceptar** apagado, confirmar solicitud visible, **Aceptar**, progreso, aparición en la bandeja OclAx del receptor y confirmación final del emisor.
 5. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
 6. Tras terminar, desconectar LAN en ambos y confirmar retorno a modo aislado; Internet/relay queda para una autorización futura.
