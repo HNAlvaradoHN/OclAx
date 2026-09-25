@@ -503,6 +503,9 @@ internal class SyncthingRestClient(
         )
     }
 
+    fun hasLanConnection(deviceId: String): Boolean =
+        currentLanConnection(deviceId) != null
+
     private fun currentLanConnection(deviceId: String): LanPeerConnectionResult? {
         val connection = getJson("/rest/system/connections")
             .optJSONObject("connections")
@@ -809,6 +812,9 @@ internal class TransferRuntimeController(context: Context) {
             throw error
         }
     }
+
+    fun isLanConnected(deviceId: String): Boolean =
+        runCatching { client.hasLanConnection(deviceId) }.getOrDefault(false)
 
     fun sendFile(
         deviceId: String,

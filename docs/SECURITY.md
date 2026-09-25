@@ -218,6 +218,7 @@ Controles obligatorios antes de exponer transferencias reales:
 - `allowedNetworks` restringe conexiones a RFC1918 IPv4 y link-local; no se confía en Internet completo ni en CGNAT.
 - OclAx solo marca éxito si el motor reporta la conexión como local.
 - Al cancelar, fallar o pulsar **Desconectar LAN**, OclAx intenta pausar el peer, restaura las opciones privadas y libera el MulticastLock; si no puede confirmar el retorno al modo aislado, detiene el runtime completo como fail-closed.
+- Mientras la UI considera una sesión LAN activa, OclAx debe revalidar periódicamente que el Device ID emparejado siga `connected=true` + `isLocal=true`. Una pérdida confirmada tras fallos consecutivos y revalidación final ejecuta automáticamente el mismo cleanup fail-closed; no se permite conservar un estado “Conectado por LAN” que habilite transferencias sobre una sesión remota ya perdida.
 - La prueba LAN no crea carpetas compartidas, no transmite archivos y no cambia **Permitir sin aceptar**.
 - Local discovery puede revelar el Device ID a otros equipos de esa LAN mientras la prueba está activa; por eso nunca se enciende silenciosamente ni de forma permanente.
 - Si la prueba vence, el diagnóstico consulta el estado local del propio Syncthing para saber si discovery IPv4 y el listener LAN están sanos; los errores brutos no se muestran porque pueden contener direcciones de red.

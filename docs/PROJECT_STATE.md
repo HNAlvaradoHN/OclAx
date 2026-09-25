@@ -90,9 +90,9 @@
 - conexión LAN-only está implementada con peer pausado por defecto, discovery local temporal, listener TCP restringido a redes privadas y retorno fail-closed a modo aislado;
 - el parser XML incompatible en Android fue corregido y validado físicamente en un teléfono;
 - el panel técnico, búsqueda, filtros y tarjetas comparten un único scroll vertical; PR #55/main run 196 y validación física con main run 207 confirman desplazamiento completo;
-- TRANSFER-003 queda **DONE** para la conectividad LAN: dos dispositivos conectaron físicamente y ambos restauraron aislamiento al desconectar;
+- TRANSFER-003 conserva la validación histórica de conectividad LAN y aislamiento manual, pero una prueba física posterior reveló **ERR-017**: un dispositivo puede conservar en UI “Conectado por LAN” después de que el peer falle y vuelva a modo aislado;
 - TRANSFER-004 está **IMPLEMENTED_PENDING_VALIDATION**: PR #68 ya fue fusionado; el primer canal real OclAx↔OclAx sobre LAN verificada incluye carpetas efímeras Syncthing privadas, aceptación/autoaceptación por dispositivo, progreso, importación a ItemStore y cleanup;
-- la transferencia real pasó CI de main run 269 en verde y requiere validación física de envío/recepción antes de declararse terminada.
+- la transferencia real pasó CI de main run 269 en verde, pero la validación física queda bloqueada hasta corregir y revalidar la pérdida asimétrica del enlace LAN de ERR-017.
 - PICKER-001 queda **DONE**: apertura/presentación, navegación por tarjetas, cancelar, permiso de almacenamiento negado/revocado y devolución efectiva a la app llamadora fueron confirmados físicamente, incluyendo PDF desde OclAx e imagen desde Mi dispositivo. La selección múltiple existente permanece solo como compatibilidad técnica del intent externo.
 - dos dispositivos físicos ya están disponibles y la build main run 234 fue probada en ambos. En ambos extremos el diagnóstico confirmó **discovery IPv4 local activo + listener LAN activo**, pero ninguno vio al otro por discovery local.
 - **CAUSA DEL FALLO DE DISCOVERY: NO VERIFICADA.** La evidencia es compatible con filtrado/aislamiento de broadcast de la Wi‑Fi, pero no lo demuestra por sí sola.
@@ -100,19 +100,20 @@
 
 ## Bloqueos
 
-- **TRANSFER-004:** PR #68 ya está fusionado y main run 269 quedó verde; no se considera DONE hasta la prueba física de envío, aceptación/rechazo, autoaceptación, progreso, recepción y cleanup;
+- **ERR-017 / TRANSFER-004:** en una prueba física, el móvil mostró “Conectado por LAN” mientras la tablet reportó que no verificó al peer y volvió a modo aislado. El estado “conectado” del móvil era local y no monitorizaba pérdida remota. La rama `fix/lan-peer-loss-isolation` añade vigilancia del enlace y retorno automático a aislamiento antes de continuar con archivos;
+- **TRANSFER-004:** PR #68 ya está fusionado y main run 269 quedó verde; no se considera DONE hasta revalidar primero un enlace LAN simultáneamente vivo en ambos y luego envío, aceptación/rechazo, autoaceptación, progreso, recepción y cleanup;
 - el dueño confirmó que Mi dispositivo funciona correctamente en las rutas probadas y que compartir app/APK funciona; siguen pendientes el caso explícito de APK con splits, revocación de permisos y rendimiento con inventarios grandes;
 - Internet directo y relay continúan fuera de alcance de este bloque; no se habilitan global discovery, NAT ni relay.
 
 ## Siguiente paso exacto
 
-1. **Esperar a tener ambos dispositivos disponibles**; no queda una validación prioritaria de un solo teléfono que bloquee el avance actual.
-2. Instalar en ambos la misma build vigente de `main` y conectar por LAN.
-3. Enviar un archivo pequeño desde una tarjeta OclAx al dispositivo emparejado.
-4. Con **Permitir sin aceptar** apagado, confirmar solicitud visible, **Aceptar**, progreso, aparición en la bandeja OclAx del receptor y confirmación final del emisor.
-5. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
-6. Probar un archivo mayor y un fallo controlado de almacenamiento si el entorno lo permite; luego desconectar LAN en ambos y confirmar retorno a modo aislado.
-7. Una vez TRANSFER-004 quede físicamente validado, el siguiente bloque de UX será retirar/relegar el panel técnico de prueba y converger al flujo **Enviar → elegir dispositivo → progreso → enviado**, sin Device IDs ni controles de motor/LAN dominando la pantalla principal.
+1. Completar CI/revisión de `fix/lan-peer-loss-isolation` y fusionar solo con CI verde.
+2. Instalar la misma build resultante en ambos dispositivos y repetir **Probar LAN** en los dos.
+3. Si un extremo vuelve a fallar/aislarse, confirmar que el otro deja automáticamente el estado “Conectado por LAN” y también restaura aislamiento; no debe quedar una conexión fantasma en UI.
+4. Conseguir un enlace simultáneamente vivo en ambos y mantenerlo varios segundos antes de iniciar archivos.
+5. Enviar un archivo pequeño; con **Permitir sin aceptar** apagado confirmar solicitud visible, **Aceptar**, progreso, aparición en la bandeja OclAx del receptor y confirmación final del emisor.
+6. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
+7. Probar un archivo mayor y un fallo controlado de almacenamiento si el entorno lo permite; luego desconectar LAN y confirmar aislamiento seguro.
 
 ## Navegación Atrás — PR #71
 

@@ -510,3 +510,35 @@ Revisión aplicable:
 ## PICKER-001 — cierre físico 2026-09-25
 
 **VERIFICADO:** un PDF elegido desde OclAx vuelve correctamente a la aplicación llamadora y queda seleccionado/adjunto. **VERIFICADO:** una imagen elegida desde **Mi dispositivo** también vuelve correctamente a la aplicación llamadora. Con las validaciones previas de presentación, navegación, cancelar y permiso negado/revocado, PICKER-001 queda físicamente cubierto para el alcance de producto actual.
+
+
+## ERR-017 — pérdida asimétrica de sesión LAN
+
+Evidencia física — 2026-09-25:
+- un dispositivo mostró **Conectado por LAN** mientras el otro ya había fallado la verificación del peer y regresado a modo aislado;
+- el estado visible de conexión no era una prueba suficiente de que el enlace siguiera vivo en ambos extremos.
+
+Validación automática de la corrección:
+- compilar/lint/test del cambio que expone salud LAN desde el runtime y usa dos fallos consecutivos + revalidación final antes de aislar;
+- confirmar que el cleanup reutiliza `disconnectLan`, por lo que pausa el peer, restaura direcciones `dynamic` y opciones privadas, con detención fail-closed si la limpieza falla;
+- no se añaden permisos, endpoints externos ni cambios a global discovery/relay/NAT.
+
+Validación física requerida:
+1. instalar la misma build en móvil y tablet;
+2. conectar ambos por LAN y mantener la pantalla abierta al menos 10 segundos;
+3. provocar pérdida en un extremo (desconectar LAN o reproducir el fallo del peer) y confirmar que el otro elimina automáticamente **Conectado por LAN** y vuelve a aislamiento en pocos segundos;
+4. repetir **Probar LAN** en ambos y exigir estado conectado simultáneo antes de iniciar transferencia;
+5. solo entonces ejecutar el guion de TRANSFER-004 de archivo pequeño, rechazo y autoaceptación.
+
+
+### Revisión aplicable — ERR-017 / vigilancia de pérdida LAN
+
+- **Seguridad — INFORMATIVO.** La corrección no confía en el estado Compose: vuelve a consultar al Syncthing local y exige el mismo Device ID con `connected=true` + `isLocal=true`. Pérdida confirmada reutiliza cleanup fail-closed. Riesgo residual: un fallo temporal de REST podría parecer pérdida; se mitiga con dos muestras fallidas y una revalidación final.
+- **Privacidad — INFORMATIVO.** Solo se consulta REST loopback ya autenticado; no se añaden logs, telemetría, IPs visibles ni datos enviados fuera del dispositivo.
+- **Arquitectura — NO BLOQUEANTE.** La política de revalidación se engancha al polling existente de solicitudes en `MainActivity`. Es suficiente para este panel técnico, pero el flujo final debería mover supervisión de sesión a un state holder/coordinador cuando se retire el panel debug.
+- **Plataforma Android — INFORMATIVO.** No cambia lifecycle de servicio, manifest ni permisos. La recuperación usa el controlador de runtime existente y su apagado seguro.
+- **QA — PENDIENTE FÍSICO.** CI puede validar compilación/regresiones, pero el comportamiento decisivo exige dos dispositivos: pérdida remota, limpieza automática y reconexión simultánea estable.
+- **Rendimiento — INFORMATIVO.** Añade una consulta REST loopback por ciclo de 2 s mientras LAN está activa. Es tráfico local pequeño y acotado; no corre cuando no hay sesión. Si el flujo final mantiene polling, consolidar salud + solicitudes para evitar consultas duplicadas.
+- **Diseño/UX/Accesibilidad — INFORMATIVO.** Evita mostrar una conexión fantasma y comunica explícitamente pérdida/restauración de aislamiento mediante texto, no solo color.
+- **Calidad/Limpieza — INFORMATIVO.** Reutiliza `disconnectLan` en lugar de duplicar reglas de cleanup; no añade dependencias ni segundo mecanismo de red.
+- **Release — NO APLICA.** Continúa como build de validación física.
