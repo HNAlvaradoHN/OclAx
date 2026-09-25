@@ -16,14 +16,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.outlined.Android
 import androidx.compose.material.icons.outlined.AudioFile
 import androidx.compose.material.icons.outlined.Code
@@ -39,11 +38,8 @@ import androidx.compose.material.icons.outlined.Share
 import androidx.compose.material.icons.outlined.ViewList
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -71,6 +67,8 @@ import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.supportsClipboardCopy
 import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
+import io.github.hnalvaradohn.oclax.ui.CategoryOverviewGrid
+import io.github.hnalvaradohn.oclax.ui.CategoryOverviewItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
@@ -110,11 +108,9 @@ fun DeviceBrowser(
     onSaveViewMode: (String, ContentViewMode) -> Unit,
 ) {
     var query by remember { mutableStateOf("") }
-    var filter by remember { mutableStateOf(DeviceFilter.APPS) }
+    var filter by remember { mutableStateOf<DeviceFilter?>(null) }
     var pendingDelete by remember { mutableStateOf<DeviceFileInfo?>(null) }
-    var viewMode by remember(filter) {
-        mutableStateOf(onLoadViewMode(filter.key, filter.defaultViewMode))
-    }
+    var viewMode by remember { mutableStateOf(ContentViewMode.LIST) }
 
     pendingDelete?.let { file ->
         AlertDialog(
@@ -146,10 +142,10 @@ fun DeviceBrowser(
 
     val needle = query.trim().lowercase()
     val visibleApps = remember(apps, needle, filter) {
-        if (filter != DeviceFilter.APPS) {
-            emptyList()
-        } else {
-            apps.filter {
+        when {
+            filter != null && filter != DeviceFilter.APPS -> emptyList()
+            needle.isEmpty() && filter == null -> emptyList()
+            else -> apps.filter {
                 needle.isEmpty() ||
                     it.label.lowercase().contains(needle) ||
                     it.packageName.lowercase().contains(needle)
@@ -158,11 +154,11 @@ fun DeviceBrowser(
     }
 
     val visibleFiles = remember(files, needle, filter) {
-        if (filter == DeviceFilter.APPS) {
-            emptyList()
-        } else {
-            files.filter { file ->
-                matchesDeviceFilter(file, filter) &&
+        when {
+            filter == DeviceFilter.APPS -> emptyList()
+            needle.isEmpty() && filter == null -> emptyList()
+            else -> files.filter { file ->
+                (filter == null || matchesDeviceFilter(file, requireNotNull(filter))) &&
                     (
                         needle.isEmpty() ||
                             file.displayName.lowercase().contains(needle) ||
@@ -171,6 +167,14 @@ fun DeviceBrowser(
                         )
             }
         }
+    }
+
+    val categoryOverview = remember(files, apps, hasBroadFileAccess) {
+        deviceCategoryOverviewItems(
+            files = files,
+            apps = apps,
+            hasBroadFileAccess = hasBroadFileAccess,
+        )
     }
 
     Column(modifier = Modifier.fillMaxSize()) {
@@ -183,15 +187,95 @@ fun DeviceBrowser(
         )
         Spacer(Modifier.height(10.dp))
 
+        if (filter == null && query.isBlank()) {
+            CategoryOverviewGrid(
+                categories = categoryOverview,
+                onSelect = { selected ->
+                    val next = DeviceFilter.entries.firstOrNull { it.key == selected.key }
+                        ?: return@CategoryOverviewGrid
+                    filter = next
+                    viewMode = onLoadViewMode(next.key, next.defaultViewMode)
+                },
+                modifier = Modifier.weight(1f),
+                scrollable = true,
+            )
+            return@Column
+        }
+
+        if (filter == null) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                TextButton(
+                    onClick = { query = "" },
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text("Categorías")
+                }
+                Spacer(Modifier.width(8.dp))
+                Text(
+                    "Resultados",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                )
+            }
+            Spacer(Modifier.height(8.dp))
+
+            if (visibleApps.isEmpty() && visibleFiles.isEmpty()) {
+                Text("No se encontró contenido con ese nombre.")
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    verticalArrangement = Arrangement.spacedBy(7.dp),
+                ) {
+                    items(visibleApps, key = { "app:" + it.packageName }) { app ->
+                        DeviceAppListCard(app, onOpenApp, onShareApp)
+                    }
+                    items(visibleFiles, key = { "file:" + it.uri.toString() }) { file ->
+                        DeviceFileListCard(
+                            file = file,
+                            onOpen = onOpenFile,
+                            onShare = onShareFile,
+                            onCopy = onCopyFile,
+                            onDeleteRequest = { pendingDelete = file },
+                            onLoadThumbnail = onLoadThumbnail,
+                        )
+                    }
+                }
+            }
+            return@Column
+        }
+
+        val activeFilter = requireNotNull(filter)
         Row(
             modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            DeviceFilterMenu(
-                selected = filter,
-                onSelect = { filter = it },
+            TextButton(
+                onClick = {
+                    filter = null
+                    query = ""
+                },
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.ArrowBack,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp),
+                )
+                Text("Categorías")
+            }
+            Spacer(Modifier.width(6.dp))
+            Text(
+                activeFilter.label,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
             )
-            Spacer(Modifier.width(8.dp))
             IconButton(
                 onClick = {
                     viewMode = if (viewMode == ContentViewMode.LIST) {
@@ -199,7 +283,7 @@ fun DeviceBrowser(
                     } else {
                         ContentViewMode.LIST
                     }
-                    onSaveViewMode(filter.key, viewMode)
+                    onSaveViewMode(activeFilter.key, viewMode)
                 },
             ) {
                 Icon(
@@ -209,29 +293,25 @@ fun DeviceBrowser(
                         Icons.Outlined.ViewList
                     },
                     contentDescription = if (viewMode == ContentViewMode.LIST) {
-                        "Ver ${filter.label} en cuadrícula"
+                        "Ver ${activeFilter.label} en cuadrícula"
                     } else {
-                        "Ver ${filter.label} como lista"
+                        "Ver ${activeFilter.label} como lista"
                     },
                 )
             }
-            Text(
-                if (viewMode == ContentViewMode.LIST) "Lista" else "Cuadrícula",
-                style = MaterialTheme.typography.labelMedium,
-            )
         }
-        Spacer(Modifier.height(10.dp))
+        Spacer(Modifier.height(8.dp))
 
-        if (filter != DeviceFilter.APPS && !hasBroadFileAccess) {
+        if (activeFilter != DeviceFilter.APPS && !hasBroadFileAccess) {
             AccessRequiredCard(onRequestBroadAccess)
             return@Column
         }
 
         when {
             isLoading -> Text("Leyendo contenido del dispositivo…")
-            filter == DeviceFilter.APPS && visibleApps.isEmpty() ->
+            activeFilter == DeviceFilter.APPS && visibleApps.isEmpty() ->
                 Text("No se encontraron aplicaciones para esa búsqueda.")
-            filter == DeviceFilter.APPS -> {
+            activeFilter == DeviceFilter.APPS -> {
                 if (viewMode == ContentViewMode.GRID) {
                     LazyVerticalGrid(
                         columns = GridCells.Adaptive(148.dp),
@@ -255,7 +335,7 @@ fun DeviceBrowser(
                 }
             }
             visibleFiles.isEmpty() ->
-                Text("No se encontraron ${filter.label.lowercase()} accesibles.")
+                Text("No se encontraron ${activeFilter.label.lowercase()} accesibles.")
             viewMode == ContentViewMode.GRID -> {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(148.dp),
@@ -296,6 +376,49 @@ fun DeviceBrowser(
     }
 }
 
+private fun deviceCategoryOverviewItems(
+    files: List<DeviceFileInfo>,
+    apps: List<InstalledAppInfo>,
+    hasBroadFileAccess: Boolean,
+): List<CategoryOverviewItem> =
+    DeviceFilter.entries.map { filter ->
+        if (filter == DeviceFilter.APPS) {
+            CategoryOverviewItem(
+                key = filter.key,
+                label = "Aplicaciones",
+                icon = Icons.Outlined.Android,
+                count = apps.size,
+                note = "Instaladas en este dispositivo",
+            )
+        } else {
+            val matching = files.filter { matchesDeviceFilter(it, filter) }
+            CategoryOverviewItem(
+                key = filter.key,
+                label = filter.label,
+                icon = deviceFilterIcon(filter),
+                count = matching.size,
+                totalBytes = if (hasBroadFileAccess) {
+                    matching.sumOf { it.byteSize }
+                } else {
+                    null
+                },
+                note = if (hasBroadFileAccess) null else "Requiere acceso",
+            )
+        }
+    }
+
+private fun deviceFilterIcon(filter: DeviceFilter): ImageVector = when (filter) {
+    DeviceFilter.APPS -> Icons.Outlined.Android
+    DeviceFilter.IMAGES -> Icons.Outlined.ImageIcon
+    DeviceFilter.DOCUMENTS -> Icons.Outlined.Description
+    DeviceFilter.PDF -> Icons.Outlined.PictureAsPdf
+    DeviceFilter.APK -> Icons.Outlined.Android
+    DeviceFilter.TEXT -> Icons.Outlined.Code
+    DeviceFilter.VIDEO -> Icons.Outlined.Movie
+    DeviceFilter.AUDIO -> Icons.Outlined.AudioFile
+    DeviceFilter.OTHER -> Icons.Outlined.InsertDriveFile
+}
+
 @Composable
 private fun AccessRequiredCard(onRequestBroadAccess: () -> Unit) {
     Card(
@@ -318,51 +441,6 @@ private fun AccessRequiredCard(onRequestBroadAccess: () -> Unit) {
             Spacer(Modifier.height(10.dp))
             Button(onClick = onRequestBroadAccess) {
                 Text("Conceder acceso")
-            }
-        }
-    }
-}
-
-@Composable
-private fun DeviceFilterMenu(
-    selected: DeviceFilter,
-    onSelect: (DeviceFilter) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        Button(
-            onClick = { expanded = true },
-            modifier = Modifier
-                .widthIn(min = 104.dp, max = 150.dp)
-                .height(40.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Text(selected.label, style = MaterialTheme.typography.labelLarge, maxLines = 1)
-            Spacer(Modifier.width(2.dp))
-            Icon(
-                imageVector = Icons.Filled.ArrowDropDown,
-                contentDescription = "Abrir categorías del dispositivo",
-                modifier = Modifier.size(18.dp),
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            DeviceFilter.entries.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option.label) },
-                    onClick = {
-                        onSelect(option)
-                        expanded = false
-                    },
-                )
             }
         }
     }

@@ -36,7 +36,7 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Android
 import androidx.compose.material.icons.outlined.AudioFile
@@ -103,6 +103,8 @@ import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
 import io.github.hnalvaradohn.oclax.platform.transfer.TransferRuntimeController
+import io.github.hnalvaradohn.oclax.ui.CategoryOverviewGrid
+import io.github.hnalvaradohn.oclax.ui.CategoryOverviewItem
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -880,19 +882,23 @@ private fun OclAxHome(
 ) {
     var sourceMode by remember { mutableStateOf(SourceMode.OCLAX) }
     var query by remember { mutableStateOf("") }
-    var filter by remember { mutableStateOf(ContentFilter.ALL) }
+    var filter by remember { mutableStateOf<ContentFilter?>(null) }
     var pendingDelete by remember { mutableStateOf<StoredItem?>(null) }
 
     val visibleItems = remember(query, filter, allItems) {
         val needle = query.trim().lowercase()
+        val activeFilter = filter ?: ContentFilter.ALL
         allItems.filter { item ->
-            matchesFilter(item, filter) &&
+            matchesFilter(item, activeFilter) &&
                 (
                     needle.isEmpty() ||
                         item.displayName.lowercase().contains(needle) ||
                         item.mimeType.lowercase().contains(needle)
                     )
         }
+    }
+    val categoryOverview = remember(allItems) {
+        contentFilterOverviewItems(allItems)
     }
 
     pendingDelete?.let { item ->
@@ -943,7 +949,11 @@ private fun OclAxHome(
 
             SourceModeSwitch(
                 selected = sourceMode,
-                onSelect = { sourceMode = it },
+                onSelect = { selected ->
+                    sourceMode = selected
+                    query = ""
+                    filter = null
+                },
             )
             Spacer(Modifier.height(12.dp))
 
@@ -1004,46 +1014,74 @@ private fun OclAxHome(
                         )
                     }
 
-                    item(key = "oclax-controls") {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.Top,
-                        ) {
-                            ContentFilterMenu(
-                                selected = filter,
-                                onSelect = { filter = it },
-                            )
-                            Spacer(Modifier.width(12.dp))
+                    if (query.isBlank() && filter == null) {
+                        item(key = "oclax-retention") {
                             RetentionControl(
                                 retentionHours = retentionHours,
                                 onRetentionChange = onRetentionChange,
-                                modifier = Modifier.weight(1f),
                             )
                         }
-                    }
 
-                    if (visibleItems.isEmpty()) {
-                        item(key = "oclax-empty") {
-                            Text(
-                                if (allItems.isEmpty()) {
-                                    "Todavía no hay elementos. Compartí contenido hacia OclAx."
-                                } else {
-                                    "No hay elementos en ${filter.label.lowercase()} para esa búsqueda."
+                        item(key = "oclax-category-overview") {
+                            CategoryOverviewGrid(
+                                categories = categoryOverview,
+                                onSelect = { selected ->
+                                    filter = ContentFilter.entries
+                                        .firstOrNull { it.name == selected.key }
                                 },
-                                style = MaterialTheme.typography.bodyLarge,
                             )
                         }
                     } else {
-                        items(visibleItems, key = { it.id }) { item ->
-                            ItemCard(
-                                item = item,
-                                onPinToggle = onPinToggle,
-                                onDeleteRequest = { pendingDelete = item },
-                                onOpen = onOpen,
-                                onShare = onShare,
-                                onCopy = onCopy,
-                                onLoadThumbnail = onLoadItemThumbnail,
-                            )
+                        item(key = "oclax-content-header") {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                TextButton(
+                                    onClick = {
+                                        filter = null
+                                        query = ""
+                                    },
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Filled.ArrowBack,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(18.dp),
+                                    )
+                                    Text("Categorías")
+                                }
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    filter?.label ?: "Resultados",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.SemiBold,
+                                )
+                            }
+                        }
+
+                        if (visibleItems.isEmpty()) {
+                            item(key = "oclax-empty") {
+                                Text(
+                                    if (allItems.isEmpty()) {
+                                        "Todavía no hay elementos. Compartí contenido hacia OclAx."
+                                    } else {
+                                        "No se encontraron elementos para esa búsqueda."
+                                    },
+                                    style = MaterialTheme.typography.bodyLarge,
+                                )
+                            }
+                        } else {
+                            items(visibleItems, key = { it.id }) { item ->
+                                ItemCard(
+                                    item = item,
+                                    onPinToggle = onPinToggle,
+                                    onDeleteRequest = { pendingDelete = item },
+                                    onOpen = onOpen,
+                                    onShare = onShare,
+                                    onCopy = onCopy,
+                                    onLoadThumbnail = onLoadItemThumbnail,
+                                )
+                            }
                         }
                     }
                 }
@@ -1084,53 +1122,34 @@ private fun SourceModeSwitch(
     }
 }
 
-@Composable
-private fun ContentFilterMenu(
-    selected: ContentFilter,
-    onSelect: (ContentFilter) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-
-    Box {
-        Button(
-            onClick = { expanded = true },
-            modifier = Modifier
-                .widthIn(min = 104.dp, max = 132.dp)
-                .height(40.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Text(
-                selected.label,
-                style = MaterialTheme.typography.labelLarge,
-                maxLines = 1,
-            )
-            Spacer(Modifier.width(2.dp))
-            Icon(
-                imageVector = Icons.Filled.ArrowDropDown,
-                contentDescription = "Abrir categorías",
-                modifier = Modifier.size(18.dp),
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            ContentFilter.entries.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option.label) },
-                    onClick = {
-                        onSelect(option)
-                        expanded = false
-                    },
-                )
-            }
-        }
+private fun contentFilterOverviewItems(items: List<StoredItem>): List<CategoryOverviewItem> =
+    ContentFilter.entries.map { filter ->
+        val matching = items.filter { matchesFilter(it, filter) }
+        CategoryOverviewItem(
+            key = filter.name,
+            label = filter.label,
+            icon = contentFilterIcon(filter),
+            count = matching.size,
+            totalBytes = matching.sumOf { it.byteSize },
+            note = when (filter) {
+                ContentFilter.ALL -> "Todo tu contenido OclAx"
+                ContentFilter.PINNED -> "No caduca automáticamente"
+                else -> null
+            },
+        )
     }
+
+private fun contentFilterIcon(filter: ContentFilter): ImageVector = when (filter) {
+    ContentFilter.ALL -> Icons.Outlined.InsertDriveFile
+    ContentFilter.PINNED -> Icons.Filled.Star
+    ContentFilter.IMAGES -> Icons.Outlined.ImageIcon
+    ContentFilter.DOCUMENTS -> Icons.Outlined.Description
+    ContentFilter.PDF -> Icons.Outlined.PictureAsPdf
+    ContentFilter.APK -> Icons.Outlined.Android
+    ContentFilter.TEXT -> Icons.Outlined.Code
+    ContentFilter.VIDEO -> Icons.Outlined.Movie
+    ContentFilter.AUDIO -> Icons.Outlined.AudioFile
+    ContentFilter.OTHER -> Icons.Outlined.InsertDriveFile
 }
 
 private fun matchesFilter(item: StoredItem, filter: ContentFilter): Boolean {

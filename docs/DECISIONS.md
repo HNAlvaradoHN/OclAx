@@ -535,3 +535,26 @@ Reglas:
 - mantener la lógica del picker separada de MainActivity.
 
 **Motivo:** algunas aplicaciones permiten proveedores visuales propios mediante `ACTION_GET_CONTENT`. OclAx puede ofrecer una experiencia más rápida que navegar carpetas tradicionales, sin perder compatibilidad con el selector SAF ya implementado.
+
+
+---
+
+## DEC-028 — Categorías visuales como entrada y búsqueda global
+
+**Decisión:** OclAx adopta una navegación en dos niveles para sus superficies de contenido.
+
+1. **Entrada:** tarjetas visuales de categorías.
+2. **Detalle:** lista/cuadrícula de elementos dentro de la categoría seleccionada.
+
+El buscador permanece visible en la entrada. Si el usuario escribe antes de elegir categoría, la UI muestra coincidencias directas en todos los tipos permitidos por esa superficie.
+
+Aplicación:
+- **OclAx:** Todo, Fijados y categorías de contenido;
+- **Mi dispositivo:** Aplicaciones y categorías de archivos;
+- **ACTION_GET_CONTENT:** mismas tarjetas, filtradas por los MIME que solicitó la app llamadora.
+
+Esta decisión sustituye al selector desplegable compacto como mecanismo principal de **entrada** en estas superficies, sin eliminar la organización por categorías ni las vistas lista/cuadrícula internas. DocumentsProvider/SAF no cambia porque su UI pertenece a Android.
+
+**Marca:** conservar identidad OclAx negro/naranja. Un logo gráfico oficial solo se incorporará cuando exista un asset aprobado/versionado; no se inventa un reemplazo.
+
+**Motivo:** presentar primero una estructura visual reconocible, reducir la sensación de lista mezclada y permitir que quien ya conoce el nombre del contenido llegue directamente mediante búsqueda.
