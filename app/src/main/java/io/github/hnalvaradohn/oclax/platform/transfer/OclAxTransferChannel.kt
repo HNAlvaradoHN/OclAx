@@ -60,7 +60,7 @@ internal class OclAxTransferChannel(
                 deviceId = deviceId,
             )
             client.scanFolder(folderId)
-            waitForAck(folderId, directory, deviceId, onProgress)
+            waitForAck(folderId, directory, deviceId, byteSize, onProgress)
             cleanupAfterAck(folderId, directory, deviceId)
             onProgress(TransferProgress(100, "Recibido por el otro dispositivo."))
         } catch (error: Exception) {
@@ -189,9 +189,10 @@ internal class OclAxTransferChannel(
         folderId: String,
         directory: File,
         deviceId: String,
+        byteSize: Long,
         onProgress: (TransferProgress) -> Unit,
     ) {
-        val deadline = System.currentTimeMillis() + SEND_TIMEOUT_MILLIS
+        val deadline = System.currentTimeMillis() + sendTimeoutMillis(byteSize)
         val ack = File(directory, OCLAX_TRANSFER_ACK)
 
         while (System.currentTimeMillis() < deadline) {
@@ -360,8 +361,17 @@ internal class OclAxTransferChannel(
         private const val MAX_TRANSFER_FOLDER_BYTES =
             ItemStore.MAX_ITEM_BYTES + MAX_PROTOCOL_OVERHEAD_BYTES
         private const val POLL_MILLIS = 750L
-        private val SEND_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5)
-        private val RECEIVE_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5)
+        private const val MIN_TRANSFER_BYTES_PER_SECOND = 512L * 1024L
+        private val MIN_SEND_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5)
+        private val MAX_SEND_TIMEOUT_MILLIS = TimeUnit.HOURS.toMillis(2)
+        private val RECEIVE_TIMEOUT_MILLIS = TimeUnit.HOURS.toMillis(2)
         private val CLEANUP_WAIT_MILLIS = TimeUnit.SECONDS.toMillis(30)
+
+        internal fun sendTimeoutMillis(byteSize: Long): Long {
+            val estimatedTransferMillis =
+                (byteSize.coerceAtLeast(1L) * 1_000L) / MIN_TRANSFER_BYTES_PER_SECOND
+            return (MIN_SEND_TIMEOUT_MILLIS + estimatedTransferMillis)
+                .coerceAtMost(MAX_SEND_TIMEOUT_MILLIS)
+        }
     }
 }
