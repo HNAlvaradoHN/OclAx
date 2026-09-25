@@ -564,7 +564,7 @@ internal class TransferRuntimeController(context: Context) {
     private val appContext = context.applicationContext
     private val config = SyncthingRuntimeConfig(appContext)
     private val client = SyncthingRestClient(config)
-    private val directProbe = LanDirectProbe()
+    private val directProbe = LanDirectProbe(appContext)
     private val startupDiagnostics = RuntimeStartupDiagnostics(appContext)
 
     fun start() {
