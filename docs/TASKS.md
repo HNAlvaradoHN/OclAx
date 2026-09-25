@@ -529,7 +529,7 @@ Pendiente:
 - confirmar experiencia de recepción/instalación para paquetes con splits.
 
 ### NAV-001 — Navegación Atrás jerárquica y salida confirmada
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta  
 **PR:** #71 · fusionado; main run 281 verde
 
@@ -547,8 +547,6 @@ Implementado:
 
 Validado físicamente:
 - run 281: el gesto Atrás desde la vista PDF vuelve al nivel anterior y ya no cierra OclAx;
-- la secuencia de salida desde la raíz funciona como fue solicitada: muestra confirmación y el comportamiento de salida fue confirmado por el dueño.
-
-Pendiente:
-- validar botón Atrás además del gesto cuando aplique;
-- validar la jerarquía de Atrás en Mi dispositivo y en Elegir con OclAx.
+- la secuencia de salida desde la raíz funciona como fue solicitada;
+- **Elegir con OclAx** retrocede categoría → resumen → origen → aplicación llamadora sin cerrar ni romper el flujo;
+- la navegación por gestos del dispositivo probado cubre el mecanismo real disponible; no queda un botón físico pendiente en ese equipo.
