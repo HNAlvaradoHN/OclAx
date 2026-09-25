@@ -448,6 +448,7 @@ Validación automática:
 - `CategoryAccentTest` verifica los colores semánticos principales en modo oscuro;
 - verifica aliases compartidos entre superficies (`ALL/RECENT`, `APK/apps`);
 - verifica variantes de modo claro y fallback de categorías desconocidas;
+- revisión de contraste: todos los pares icono/contenedor definidos superan 4.5:1 en las variantes oscuras y claras;
 - lint/build deben confirmar que el componente compartido sigue compilando para OclAx, Mi dispositivo y el picker.
 
 Validación física pendiente:
