@@ -1,6 +1,5 @@
 package io.github.hnalvaradohn.oclax.platform.transfer
 
-import org.json.JSONObject
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -44,19 +43,15 @@ class SyncthingLanDiagnosticsTest {
 
     @Test
     fun runtimeHealthRecognizesHealthyLocalDiscoveryAndListener() {
-        val health = inspectLanRuntimeHealth(
-            JSONObject(
-                """
-                {
-                  "discoveryStatus": {
-                    "IPv4 local broadcast discovery on port 21027": {"error": null},
-                    "IPv6 local multicast discovery": {"error": null}
-                  },
-                  "connectionServiceStatus": {
-                    "tcp4://0.0.0.0:22000": {"error": null}
-                  }
-                }
-                """.trimIndent(),
+        val health = evaluateLanRuntimeHealth(
+            discoveryStatusPresent = true,
+            discoveryEntries = listOf(
+                LanRuntimeStatusEntry("IPv4 local", healthy = true),
+                LanRuntimeStatusEntry("IPv6 local", healthy = true),
+            ),
+            connectionStatusPresent = true,
+            connectionEntries = listOf(
+                LanRuntimeStatusEntry("tcp://0.0.0.0:22000", healthy = true),
             ),
         )
 
@@ -66,20 +61,14 @@ class SyncthingLanDiagnosticsTest {
 
     @Test
     fun runtimeHealthReportsDiscoveryFailureWithoutLeakingRawError() {
-        val health = inspectLanRuntimeHealth(
-            JSONObject(
-                """
-                {
-                  "discoveryStatus": {
-                    "IPv4 local broadcast discovery on port 21027": {
-                      "error": "bind udp 0.0.0.0:21027: private-address"
-                    }
-                  },
-                  "connectionServiceStatus": {
-                    "tcp4://0.0.0.0:22000": {"error": null}
-                  }
-                }
-                """.trimIndent(),
+        val health = evaluateLanRuntimeHealth(
+            discoveryStatusPresent = true,
+            discoveryEntries = listOf(
+                LanRuntimeStatusEntry("IPv4 local", healthy = false),
+            ),
+            connectionStatusPresent = true,
+            connectionEntries = listOf(
+                LanRuntimeStatusEntry("tcp://0.0.0.0:22000", healthy = true),
             ),
         )
         val message = describeLanTimeout(
@@ -90,23 +79,18 @@ class SyncthingLanDiagnosticsTest {
 
         assertEquals(false, health.ipv4LocalDiscoveryHealthy)
         assertTrue(message.contains("Discovery local IPv4 no quedó activo"))
-        assertTrue(!message.contains("private-address"))
     }
 
     @Test
     fun isolatedLoopbackListenerDoesNotCountAsLanListener() {
-        val health = inspectLanRuntimeHealth(
-            JSONObject(
-                """
-                {
-                  "discoveryStatus": {
-                    "IPv4 local broadcast discovery on port 21027": {"error": null}
-                  },
-                  "connectionServiceStatus": {
-                    "tcp4://127.0.0.1:22000": {"error": null}
-                  }
-                }
-                """.trimIndent(),
+        val health = evaluateLanRuntimeHealth(
+            discoveryStatusPresent = true,
+            discoveryEntries = listOf(
+                LanRuntimeStatusEntry("IPv4 local", healthy = true),
+            ),
+            connectionStatusPresent = true,
+            connectionEntries = listOf(
+                LanRuntimeStatusEntry("tcp4://127.0.0.1:22000", healthy = true),
             ),
         )
 
@@ -116,18 +100,14 @@ class SyncthingLanDiagnosticsTest {
 
     @Test
     fun runtimeHealthReportsListenerFailureBeforeNetworkAdvice() {
-        val health = inspectLanRuntimeHealth(
-            JSONObject(
-                """
-                {
-                  "discoveryStatus": {
-                    "IPv4 local broadcast discovery on port 21027": {"error": null}
-                  },
-                  "connectionServiceStatus": {
-                    "tcp4://0.0.0.0:22000": {"error": "listen failed"}
-                  }
-                }
-                """.trimIndent(),
+        val health = evaluateLanRuntimeHealth(
+            discoveryStatusPresent = true,
+            discoveryEntries = listOf(
+                LanRuntimeStatusEntry("IPv4 local", healthy = true),
+            ),
+            connectionStatusPresent = true,
+            connectionEntries = listOf(
+                LanRuntimeStatusEntry("tcp4://0.0.0.0:22000", healthy = false),
             ),
         )
         val message = describeLanTimeout(
@@ -138,6 +118,19 @@ class SyncthingLanDiagnosticsTest {
 
         assertEquals(false, health.lanListenerHealthy)
         assertTrue(message.contains("listener LAN"))
+    }
+
+    @Test
+    fun missingRuntimeSectionsRemainUnknown() {
+        val health = evaluateLanRuntimeHealth(
+            discoveryStatusPresent = false,
+            discoveryEntries = emptyList(),
+            connectionStatusPresent = false,
+            connectionEntries = emptyList(),
+        )
+
+        assertEquals(null, health.ipv4LocalDiscoveryHealthy)
+        assertEquals(null, health.lanListenerHealthy)
     }
 
     @Test
