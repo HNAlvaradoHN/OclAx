@@ -115,4 +115,4 @@
 
 ## Navegación Atrás — PR #71
 
-**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** se corrigió el cierre accidental al usar Atrás desde categorías/búsquedas. PR #71 implementa desenrollado jerárquico en OclAx, Mi dispositivo y picker propio, más confirmación de salida en la raíz y prueba unitaria de la política. Falta CI/merge y validación física en el teléfono.
+**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** PR #71 está fusionado y main run 281 quedó verde. En prueba física con run 281, el gesto Atrás desde la vista PDF volvió correctamente al nivel anterior en lugar de cerrar OclAx. Quedan por validar físicamente la salida confirmada en raíz, Mi dispositivo y el picker propio.
