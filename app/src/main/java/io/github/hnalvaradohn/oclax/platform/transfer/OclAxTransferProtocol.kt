@@ -55,7 +55,9 @@ internal fun displayNameHintFromTransferLabel(label: String): String? =
     label
         .takeIf { it.startsWith(OCLAX_TRANSFER_LABEL_PREFIX) }
         ?.removePrefix(OCLAX_TRANSFER_LABEL_PREFIX)
+        ?.replace(Regex("[\\r\\n\\t]+"), " ")
         ?.trim()
+        ?.take(80)
         ?.takeIf { it.isNotBlank() }
 
 internal fun transferPercent(value: Double): Int =
