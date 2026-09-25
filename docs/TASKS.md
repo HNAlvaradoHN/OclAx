@@ -546,9 +546,9 @@ Implementado:
 - confirmación explícita de salida sin alterar almacenamiento, permisos, red ni transferencias.
 
 Validado físicamente:
-- run 281: el gesto Atrás desde la vista PDF vuelve al nivel anterior y ya no cierra OclAx.
+- run 281: el gesto Atrás desde la vista PDF vuelve al nivel anterior y ya no cierra OclAx;
+- la secuencia de salida desde la raíz funciona como fue solicitada: muestra confirmación y el comportamiento de salida fue confirmado por el dueño.
 
 Pendiente:
-- validar botón Atrás además del gesto;
-- validar confirmación de salida desde la raíz;
+- validar botón Atrás además del gesto cuando aplique;
 - validar la jerarquía de Atrás en Mi dispositivo y en Elegir con OclAx.
