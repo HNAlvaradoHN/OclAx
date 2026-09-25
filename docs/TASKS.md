@@ -526,7 +526,7 @@ Pendiente:
 ### NAV-001 — Navegación Atrás jerárquica y salida confirmada
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta  
-**PR:** #71
+**PR:** #71 · fusionado; main run 281 verde
 
 Objetivo:
 - Atrás desde una categoría/búsqueda vuelve al resumen de categorías en vez de cerrar OclAx;
@@ -540,6 +540,10 @@ Implementado:
 - BackHandler en OclAx, Mi dispositivo y picker propio;
 - confirmación explícita de salida sin alterar almacenamiento, permisos, red ni transferencias.
 
+Validado físicamente:
+- run 281: el gesto Atrás desde la vista PDF vuelve al nivel anterior y ya no cierra OclAx.
+
 Pendiente:
-- CI de PR #71;
-- validación física con gesto Atrás y botón Atrás en OclAx/PDF, Mi dispositivo y picker.
+- validar botón Atrás además del gesto;
+- validar confirmación de salida desde la raíz;
+- validar la jerarquía de Atrás en Mi dispositivo y en Elegir con OclAx.
