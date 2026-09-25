@@ -637,7 +637,10 @@ internal class TransferRuntimeController(context: Context) {
                 }
 
                 val remaining = (timeoutMillis - discoveryWindow)
-                    .coerceAtLeast(MIN_DIRECT_WAIT_MILLIS)
+                    .coerceIn(
+                        MIN_DIRECT_WAIT_MILLIS,
+                        MAX_DIRECT_WAIT_MILLIS,
+                    )
                 client.awaitLanConnection(
                     deviceId = deviceId,
                     timeoutMillis = remaining,
@@ -691,6 +694,7 @@ internal class TransferRuntimeController(context: Context) {
 
     companion object {
         private const val LAN_DISCOVERY_WINDOW_MILLIS = 8_000L
-        private const val MIN_DIRECT_WAIT_MILLIS = 15_000L
+        private const val MIN_DIRECT_WAIT_MILLIS = 5_000L
+        private const val MAX_DIRECT_WAIT_MILLIS = 20_000L
     }
 }
