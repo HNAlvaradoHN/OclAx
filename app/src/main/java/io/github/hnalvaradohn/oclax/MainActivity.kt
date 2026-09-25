@@ -580,6 +580,7 @@ class MainActivity : ComponentActivity() {
                         offer.folderId to
                             ("No se pudo recibir: " + (error.message ?: "error desconocido"))
                         )
+                    refresh()
                 }
             }
         }
