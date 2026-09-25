@@ -849,6 +849,10 @@ internal class TransferRuntimeController(context: Context) {
         transferChannel.acknowledgeImported(payload)
     }
 
+    fun abortReceived(offer: IncomingTransferOffer) {
+        transferChannel.abortIncoming(offer)
+    }
+
     fun rejectTransfer(offer: IncomingTransferOffer) {
         transferChannel.reject(offer)
     }
