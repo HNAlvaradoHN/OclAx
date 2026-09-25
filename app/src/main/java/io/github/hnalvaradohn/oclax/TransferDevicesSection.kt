@@ -98,7 +98,7 @@ internal fun TransferDevicesSection(
                 }
                 TextButton(
                     onClick = onStop,
-                    enabled = !uiBusy,
+                    enabled = !busy,
                 ) {
                     Text("Detener")
                 }
@@ -194,7 +194,7 @@ internal fun TransferDevicesSection(
                     ) {
                         TextButton(
                             onClick = onRefreshIncoming,
-                            enabled = !uiBusy,
+                            enabled = !busy,
                         ) {
                             Text("Revisar solicitudes")
                         }
@@ -307,7 +307,7 @@ private fun PairedDeviceRow(
                 onCheckedChange = { allowed ->
                     onSetAllowWithoutAccept(device.deviceId, allowed)
                 },
-                enabled = !uiBusy,
+                enabled = !busy,
             )
         }
 
@@ -318,7 +318,7 @@ private fun PairedDeviceRow(
             if (active) {
                 OutlinedButton(
                     onClick = { onDisconnectLan(device) },
-                    enabled = !uiBusy,
+                    enabled = !busy,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 ) {
                     Text(if (lanBusy) "Desconectando…" else "Desconectar LAN")
@@ -326,7 +326,7 @@ private fun PairedDeviceRow(
             } else {
                 OutlinedButton(
                     onClick = { onTestLan(device) },
-                    enabled = !uiBusy && !anotherActive,
+                    enabled = !busy && !anotherActive,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 ) {
                     Text(if (lanBusy) "Buscando…" else "Probar LAN")
@@ -409,7 +409,7 @@ private fun AddPairedDeviceDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Pegá el ID que muestra OclAx en el otro teléfono. No se intercambian archivos todavía.",
+                    "Pegá el ID que muestra OclAx en el otro teléfono para conectarlo y enviar contenido.",
                     style = MaterialTheme.typography.bodySmall,
                 )
                 OutlinedTextField(
