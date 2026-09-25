@@ -1,6 +1,7 @@
 package io.github.hnalvaradohn.oclax
 
 import android.graphics.Bitmap
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -111,6 +112,11 @@ fun DeviceBrowser(
     var filter by remember { mutableStateOf<DeviceFilter?>(null) }
     var pendingDelete by remember { mutableStateOf<DeviceFileInfo?>(null) }
     var viewMode by remember { mutableStateOf(ContentViewMode.LIST) }
+
+    BackHandler(enabled = filter != null || query.isNotBlank()) {
+        filter = null
+        query = ""
+    }
 
     pendingDelete?.let { file ->
         AlertDialog(

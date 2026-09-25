@@ -14,6 +14,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -84,6 +85,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import io.github.hnalvaradohn.oclax.data.ContentViewMode
@@ -249,6 +251,7 @@ class MainActivity : ComponentActivity() {
                     onRefreshIncomingTransfers = ::refreshIncomingTransfers,
                     onAcceptIncomingTransfer = ::acceptIncomingTransfer,
                     onRejectIncomingTransfer = ::rejectIncomingTransfer,
+                    onExitApp = { finish() },
                 )
             }
         }
@@ -1079,11 +1082,14 @@ private fun OclAxHome(
     onRefreshIncomingTransfers: () -> Unit,
     onAcceptIncomingTransfer: (IncomingTransferOffer) -> Unit,
     onRejectIncomingTransfer: (IncomingTransferOffer) -> Unit,
+    onExitApp: () -> Unit,
 ) {
     var sourceMode by remember { mutableStateOf(SourceMode.OCLAX) }
     var query by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf<ContentFilter?>(null) }
     var pendingDelete by remember { mutableStateOf<StoredItem?>(null) }
+    var showExitConfirmation by remember { mutableStateOf(false) }
+    var exitArmed by remember { mutableStateOf(false) }
 
     val visibleItems = remember(query, filter, allItems) {
         val needle = query.trim().lowercase()
@@ -1101,6 +1107,38 @@ private fun OclAxHome(
         contentFilterOverviewItems(allItems)
     }
 
+    LaunchedEffect(sourceMode, query, filter) {
+        if (sourceMode != SourceMode.OCLAX || query.isNotBlank() || filter != null) {
+            showExitConfirmation = false
+            exitArmed = false
+        }
+    }
+
+    BackHandler {
+        when (
+            homeBackAction(
+                sourceIsOclAx = sourceMode == SourceMode.OCLAX,
+                hasContentDrillDown = query.isNotBlank() || filter != null,
+                exitArmed = exitArmed,
+            )
+        ) {
+            HomeBackAction.CLEAR_OCLAX_VIEW -> {
+                query = ""
+                filter = null
+            }
+            HomeBackAction.RETURN_TO_OCLAX -> {
+                sourceMode = SourceMode.OCLAX
+                query = ""
+                filter = null
+            }
+            HomeBackAction.SHOW_EXIT_CONFIRMATION -> {
+                exitArmed = true
+                showExitConfirmation = true
+            }
+            HomeBackAction.EXIT_APP -> onExitApp()
+        }
+    }
+
     LaunchedEffect(activeLanDeviceId) {
         if (activeLanDeviceId != null) {
             while (true) {
@@ -1108,6 +1146,30 @@ private fun OclAxHome(
                 delay(2_000L)
             }
         }
+    }
+
+    if (showExitConfirmation) {
+        AlertDialog(
+            onDismissRequest = onExitApp,
+            title = { Text("¿Salir de OclAx?") },
+            text = {
+                Text("Podés elegir Salir o quedarte. Si volvés a presionar Atrás, OclAx se cerrará.")
+            },
+            confirmButton = {
+                TextButton(onClick = onExitApp) {
+                    Text("Salir")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showExitConfirmation = false }) {
+                    Text("No")
+                }
+            },
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = false,
+            ),
+        )
     }
 
     pendingDelete?.let { item ->

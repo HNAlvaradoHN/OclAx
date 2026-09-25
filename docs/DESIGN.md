@@ -378,3 +378,12 @@ Reglas:
 - la identidad naranja de OclAx no se sustituye: navegación principal, marca y acciones de identidad siguen usando el naranja aprobado;
 - ninguna categoría depende solo del color: siempre conserva icono + nombre;
 - la paleta se aplica mediante el componente compartido de categorías para mantener coherencia entre **OclAx**, **Mi dispositivo** y **Elegir con OclAx**.
+
+## Navegación Atrás — 2026-09-25
+
+Contrato aprobado:
+- dentro de una categoría o resultados de búsqueda, Atrás vuelve al resumen de categorías;
+- dentro de **Mi dispositivo**, se agotan primero sus estados internos y luego se vuelve a OclAx;
+- la pantalla principal de OclAx no se cierra con un solo Atrás: primero pregunta **¿Salir de OclAx?**;
+- después de esa advertencia, otro Atrás cierra la aplicación, aunque el usuario haya elegido **No** previamente;
+- **Elegir con OclAx** respeta su contexto externo: retrocede dentro del picker y finalmente vuelve a la aplicación llamadora, no fuerza la pantalla principal de OclAx.

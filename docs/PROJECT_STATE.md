@@ -112,3 +112,7 @@
 4. Con **Permitir sin aceptar** apagado, confirmar solicitud visible, **Aceptar**, progreso, aparición en la bandeja OclAx del receptor y confirmación final del emisor.
 5. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
 6. Tras terminar, desconectar LAN en ambos y confirmar retorno a modo aislado; Internet/relay queda para una autorización futura.
+
+## Navegación Atrás — PR #71
+
+**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** se corrigió el cierre accidental al usar Atrás desde categorías/búsquedas. PR #71 implementa desenrollado jerárquico en OclAx, Mi dispositivo y picker propio, más confirmación de salida en la raíz y prueba unitaria de la política. Falta CI/merge y validación física en el teléfono.

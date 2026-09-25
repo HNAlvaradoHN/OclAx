@@ -467,3 +467,23 @@ Validación física pendiente:
 - **Plataforma Android/Compose — INFORMATIVO.** El cambio se limita al componente Compose compartido; no modifica lifecycle, permisos, almacenamiento, intents ni red.
 - **Calidad/Limpieza — INFORMATIVO.** La paleta vive en un único mapeo reutilizado por OclAx, Mi dispositivo y el picker; categorías futuras desconocidas conservan el fallback del tema.
 - **Seguridad/Privacidad — NO APLICA COMO REVISIÓN MATERIAL.** No se añaden datos, telemetría, permisos, persistencia ni superficie de red.
+
+## NAV-001 — Atrás jerárquico
+
+Validación automática:
+- BackNavigationPolicyTest cubre categoría/búsqueda → categorías, Mi dispositivo → OclAx, primer Atrás en inicio → confirmación y segundo Atrás → salida;
+- lint/build deben confirmar integración de BackHandler y DialogProperties.
+
+Validación física requerida:
+1. entrar a **PDF** en OclAx y usar gesto/botón Atrás: debe volver a categorías;
+2. desde categorías OclAx, Atrás debe mostrar **¿Salir de OclAx?**;
+3. elegir **No** y volver a presionar Atrás: debe cerrar;
+4. repetir dejando el diálogo abierto y presionar Atrás de nuevo: debe cerrar;
+5. entrar a **Mi dispositivo** → categoría → Atrás: categoría → resumen de Mi dispositivo → OclAx principal;
+6. abrir **Elegir con OclAx** desde otra app: categoría → resumen → OclAx/origen → app llamadora, sin matar la app principal.
+
+Revisión aplicable:
+- **Plataforma Android — INFORMATIVO.** Usa androidx.activity.compose.BackHandler; no añade permisos ni componentes.
+- **Diseño/UX/Accesibilidad — INFORMATIVO.** La salida deja de ser accidental y conserva confirmación explícita.
+- **QA — PENDIENTE FÍSICO.** El orden de pantallas requiere comprobar gesto predictivo/botón real en dispositivo.
+- **Arquitectura/Calidad — INFORMATIVO.** La decisión de back principal vive en una política JVM-testable y los estados locales se resuelven en su superficie.

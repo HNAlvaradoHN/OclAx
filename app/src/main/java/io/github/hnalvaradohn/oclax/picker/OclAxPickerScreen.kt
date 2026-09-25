@@ -1,6 +1,7 @@
 package io.github.hnalvaradohn.oclax.picker
 
 import android.graphics.Bitmap
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -91,6 +92,21 @@ internal fun PickerScreen(
     var source by remember { mutableStateOf(PickerSource.OCLAX) }
     var query by remember { mutableStateOf("") }
     var category by remember { mutableStateOf<PickerCategory?>(null) }
+
+    BackHandler {
+        when {
+            category != null || query.isNotBlank() -> {
+                category = null
+                query = ""
+            }
+            source == PickerSource.DEVICE -> {
+                source = PickerSource.OCLAX
+                query = ""
+                category = null
+            }
+            else -> onCancel()
+        }
+    }
 
     val compatibleOclAxItems = remember(oclaxItems, requestedMimeTypes) {
         oclaxItems.filter { item ->
