@@ -1,8 +1,11 @@
 package io.github.hnalvaradohn.oclax.platform.transfer
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.Network
+import android.net.NetworkCapabilities
 import java.net.Inet4Address
 import java.net.InetSocketAddress
-import java.net.NetworkInterface
 import java.net.Socket
 import java.util.concurrent.Callable
 import java.util.concurrent.Executors
@@ -14,7 +17,7 @@ internal data class LanDirectProbeResult(
 )
 
 private data class LanProbeTarget(
-    val localAddress: String,
+    val network: Network,
     val targetAddress: String,
 )
 
@@ -41,9 +44,9 @@ internal fun lanSubnetProbeCandidates(
     if (!isLanPrivateIpv4(localAddress)) return emptyList()
     if (prefixLength !in 0..30 || maxHosts <= 0) return emptyList()
 
-    // Never sweep more broadly than the local /24. On wider enterprise/home
-    // networks this remains a bounded same-segment fallback rather than a
-    // general-purpose network scanner.
+    // Never sweep more broadly than the current /24. This keeps the fallback
+    // bounded to the immediate LAN segment instead of becoming a general
+    // network scanner on large private networks.
     val effectivePrefix = prefixLength.coerceAtLeast(24)
     val hostBits = 32 - effectivePrefix
     val hostMask = (1L shl hostBits) - 1L
@@ -62,7 +65,10 @@ internal fun lanSubnetProbeCandidates(
     return result
 }
 
-internal class LanDirectProbe {
+internal class LanDirectProbe(context: Context) {
+    private val connectivityManager =
+        context.applicationContext.getSystemService(ConnectivityManager::class.java)
+
     fun scan(
         port: Int = SyncthingLanPolicy.SYNC_PORT,
     ): LanDirectProbeResult {
@@ -113,30 +119,32 @@ internal class LanDirectProbe {
     }
 
     private fun lanTargets(): List<LanProbeTarget> {
+        val manager = connectivityManager ?: return emptyList()
         val result = ArrayList<LanProbeTarget>()
-        val interfaces = NetworkInterface.getNetworkInterfaces() ?: return emptyList()
 
-        while (interfaces.hasMoreElements() && result.size < MAX_SCAN_HOSTS) {
-            val networkInterface = interfaces.nextElement()
-            if (!runCatching { networkInterface.isUp }.getOrDefault(false)) continue
-            if (runCatching { networkInterface.isLoopback }.getOrDefault(false)) continue
+        manager.allNetworks.forEach { network ->
+            if (result.size >= MAX_SCAN_HOSTS) return@forEach
 
-            for (interfaceAddress in networkInterface.interfaceAddresses) {
-                val address = interfaceAddress.address as? Inet4Address ?: continue
-                if (interfaceAddress.broadcast == null) continue
+            val capabilities = manager.getNetworkCapabilities(network) ?: return@forEach
+            val localTransport =
+                capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
+                    capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET)
+            if (!localTransport) return@forEach
 
+            val linkProperties = manager.getLinkProperties(network) ?: return@forEach
+            for (linkAddress in linkProperties.linkAddresses) {
+                val address = linkAddress.address as? Inet4Address ?: continue
                 val local = address.hostAddress ?: continue
                 if (!isLanPrivateIpv4(local)) continue
 
                 val remaining = MAX_SCAN_HOSTS - result.size
-                val candidates = lanSubnetProbeCandidates(
+                lanSubnetProbeCandidates(
                     localAddress = local,
-                    prefixLength = interfaceAddress.networkPrefixLength.toInt(),
+                    prefixLength = linkAddress.prefixLength,
                     maxHosts = remaining,
-                )
-                candidates.forEach { target ->
+                ).forEach { target ->
                     result += LanProbeTarget(
-                        localAddress = local,
+                        network = network,
                         targetAddress = target,
                     )
                 }
@@ -152,7 +160,7 @@ internal class LanDirectProbe {
         port: Int,
     ): Boolean = runCatching {
         Socket().use { socket ->
-            socket.bind(InetSocketAddress(target.localAddress, 0))
+            target.network.bindSocket(socket)
             socket.connect(
                 InetSocketAddress(target.targetAddress, port),
                 CONNECT_TIMEOUT_MILLIS,
