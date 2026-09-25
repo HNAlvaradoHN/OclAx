@@ -81,6 +81,7 @@ internal class OclAxTransferChannel(
                     displayNameHint = hint,
                 )
             }
+            .take(MAX_PENDING_OFFERS)
 
     fun reject(offer: IncomingTransferOffer) {
         validateOffer(offer)
@@ -396,6 +397,7 @@ internal class OclAxTransferChannel(
         private const val COPY_BUFFER_BYTES = 256 * 1024
         private const val RESERVED_FREE_BYTES = 64L * 1024L * 1024L
         private const val MAX_TRANSFER_FOLDER_FILES = 3
+        private const val MAX_PENDING_OFFERS = 20
         private const val MAX_MANIFEST_BYTES = 16L * 1024L
         private const val MAX_ACK_BYTES = 4L * 1024L
         private const val MAX_PROTOCOL_OVERHEAD_BYTES = 64L * 1024L
