@@ -16,12 +16,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.outlined.Android
 import androidx.compose.material.icons.outlined.AudioFile
 import androidx.compose.material.icons.outlined.Code
@@ -31,12 +31,9 @@ import androidx.compose.material.icons.outlined.InsertDriveFile
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -62,6 +59,8 @@ import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
+import io.github.hnalvaradohn.oclax.ui.CategoryOverviewGrid
+import io.github.hnalvaradohn.oclax.ui.CategoryOverviewItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
@@ -91,15 +90,23 @@ internal fun PickerScreen(
 ) {
     var source by remember { mutableStateOf(PickerSource.OCLAX) }
     var query by remember { mutableStateOf("") }
-    var category by remember(requestedMimeTypes) {
-        mutableStateOf(defaultPickerCategory(requestedMimeTypes))
+    var category by remember { mutableStateOf<PickerCategory?>(null) }
+
+    val compatibleOclAxItems = remember(oclaxItems, requestedMimeTypes) {
+        oclaxItems.filter { item ->
+            PickerMimeMatcher.matches(item.mimeType, requestedMimeTypes)
+        }
+    }
+    val compatibleDeviceFiles = remember(deviceFiles, requestedMimeTypes) {
+        deviceFiles.filter { file ->
+            PickerMimeMatcher.matches(file.mimeType, requestedMimeTypes)
+        }
     }
 
     val needle = query.trim().lowercase()
-    val visibleOclAxItems = remember(oclaxItems, requestedMimeTypes, needle, category) {
-        oclaxItems.filter { item ->
-            PickerMimeMatcher.matches(item.mimeType, requestedMimeTypes) &&
-                category.matches(item.mimeType, item.pinned) &&
+    val visibleOclAxItems = remember(compatibleOclAxItems, needle, category) {
+        compatibleOclAxItems.filter { item ->
+            (category == null || requireNotNull(category).matches(item.mimeType, item.pinned)) &&
                 (
                     needle.isEmpty() ||
                         item.displayName.lowercase().contains(needle) ||
@@ -107,10 +114,9 @@ internal fun PickerScreen(
                     )
         }
     }
-    val visibleDeviceFiles = remember(deviceFiles, requestedMimeTypes, needle, category) {
-        deviceFiles.filter { file ->
-            PickerMimeMatcher.matches(file.mimeType, requestedMimeTypes) &&
-                category.matches(file.mimeType) &&
+    val visibleDeviceFiles = remember(compatibleDeviceFiles, needle, category) {
+        compatibleDeviceFiles.filter { file ->
+            (category == null || requireNotNull(category).matches(file.mimeType)) &&
                 (
                     needle.isEmpty() ||
                         file.displayName.lowercase().contains(needle) ||
@@ -118,6 +124,17 @@ internal fun PickerScreen(
                         file.relativePath.orEmpty().lowercase().contains(needle)
                     )
         }
+    }
+    val categoryOverview = remember(
+        source,
+        compatibleOclAxItems,
+        compatibleDeviceFiles,
+    ) {
+        pickerCategoryOverviewItems(
+            source = source,
+            oclaxItems = compatibleOclAxItems,
+            deviceFiles = compatibleDeviceFiles,
+        )
     }
     val selectedKeys = remember(selected) { selected.mapTo(mutableSetOf()) { it.key } }
 
@@ -159,7 +176,7 @@ internal fun PickerScreen(
                 onSelect = { newSource ->
                     source = newSource
                     query = ""
-                    category = defaultPickerCategory(requestedMimeTypes)
+                    category = null
                 },
             )
 
@@ -183,30 +200,6 @@ internal fun PickerScreen(
 
             Spacer(Modifier.height(10.dp))
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                PickerCategoryMenu(
-                    selected = category,
-                    source = source,
-                    onSelect = { category = it },
-                )
-                Spacer(Modifier.width(10.dp))
-                val count = if (source == PickerSource.OCLAX) {
-                    visibleOclAxItems.size
-                } else {
-                    visibleDeviceFiles.size
-                }
-                Text(
-                    if (count == 1) "1 elemento" else "$count elementos",
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-            }
-
-            Spacer(Modifier.height(10.dp))
-
             when {
                 source == PickerSource.DEVICE && !hasBroadFileAccess -> {
                     PickerAccessCard(onRequestBroadAccess)
@@ -226,32 +219,70 @@ internal fun PickerScreen(
                     }
                 }
 
-                source == PickerSource.OCLAX -> {
-                    PickerList(
-                        emptyMessage = "No hay contenido compatible en ${category.label.lowercase()}.",
-                        items = oclaxItemsToRows(
-                            items = visibleOclAxItems,
-                            onSelect = onSelectOclAxItem,
-                            onLoadThumbnail = onLoadOclAxThumbnail,
-                        ),
-                        selectedKeys = selectedKeys,
-                        allowMultiple = allowMultiple,
+                query.isBlank() && category == null -> {
+                    CategoryOverviewGrid(
+                        categories = categoryOverview,
+                        onSelect = { selectedCategory ->
+                            category = PickerCategory.entries
+                                .firstOrNull { it.name == selectedCategory.key }
+                        },
                         modifier = Modifier.weight(1f),
+                        scrollable = true,
                     )
                 }
 
                 else -> {
-                    PickerList(
-                        emptyMessage = "No hay archivos compatibles en ${category.label.lowercase()}.",
-                        items = deviceFilesToRows(
-                            files = visibleDeviceFiles,
-                            onSelect = onSelectDeviceFile,
-                            onLoadThumbnail = onLoadDeviceThumbnail,
-                        ),
-                        selectedKeys = selectedKeys,
-                        allowMultiple = allowMultiple,
-                        modifier = Modifier.weight(1f),
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        TextButton(
+                            onClick = {
+                                category = null
+                                query = ""
+                            },
+                        ) {
+                            Icon(
+                                imageVector = Icons.Filled.ArrowBack,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp),
+                            )
+                            Text("Categorías")
+                        }
+                        Spacer(Modifier.width(8.dp))
+                        Text(
+                            category?.label ?: "Resultados",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold,
+                        )
+                    }
+                    Spacer(Modifier.height(6.dp))
+
+                    if (source == PickerSource.OCLAX) {
+                        PickerList(
+                            emptyMessage = "No se encontró contenido compatible.",
+                            items = oclaxItemsToRows(
+                                items = visibleOclAxItems,
+                                onSelect = onSelectOclAxItem,
+                                onLoadThumbnail = onLoadOclAxThumbnail,
+                            ),
+                            selectedKeys = selectedKeys,
+                            allowMultiple = allowMultiple,
+                            modifier = Modifier.weight(1f),
+                        )
+                    } else {
+                        PickerList(
+                            emptyMessage = "No se encontraron archivos compatibles.",
+                            items = deviceFilesToRows(
+                                files = visibleDeviceFiles,
+                                onSelect = onSelectDeviceFile,
+                                onLoadThumbnail = onLoadDeviceThumbnail,
+                            ),
+                            selectedKeys = selectedKeys,
+                            allowMultiple = allowMultiple,
+                            modifier = Modifier.weight(1f),
+                        )
+                    }
                 }
             }
 
@@ -272,6 +303,58 @@ internal fun PickerScreen(
             }
         }
     }
+}
+
+private fun pickerCategoryOverviewItems(
+    source: PickerSource,
+    oclaxItems: List<StoredItem>,
+    deviceFiles: List<DeviceFileInfo>,
+): List<CategoryOverviewItem> {
+    val categories = if (source == PickerSource.OCLAX) {
+        PickerCategory.entries
+    } else {
+        PickerCategory.entries.filterNot { it == PickerCategory.PINNED }
+    }
+
+    return categories.map { category ->
+        if (source == PickerSource.OCLAX) {
+            val matching = oclaxItems.filter { category.matches(it.mimeType, it.pinned) }
+            CategoryOverviewItem(
+                key = category.name,
+                label = category.label,
+                icon = pickerCategoryIcon(category),
+                count = matching.size,
+                totalBytes = matching.sumOf { it.byteSize },
+                note = if (category == PickerCategory.PINNED) {
+                    "Guardados sin autolimpieza"
+                } else {
+                    null
+                },
+            )
+        } else {
+            val matching = deviceFiles.filter { category.matches(it.mimeType) }
+            CategoryOverviewItem(
+                key = category.name,
+                label = category.label,
+                icon = pickerCategoryIcon(category),
+                count = matching.size,
+                totalBytes = matching.sumOf { it.byteSize },
+            )
+        }
+    }
+}
+
+private fun pickerCategoryIcon(category: PickerCategory): ImageVector = when (category) {
+    PickerCategory.RECENT -> Icons.Outlined.InsertDriveFile
+    PickerCategory.PINNED -> Icons.Filled.Star
+    PickerCategory.IMAGES -> Icons.Outlined.ImageIcon
+    PickerCategory.DOCUMENTS -> Icons.Outlined.Description
+    PickerCategory.PDF -> Icons.Outlined.PictureAsPdf
+    PickerCategory.APK -> Icons.Outlined.Android
+    PickerCategory.TEXT -> Icons.Outlined.Code
+    PickerCategory.VIDEO -> Icons.Outlined.Movie
+    PickerCategory.AUDIO -> Icons.Outlined.AudioFile
+    PickerCategory.OTHER -> Icons.Outlined.InsertDriveFile
 }
 
 @Composable
@@ -304,63 +387,6 @@ private fun PickerSourceSwitch(
                 ) {
                     Text(option.label)
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun PickerCategoryMenu(
-    selected: PickerCategory,
-    source: PickerSource,
-    onSelect: (PickerCategory) -> Unit,
-) {
-    var expanded by remember { mutableStateOf(false) }
-    val options = remember(source) {
-        if (source == PickerSource.OCLAX) {
-            PickerCategory.entries
-        } else {
-            PickerCategory.entries.filterNot { it == PickerCategory.PINNED }
-        }
-    }
-
-    Box {
-        Button(
-            onClick = { expanded = true },
-            modifier = Modifier
-                .widthIn(min = 104.dp, max = 148.dp)
-                .height(40.dp),
-            contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
-            colors = ButtonDefaults.buttonColors(
-                containerColor = MaterialTheme.colorScheme.primary,
-                contentColor = MaterialTheme.colorScheme.onPrimary,
-            ),
-        ) {
-            Text(
-                selected.label,
-                style = MaterialTheme.typography.labelLarge,
-                maxLines = 1,
-            )
-            Spacer(Modifier.width(2.dp))
-            Icon(
-                imageVector = Icons.Filled.ArrowDropDown,
-                contentDescription = "Abrir categorías",
-                modifier = Modifier.size(18.dp),
-            )
-        }
-
-        DropdownMenu(
-            expanded = expanded,
-            onDismissRequest = { expanded = false },
-        ) {
-            options.forEach { option ->
-                DropdownMenuItem(
-                    text = { Text(option.label) },
-                    onClick = {
-                        onSelect(option)
-                        expanded = false
-                    },
-                )
             }
         }
     }

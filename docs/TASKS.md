@@ -164,6 +164,36 @@ Pendiente:
 - comprobar qué organización puede exponerse también dentro de DocumentsProvider sin añadir navegación innecesaria;
 - validación física.
 
+### PRODUCT-004 — Navegación visual por tarjetas + búsqueda directa
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Objetivo aprobado — 2026-09-24:
+- al entrar a OclAx, **Mi dispositivo** o **Elegir con OclAx**, presentar primero categorías como tarjetas visuales;
+- tocar una tarjeta entra a su contenido;
+- mantener un buscador visible: si el usuario escribe un nombre desde la vista inicial, mostrar resultados directos sin obligarlo a elegir categoría;
+- conservar la identidad negro/naranja y el branding OclAx.
+
+Implementado en rama `feat/visual-category-cards`:
+- componente visual compartido de tarjetas en dos columnas;
+- tarjetas con icono, nombre, cantidad y tamaño total cuando aplica;
+- OclAx: Todo, Fijados, Imágenes, Documentos, PDF, APK guardados, Texto/Código, Video, Audio y Otros;
+- Mi dispositivo: Aplicaciones, Imágenes, Documentos, PDF, APK, Texto/Código, Video, Audio y Otros;
+- buscador global de Mi dispositivo combina coincidencias de apps y archivos por nombre/paquete/MIME/ruta;
+- el picker propio usa las mismas tarjetas, pero respeta primero los MIME permitidos por la app llamadora;
+- tocar **Categorías** vuelve al resumen visual; las vistas internas conservan lista/cuadrícula y acciones ya existentes;
+- tarjetas del resumen son desplazables en pantallas pequeñas.
+
+Feedback de marca:
+- el logo/identidad OclAx no debe perderse al evolucionar la UI;
+- **NO VERIFICADO:** el repositorio todavía no contiene un asset gráfico oficial de logo/icono para integrar. No se inventará uno; mientras tanto se conserva la marca textual OclAx y el tema aprobado.
+
+Pendiente:
+- CI verde;
+- validación física en la pantalla principal y en **Elegir con OclAx**;
+- comprobar búsqueda global con coincidencias reales, volver a Categorías, scroll en pantalla pequeña y modo claro/oscuro;
+- integrar el asset de logo oficial cuando exista/versione, sin bloquear esta navegación.
+
 ### DATA-001 — Retención segura y Fijados
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta
@@ -303,11 +333,13 @@ Corrección en curso:
 - mostrar fecha/hora y ruta donde aplique;
 - compactar tarjetas para que se sientan como la navegación principal.
 
+Validado físicamente — main run 229:
+- **Elegir con OclAx** aparece y la presentación visual corregida fue confirmada como correcta por el dueño.
+
 Pendiente:
-- CI verde del fix;
-- revalidar físicamente el orden visual;
-- confirmar devolución del archivo a la app llamadora;
-- probar selección múltiple, cancelar y permiso de almacenamiento negado.
+- confirmar devolución del archivo en más variantes;
+- probar selección múltiple, cancelar y permiso de almacenamiento negado;
+- validar la nueva entrada por tarjetas de PRODUCT-004.
 
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
 **Estado:** IN_PROGRESS  
@@ -393,26 +425,24 @@ Implementado:
 - la conexión solo se considera válida cuando Syncthing informa `connected=true` e `isLocal=true`;
 - **Desconectar LAN** pausa el peer, restaura el motor a modo aislado y libera el MulticastLock; si la restauración falla, el runtime se detiene por seguridad;
 - al vencer la búsqueda, el diagnóstico consulta el cache local de discovery de Syncthing y distingue si el peer nunca apareció, apareció pero no conectó o quedó pausado;
+- el diagnóstico de timeout también consulta `/rest/system/status` para distinguir discovery IPv4 local inactivo, listener LAN inactivo o motor local sano con peer ausente, sin mostrar el error bruto;
 - no se muestran direcciones IP del cache en UI y no se comparte ninguna carpeta ni archivo todavía.
 
 Validado:
 - PR #42 fusionado;
 - CI final de main (run 150) verde en tests, lint, build multi-ABI, verificación de runtimes y APK debug.
 
-Evidencia física — 2026-09-24:
-- los dos dispositivos ya están disponibles y al menos un intento llegó a timeout seguro;
-- el diagnóstico indicó que el peer **no apareció en discovery local** y el motor volvió a modo aislado;
-- esta evidencia todavía no distingue entre fallo interno del discovery/listener y filtrado de broadcast/aislamiento de la Wi-Fi.
-
-Diagnóstico adicional implementado:
-- al vencer la prueba, OclAx consulta `/rest/system/status`;
-- distingue si discovery IPv4 local no quedó activo, si el listener LAN falló o si ambos están sanos pero el peer no apareció;
-- nunca muestra el error bruto, IPs ni Device IDs en el diagnóstico;
-- si discovery+listener están sanos, el mensaje orienta a probar ambos teléfonos en la misma ventana y revisar aislamiento/broadcast de la Wi-Fi.
+Validación física parcial — 2026-09-24:
+- el dueño ya dispone de dos dispositivos;
+- en el teléfono mostrado existe un peer agregado;
+- un intento de **Probar LAN** terminó con `no apareció en discovery local`;
+- **CAUSA: NO VERIFICADA**: todavía no consta que ambos probes se ejecutaran simultáneamente ni que la red permita multicast entre clientes.
 
 Pendiente:
-- CI verde del diagnóstico;
-- repetir **Probar LAN** en ambos teléfonos dentro de la misma ventana;
+- confirmar motor/ID del segundo teléfono si aún falta;
+- confirmar emparejamiento mutuo;
+- CI verde del diagnóstico adicional;
+- repetir **Probar LAN** en ambos dentro de la misma ventana y misma Wi-Fi;
 - confirmar que ambos muestran **Conectado por LAN**;
 - confirmar que desconectar vuelve al modo aislado;
 - solo después crear el canal privado de archivos y progreso.

@@ -59,6 +59,7 @@
 - con la build main run 207, el scroll completo de OclAx quedó confirmado físicamente;
 - con la build main run 207, **Mi dispositivo** muestra fecha y hora de modificación físicamente en el teléfono;
 - portada de PDF, apertura de PDF/Word/imagen/video/audio/APK, borrado/cancelación de imagen y PDF/documento, Apps instaladas y persistencia Lista/Cuadrícula fueron confirmados físicamente.
+- con main run 229, el selector propio **Elegir con OclAx** fue revalidado físicamente y el dueño confirmó que la presentación corregida ya aparece bien.
 
 ## Implementado recientemente
 
@@ -73,7 +74,8 @@
 - diagnóstico LAN mejorado fusionado: distingue peer no descubierto, descubierto sin conexión y pausado, sin exponer IP;
 - PR #57 añadió caché del runtime nativo; main run 200 pobló el caché y runs posteriores restauran el runtime sin recompilar las cuatro ABI, manteniendo verificación SHA-256;
 - ERR-005 reconciliado con la implementación vigente mediante PR #59; main run 205 terminó verde.
-- selector propio `ACTION_GET_CONTENT` implementado en PR #62: OclAx/Mi dispositivo, búsqueda, MIME solicitado y selección múltiple; pendiente CI/validación física.
+- selector propio `ACTION_GET_CONTENT` implementado en PR #62 y corregido visualmente en PR #63/main run 229; la apertura y presentación base ya fueron confirmadas físicamente.
+- navegación visual por tarjetas de categoría + buscador directo está en implementación en rama `feat/visual-category-cards` para OclAx, Mi dispositivo y el picker propio.
 
 ## En desarrollo
 
@@ -87,21 +89,21 @@
 - el diagnóstico LAN mejorado ya está fusionado y validado automáticamente; falta validación física con dos teléfonos;
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta validar el segundo teléfono y luego la conexión LAN;
 - todavía no existe transferencia de archivos: el canal privado + progreso permanece bloqueado hasta validar LAN con dos teléfonos.
-- prueba física actual con los dos dispositivos: un intento agotó el tiempo porque el peer no apareció en discovery local; el retorno seguro a modo aislado sí se observó. Se añadió diagnóstico de salud de discovery IPv4/listener para la siguiente repetición.
-- PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION** hasta confirmar el flujo desde una aplicación real que use `ACTION_GET_CONTENT`.
+- PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION**: apertura/presentación ya están confirmadas; todavía faltan selección múltiple, cancelar, MIME/permiso negado y retorno de más variantes.
+- dos dispositivos físicos ya están disponibles. En el teléfono mostrado existe un peer guardado, pero un intento LAN terminó con diagnóstico **no apareció en discovery local**; causa todavía **NO VERIFICADA** y LAN sigue pendiente.
+- diagnóstico LAN adicional implementado en PR #65: al timeout distingue salud de discovery IPv4 local y del listener LAN sin exponer errores brutos, IPs ni Device IDs; pendiente CI y repetición física.
 
 ## Bloqueos
 
-- **TRANSFER-001/003:** falta confirmar el motor en el segundo teléfono y completar la prueba LAN física con ambos dispositivos en la misma Wi-Fi;
+- **TRANSFER-001/003:** ya hay dos dispositivos disponibles, pero LAN aún no está validado. Un intento físico no vio al peer por discovery local; falta repetir la prueba con ambos teléfonos accionando **Probar LAN** dentro de la misma ventana y misma Wi-Fi antes de atribuir causa;
 - siguen pendientes validaciones físicas de miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes;
 - Internet directo, relay y canal real de archivos no deben implementarse antes de validar físicamente LAN según la autorización vigente.
 
 ## Siguiente paso exacto
 
-1. Cuando esté disponible el segundo teléfono, instalar exactamente la build main run 207 o una posterior equivalente y confirmar Device ID + loopback.
-2. Compartir/agregar mutuamente los Device ID y validar **Mis dispositivos** + **Permitir sin aceptar**.
-3. En la misma Wi-Fi, tocar **Probar LAN** en ambos dentro de la misma ventana. Si no conecta, registrar el diagnóstico exacto: `no apareció en discovery local`, `apareció pero no conectó` o `quedó pausado`.
+1. Completar y validar la navegación por tarjetas + búsqueda global autorizada en OclAx, Mi dispositivo y **Elegir con OclAx**.
+2. En paralelo, con los dos teléfonos ya disponibles y en la misma Wi-Fi, confirmar **Probar motor** en el segundo si todavía no está verificado y asegurar que ambos tengan agregado el ID del otro.
+3. Tocar **Probar LAN** en ambos dentro de la misma ventana. Si no conecta, registrar el diagnóstico exacto: `no apareció en discovery local`, `apareció pero no conectó` o `quedó pausado`.
 4. Confirmar **Desconectar LAN** y retorno a modo aislado.
 5. Solo después de validar LAN, diseñar/implementar el canal privado de archivos + progreso; Internet/relay continúa fuera de alcance hasta esa validación.
-6. Mantener en paralelo las validaciones físicas pendientes de miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes.
-7. Tras disponer de una build con PR #62, validar el selector propio desde una app compatible con `ACTION_GET_CONTENT`: OclAx, Mi dispositivo, MIME, múltiple y cancelar.
+6. Mantener las validaciones físicas pendientes de selección múltiple/cancelar del picker, miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes.

@@ -34,33 +34,3 @@ internal fun PickerCategory.matches(
         ContentType.OTHER -> this == PickerCategory.OTHER
     }
 }
-
-internal fun defaultPickerCategory(requestedMimeTypes: Collection<String>): PickerCategory {
-    if (requestedMimeTypes.size != 1) return PickerCategory.RECENT
-
-    val requested = requestedMimeTypes.first()
-        .substringBefore(';')
-        .trim()
-        .lowercase()
-
-    return when {
-        requested == "image/*" -> PickerCategory.IMAGES
-        requested == "video/*" -> PickerCategory.VIDEO
-        requested == "audio/*" -> PickerCategory.AUDIO
-        requested == "text/*" -> PickerCategory.TEXT
-        requested == "application/pdf" -> PickerCategory.PDF
-        requested == "application/vnd.android.package-archive" -> PickerCategory.APK
-        requested == "*/*" || requested.endsWith("/*") -> PickerCategory.RECENT
-        requested.contains('/') -> when (contentTypeFor(requested)) {
-            ContentType.IMAGE -> PickerCategory.IMAGES
-            ContentType.PDF -> PickerCategory.PDF
-            ContentType.APP -> PickerCategory.APK
-            ContentType.DOCUMENT -> PickerCategory.DOCUMENTS
-            ContentType.TEXT -> PickerCategory.TEXT
-            ContentType.VIDEO -> PickerCategory.VIDEO
-            ContentType.AUDIO -> PickerCategory.AUDIO
-            ContentType.OTHER -> PickerCategory.RECENT
-        }
-        else -> PickerCategory.RECENT
-    }
-}
