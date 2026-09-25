@@ -44,6 +44,12 @@ internal data class TransferFolderCompletion(
     val remoteState: String,
 )
 
+internal data class TransferFolderStatus(
+    val globalBytes: Long,
+    val globalFiles: Int,
+    val globalDirectories: Int,
+)
+
 internal fun evaluateLanRuntimeHealth(
     discoveryStatusPresent: Boolean,
     discoveryEntries: List<LanRuntimeStatusEntry>,
@@ -437,6 +443,16 @@ internal class SyncthingRestClient(
             needBytes = completion.optLong("needBytes", Long.MAX_VALUE),
             needItems = completion.optInt("needItems", Int.MAX_VALUE),
             remoteState = completion.optString("remoteState"),
+        )
+    }
+
+    fun transferFolderStatus(folderId: String): TransferFolderStatus {
+        val encodedFolder = URLEncoder.encode(folderId, Charsets.UTF_8.name())
+        val status = getJson("/rest/db/status?folder=$encodedFolder")
+        return TransferFolderStatus(
+            globalBytes = status.optLong("globalBytes", Long.MAX_VALUE),
+            globalFiles = status.optInt("globalFiles", Int.MAX_VALUE),
+            globalDirectories = status.optInt("globalDirectories", Int.MAX_VALUE),
         )
     }
 
