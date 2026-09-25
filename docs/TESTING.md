@@ -505,3 +505,8 @@ Revisión aplicable:
 ## PICKER-001 — validación física adicional 2026-09-25
 
 **VERIFICADO:** cancelar desde **Elegir con OclAx** regresa correctamente a la aplicación llamadora. **VERIFICADO:** con acceso de almacenamiento negado/revocado, el flujo no se rompe y conserva la ruta prevista para conceder acceso. También quedó confirmada la navegación por tarjetas/categorías. Permanece pendiente ampliar la validación de devolución efectiva de archivos seleccionados a distintas aplicaciones llamadoras.
+
+
+## PICKER-001 — cierre físico 2026-09-25
+
+**VERIFICADO:** un PDF elegido desde OclAx vuelve correctamente a la aplicación llamadora y queda seleccionado/adjunto. **VERIFICADO:** una imagen elegida desde **Mi dispositivo** también vuelve correctamente a la aplicación llamadora. Con las validaciones previas de presentación, navegación, cancelar y permiso negado/revocado, PICKER-001 queda físicamente cubierto para el alcance de producto actual.
