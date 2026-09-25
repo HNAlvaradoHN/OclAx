@@ -93,7 +93,7 @@
 - TRANSFER-003 queda **DONE** para la conectividad LAN: dos dispositivos conectaron físicamente y ambos restauraron aislamiento al desconectar;
 - TRANSFER-004 está **IMPLEMENTED_PENDING_VALIDATION**: PR #68 ya fue fusionado; el primer canal real OclAx↔OclAx sobre LAN verificada incluye carpetas efímeras Syncthing privadas, aceptación/autoaceptación por dispositivo, progreso, importación a ItemStore y cleanup;
 - la transferencia real pasó CI de main run 269 en verde y requiere validación física de envío/recepción antes de declararse terminada.
-- PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION**: apertura/presentación ya están confirmadas; todavía faltan cancelar, MIME/permiso negado y retorno de más variantes. La selección múltiple existente es compatibilidad técnica del intent externo, no una función de producto propuesta por el dueño ni un gate prioritario.
+- PICKER-001 queda **DONE**: apertura/presentación, navegación por tarjetas, cancelar, permiso de almacenamiento negado/revocado y devolución efectiva a la app llamadora fueron confirmados físicamente, incluyendo PDF desde OclAx e imagen desde Mi dispositivo. La selección múltiple existente permanece solo como compatibilidad técnica del intent externo.
 - dos dispositivos físicos ya están disponibles y la build main run 234 fue probada en ambos. En ambos extremos el diagnóstico confirmó **discovery IPv4 local activo + listener LAN activo**, pero ninguno vio al otro por discovery local.
 - **CAUSA DEL FALLO DE DISCOVERY: NO VERIFICADA.** La evidencia es compatible con filtrado/aislamiento de broadcast de la Wi‑Fi, pero no lo demuestra por sí sola.
 - para no depender exclusivamente de discovery broadcast, el fallback LAN directo y acotado ya está fusionado en PR #66: después de una ventana corta de discovery, OclAx inspecciona solo la red Wi‑Fi/Ethernet local, sondea únicamente TCP/22000 dentro del segmento inmediato (máximo /24) y entrega candidatos privados a Syncthing, que sigue verificando el Device ID; main run 237 quedó verde.
@@ -106,13 +106,14 @@
 
 ## Siguiente paso exacto
 
-1. Instalar en este dispositivo la próxima build de `main` que incluya la paleta semántica y confirmar visualmente las categorías en modo oscuro/claro.
-2. Cuando vuelvan a estar disponibles ambos dispositivos, instalar en ambos la misma build de `main` y conectar por LAN.
+1. **Esperar a tener ambos dispositivos disponibles**; no queda una validación prioritaria de un solo teléfono que bloquee el avance actual.
+2. Instalar en ambos la misma build vigente de `main` y conectar por LAN.
 3. Enviar un archivo pequeño desde una tarjeta OclAx al dispositivo emparejado.
 4. Con **Permitir sin aceptar** apagado, confirmar solicitud visible, **Aceptar**, progreso, aparición en la bandeja OclAx del receptor y confirmación final del emisor.
 5. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
-6. Tras terminar, desconectar LAN en ambos y confirmar retorno a modo aislado; Internet/relay queda para una autorización futura.
+6. Probar un archivo mayor y un fallo controlado de almacenamiento si el entorno lo permite; luego desconectar LAN en ambos y confirmar retorno a modo aislado.
+7. Una vez TRANSFER-004 quede físicamente validado, el siguiente bloque de UX será retirar/relegar el panel técnico de prueba y converger al flujo **Enviar → elegir dispositivo → progreso → enviado**, sin Device IDs ni controles de motor/LAN dominando la pantalla principal.
 
 ## Navegación Atrás — PR #71
 
-**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** PR #71 está fusionado y main run 281 quedó verde. En prueba física con run 281, el gesto Atrás desde PDF volvió correctamente al nivel anterior y la salida desde la raíz fue confirmada como correcta. Quedan por validar físicamente Mi dispositivo, el picker propio y, cuando aplique, el botón Atrás además del gesto.
+**DONE:** PR #71 está fusionado y main run 281 quedó verde. Se validó físicamente el gesto Atrás desde PDF, la confirmación/salida desde la raíz y la jerarquía completa de Atrás dentro de **Elegir con OclAx** hasta regresar correctamente a la aplicación llamadora. En el dispositivo probado se usa navegación por gestos, por lo que no se exige un botón físico inexistente.

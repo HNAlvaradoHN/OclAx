@@ -495,3 +495,18 @@ Revisión aplicable:
 - **Mi dispositivo:** el dueño reporta funcionamiento correcto en las rutas probadas, incluyendo la revisión visual actual.
 - **Compartir app/APK:** confirmado funcional en el dispositivo probado; no se afirma todavía cobertura específica de paquete con splits.
 - **Picker múltiple:** no es una función de producto solicitada por el dueño. La ruta técnica existente solo se conserva como compatibilidad cuando una app externa solicite selección múltiple y no se usa como gate prioritario de UX.
+
+
+## NAV-001 — cierre físico 2026-09-25
+
+**VERIFICADO:** el dueño confirmó el flujo completo de Atrás en el dispositivo probado: PDF vuelve al nivel anterior, la raíz confirma la salida y **Elegir con OclAx** desenrolla categoría/resumen/origen hasta regresar a la aplicación llamadora sin cerrar ni romper el flujo. NAV-001 puede considerarse físicamente validado en navegación por gestos.
+
+
+## PICKER-001 — validación física adicional 2026-09-25
+
+**VERIFICADO:** cancelar desde **Elegir con OclAx** regresa correctamente a la aplicación llamadora. **VERIFICADO:** con acceso de almacenamiento negado/revocado, el flujo no se rompe y conserva la ruta prevista para conceder acceso. También quedó confirmada la navegación por tarjetas/categorías. Permanece pendiente ampliar la validación de devolución efectiva de archivos seleccionados a distintas aplicaciones llamadoras.
+
+
+## PICKER-001 — cierre físico 2026-09-25
+
+**VERIFICADO:** un PDF elegido desde OclAx vuelve correctamente a la aplicación llamadora y queda seleccionado/adjunto. **VERIFICADO:** una imagen elegida desde **Mi dispositivo** también vuelve correctamente a la aplicación llamadora. Con las validaciones previas de presentación, navegación, cancelar y permiso negado/revocado, PICKER-001 queda físicamente cubierto para el alcance de producto actual.
