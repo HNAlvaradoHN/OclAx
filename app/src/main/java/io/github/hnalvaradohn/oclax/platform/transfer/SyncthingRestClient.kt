@@ -55,8 +55,9 @@ internal fun inspectLanRuntimeHealth(status: JSONObject): LanRuntimeHealth {
         ?.keys()
         ?.asSequence()
         ?.filter { key ->
-            key.startsWith("tcp", ignoreCase = true) &&
-                key.contains(":${SyncthingLanPolicy.SYNC_PORT}")
+            val normalized = key.lowercase()
+            normalized.startsWith("tcp") &&
+                normalized.contains("0.0.0.0:${SyncthingLanPolicy.SYNC_PORT}")
         }
         ?.toList()
         .orEmpty()
