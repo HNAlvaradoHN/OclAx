@@ -495,3 +495,8 @@ Revisión aplicable:
 - **Mi dispositivo:** el dueño reporta funcionamiento correcto en las rutas probadas, incluyendo la revisión visual actual.
 - **Compartir app/APK:** confirmado funcional en el dispositivo probado; no se afirma todavía cobertura específica de paquete con splits.
 - **Picker múltiple:** no es una función de producto solicitada por el dueño. La ruta técnica existente solo se conserva como compatibilidad cuando una app externa solicite selección múltiple y no se usa como gate prioritario de UX.
+
+
+## NAV-001 — cierre físico 2026-09-25
+
+**VERIFICADO:** el dueño confirmó el flujo completo de Atrás en el dispositivo probado: PDF vuelve al nivel anterior, la raíz confirma la salida y **Elegir con OclAx** desenrolla categoría/resumen/origen hasta regresar a la aplicación llamadora sin cerrar ni romper el flujo. NAV-001 puede considerarse físicamente validado en navegación por gestos.
