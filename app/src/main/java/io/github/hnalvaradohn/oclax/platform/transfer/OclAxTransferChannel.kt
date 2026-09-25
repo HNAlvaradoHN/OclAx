@@ -117,7 +117,8 @@ internal class OclAxTransferChannel(
                 if (
                     status.globalBytes > MAX_TRANSFER_FOLDER_BYTES ||
                     status.globalFiles > MAX_TRANSFER_FOLDER_FILES ||
-                    status.globalDirectories > 0
+                    status.globalDirectories > 0 ||
+                    status.globalSymlinks > 0
                 ) {
                     throw IOException("La solicitud contiene más datos de los permitidos por OclAx.")
                 }
@@ -135,7 +136,9 @@ internal class OclAxTransferChannel(
                     completion.needBytes == 0L &&
                     completion.needItems == 0 &&
                     manifestFile.isFile &&
-                    payloadFile.isFile
+                    payloadFile.isFile &&
+                    !Files.isSymbolicLink(manifestFile.toPath()) &&
+                    manifestFile.length() <= MAX_MANIFEST_BYTES
                 ) {
                     val parsed = readManifest(manifestFile)
                     validateManifest(parsed, offer, payloadFile)
@@ -256,11 +259,11 @@ internal class OclAxTransferChannel(
         check(manifest.byteSize in 1..ItemStore.MAX_ITEM_BYTES) {
             "El archivo recibido supera el límite seguro."
         }
-        check(payloadFile.isFile && payloadFile.length() == manifest.byteSize) {
-            "El archivo recibido está incompleto."
-        }
-        check(!Files.isSymbolicLink(payloadFile.toPath())) {
+        check(payloadFile.isFile && !Files.isSymbolicLink(payloadFile.toPath())) {
             "El archivo recibido no es un archivo regular seguro."
+        }
+        check(payloadFile.length() == manifest.byteSize) {
+            "El archivo recibido está incompleto."
         }
         check(manifest.displayName.isNotBlank() && manifest.displayName.length <= 255) {
             "El nombre recibido no es válido."
@@ -318,6 +321,13 @@ internal class OclAxTransferChannel(
     }
 
     private fun validAck(file: File, folderId: String): Boolean = runCatching {
+        if (
+            !file.isFile ||
+            Files.isSymbolicLink(file.toPath()) ||
+            file.length() > MAX_ACK_BYTES
+        ) {
+            return@runCatching false
+        }
         val json = JSONObject(file.readText(Charsets.UTF_8))
         json.optInt("version", 0) == 1 &&
             json.optString("transferId") == folderId &&
@@ -357,6 +367,8 @@ internal class OclAxTransferChannel(
         private const val COPY_BUFFER_BYTES = 256 * 1024
         private const val RESERVED_FREE_BYTES = 64L * 1024L * 1024L
         private const val MAX_TRANSFER_FOLDER_FILES = 3
+        private const val MAX_MANIFEST_BYTES = 16L * 1024L
+        private const val MAX_ACK_BYTES = 4L * 1024L
         private const val MAX_PROTOCOL_OVERHEAD_BYTES = 64L * 1024L
         private const val MAX_TRANSFER_FOLDER_BYTES =
             ItemStore.MAX_ITEM_BYTES + MAX_PROTOCOL_OVERHEAD_BYTES
