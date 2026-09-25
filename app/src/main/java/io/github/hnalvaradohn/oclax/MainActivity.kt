@@ -121,6 +121,7 @@ import java.util.concurrent.Executors
 class MainActivity : ComponentActivity() {
     companion object {
         private const val MAX_CLIPBOARD_TEXT_BYTES = 2L * 1024L * 1024L
+        private const val LAN_HEALTH_MISSES_BEFORE_ISOLATION = 2
     }
 
     private val store by lazy { ItemStore(applicationContext) }
@@ -156,6 +157,7 @@ class MainActivity : ComponentActivity() {
     private var pendingIncomingTransfers by mutableStateOf<List<IncomingTransferOffer>>(emptyList())
     private var incomingTransferStatusById by mutableStateOf<Map<String, String>>(emptyMap())
     private var incomingRefreshBusy = false
+    private var lanConnectionMisses = 0
     private var pendingSystemDeleteName: String? = null
 
     private val deviceDeleteLauncher = registerForActivityResult(
@@ -343,6 +345,7 @@ class MainActivity : ComponentActivity() {
                 transferRuntimeBusy = false
                 activeLanDeviceId = null
                 lanBusyDeviceId = null
+                lanConnectionMisses = 0
                 lanStatusByDevice = emptyMap()
                 pendingIncomingTransfers = emptyList()
                 transferRuntimeStatus = if (stopped) {
@@ -388,6 +391,7 @@ class MainActivity : ComponentActivity() {
                 lanBusyDeviceId = null
                 result.onSuccess {
                     activeLanDeviceId = device.deviceId
+                    lanConnectionMisses = 0
                     lanStatusByDevice = lanStatusByDevice + (
                         device.deviceId to "Conectado por LAN."
                         )
@@ -434,6 +438,7 @@ class MainActivity : ComponentActivity() {
                 transferRuntimeBusy = false
                 lanBusyDeviceId = null
                 activeLanDeviceId = null
+                lanConnectionMisses = 0
                 pendingIncomingTransfers = emptyList()
                 lanStatusByDevice = lanStatusByDevice + (
                     device.deviceId to if (result.isSuccess) {
@@ -509,11 +514,27 @@ class MainActivity : ComponentActivity() {
         if (fileTransferBusy || incomingRefreshBusy) return
         incomingRefreshBusy = true
         fileTransferExecutor.execute {
+            val connected = transferRuntimeController.isLanConnected(deviceId)
+            if (!connected) {
+                runOnUiThread {
+                    incomingRefreshBusy = false
+                    if (activeLanDeviceId != deviceId) return@runOnUiThread
+                    lanConnectionMisses += 1
+                    if (lanConnectionMisses >= LAN_HEALTH_MISSES_BEFORE_ISOLATION) {
+                        handleLostLanConnection(deviceId)
+                    }
+                }
+                return@execute
+            }
+
             val result = runCatching {
                 fileTransferCoordinator.pending(deviceId)
             }
             runOnUiThread {
                 incomingRefreshBusy = false
+                if (activeLanDeviceId == deviceId) {
+                    lanConnectionMisses = 0
+                }
                 result.onSuccess { offers ->
                     pendingIncomingTransfers = offers
                     val trusted = pairedDevices
@@ -528,6 +549,59 @@ class MainActivity : ComponentActivity() {
                             ("No se pudieron revisar solicitudes: " +
                                 (error.message ?: "error desconocido"))
                         )
+                }
+            }
+        }
+    }
+
+    private fun handleLostLanConnection(deviceId: String) {
+        if (activeLanDeviceId != deviceId || transferRuntimeBusy || fileTransferBusy) return
+
+        transferRuntimeBusy = true
+        lanBusyDeviceId = deviceId
+        lanStatusByDevice = lanStatusByDevice + (
+            deviceId to "Conexión LAN perdida · restaurando aislamiento…"
+            )
+        transferRuntimeStatus = "Conexión LAN perdida · verificando motor…"
+
+        transferExecutor.execute {
+            val recovered = transferRuntimeController.isLanConnected(deviceId)
+            if (recovered) {
+                runOnUiThread {
+                    transferRuntimeBusy = false
+                    lanBusyDeviceId = null
+                    lanConnectionMisses = 0
+                    lanStatusByDevice = lanStatusByDevice + (
+                        deviceId to "Conectado por LAN."
+                        )
+                    transferRuntimeStatus = "Motor activo · conexión LAN verificada."
+                }
+                return@execute
+            }
+
+            val isolated = runCatching {
+                transferRuntimeController.disconnectLan(deviceId)
+            }.isSuccess
+
+            runOnUiThread {
+                transferRuntimeBusy = false
+                lanBusyDeviceId = null
+                lanConnectionMisses = 0
+                if (activeLanDeviceId == deviceId) {
+                    activeLanDeviceId = null
+                }
+                pendingIncomingTransfers = emptyList()
+                lanStatusByDevice = lanStatusByDevice + (
+                    deviceId to if (isolated) {
+                        "Desconectado · motor aislado."
+                    } else {
+                        "Conexión perdida · motor detenido por seguridad."
+                    }
+                    )
+                transferRuntimeStatus = if (isolated) {
+                    "Conexión LAN perdida · motor aislado."
+                } else {
+                    "Conexión LAN perdida · motor detenido por seguridad."
                 }
             }
         }
