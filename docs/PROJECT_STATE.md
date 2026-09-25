@@ -79,6 +79,7 @@
 - ERR-005 reconciliado con la implementación vigente mediante PR #59; main run 205 terminó verde.
 - selector propio `ACTION_GET_CONTENT` implementado en PR #62 y corregido visualmente en PR #63/main run 229; la apertura y presentación base ya fueron confirmadas físicamente.
 - navegación visual por tarjetas de categoría + buscador directo fue fusionada mediante PR #64; main run 232 quedó verde. Falta validación física específica de la navegación nueva.
+- paleta semántica por categoría aprobada visualmente e implementada sobre el componente compartido de tarjetas: PDF rojo, Apps/APK verde, Documentos azul, Imágenes verde, Texto/Código morado, Video magenta, Fijados dorado, Audio cian y Todo/Recientes naranja; validación física pendiente.
 
 ## En desarrollo
 
@@ -90,8 +91,8 @@
 - el parser XML incompatible en Android fue corregido y validado físicamente en un teléfono;
 - el panel técnico, búsqueda, filtros y tarjetas comparten un único scroll vertical; PR #55/main run 196 y validación física con main run 207 confirman desplazamiento completo;
 - TRANSFER-003 queda **DONE** para la conectividad LAN: dos dispositivos conectaron físicamente y ambos restauraron aislamiento al desconectar;
-- TRANSFER-004 está **IN_PROGRESS** en PR #68: primer canal real OclAx↔OclAx sobre LAN verificada, con carpetas efímeras Syncthing privadas, aceptación/autoaceptación por dispositivo, progreso, importación a ItemStore y cleanup;
-- la transferencia real todavía requiere CI verde, merge y validación física de envío/recepción antes de declararse terminada.
+- TRANSFER-004 está **IMPLEMENTED_PENDING_VALIDATION**: PR #68 ya fue fusionado; el primer canal real OclAx↔OclAx sobre LAN verificada incluye carpetas efímeras Syncthing privadas, aceptación/autoaceptación por dispositivo, progreso, importación a ItemStore y cleanup;
+- la transferencia real pasó CI de main run 269 en verde y requiere validación física de envío/recepción antes de declararse terminada.
 - PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION**: apertura/presentación ya están confirmadas; todavía faltan selección múltiple, cancelar, MIME/permiso negado y retorno de más variantes.
 - dos dispositivos físicos ya están disponibles y la build main run 234 fue probada en ambos. En ambos extremos el diagnóstico confirmó **discovery IPv4 local activo + listener LAN activo**, pero ninguno vio al otro por discovery local.
 - **CAUSA DEL FALLO DE DISCOVERY: NO VERIFICADA.** La evidencia es compatible con filtrado/aislamiento de broadcast de la Wi‑Fi, pero no lo demuestra por sí sola.
@@ -99,15 +100,15 @@
 
 ## Bloqueos
 
-- **TRANSFER-004:** la conectividad LAN ya está validada; el canal real de archivos está implementándose en PR #68 y no se considera validado hasta CI/merge + prueba física de envío, aceptación/rechazo, autoaceptación, progreso, recepción y cleanup;
+- **TRANSFER-004:** PR #68 ya está fusionado y main run 269 quedó verde; no se considera DONE hasta la prueba física de envío, aceptación/rechazo, autoaceptación, progreso, recepción y cleanup;
 - siguen pendientes validaciones físicas de miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes;
 - Internet directo y relay continúan fuera de alcance de este bloque; no se habilitan global discovery, NAT ni relay.
 
 ## Siguiente paso exacto
 
-1. Completar CI y revisiones de PR #68 sin fusionar con CI fallando.
-2. Instalar en ambos dispositivos la misma build de `main` que contenga TRANSFER-004.
-3. Conectar ambos por LAN y enviar un archivo pequeño desde una tarjeta OclAx al dispositivo emparejado.
+1. Instalar en este dispositivo la próxima build de `main` que incluya la paleta semántica y confirmar visualmente las categorías en modo oscuro/claro.
+2. Cuando vuelvan a estar disponibles ambos dispositivos, instalar en ambos la misma build de `main` y conectar por LAN.
+3. Enviar un archivo pequeño desde una tarjeta OclAx al dispositivo emparejado.
 4. Con **Permitir sin aceptar** apagado, confirmar solicitud visible, **Aceptar**, progreso, aparición en la bandeja OclAx del receptor y confirmación final del emisor.
 5. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
 6. Tras terminar, desconectar LAN en ambos y confirmar retorno a modo aislado; Internet/relay queda para una autorización futura.
