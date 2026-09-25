@@ -479,9 +479,7 @@ Validación física:
 
 Validación física todavía requerida:
 1. repetir con el botón Atrás físico/sistema cuando esté disponible;
-2. desde categorías OclAx, Atrás debe mostrar **¿Salir de OclAx?**;
-3. elegir **No** y volver a presionar Atrás: debe cerrar;
-4. repetir dejando el diálogo abierto y presionar Atrás de nuevo: debe cerrar;
+- **VERIFICADO:** desde la raíz de OclAx, la confirmación de salida y la secuencia posterior funcionan correctamente según la prueba física del dueño;
 5. entrar a **Mi dispositivo** → categoría → Atrás: categoría → resumen de Mi dispositivo → OclAx principal;
 6. abrir **Elegir con OclAx** desde otra app: categoría → resumen → OclAx/origen → app llamadora, sin matar la app principal.
 
