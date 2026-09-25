@@ -813,6 +813,9 @@ internal class TransferRuntimeController(context: Context) {
         }
     }
 
+    fun isLanConnected(deviceId: String): Boolean =
+        runCatching { client.hasLanConnection(deviceId) }.getOrDefault(false)
+
     fun sendFile(
         deviceId: String,
         source: java.io.File,
