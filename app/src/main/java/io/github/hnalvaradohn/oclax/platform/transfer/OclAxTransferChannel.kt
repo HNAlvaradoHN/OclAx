@@ -113,6 +113,15 @@ internal class OclAxTransferChannel(
             val deadline = System.currentTimeMillis() + RECEIVE_TIMEOUT_MILLIS
             var manifest: TransferManifest? = null
             while (System.currentTimeMillis() < deadline) {
+                val status = client.transferFolderStatus(offer.folderId)
+                if (
+                    status.globalBytes > MAX_TRANSFER_FOLDER_BYTES ||
+                    status.globalFiles > MAX_TRANSFER_FOLDER_FILES ||
+                    status.globalDirectories > 0
+                ) {
+                    throw IOException("La solicitud contiene más datos de los permitidos por OclAx.")
+                }
+
                 val completion = client.transferFolderCompletion(
                     folderId = offer.folderId,
                     deviceId = null,
@@ -346,6 +355,10 @@ internal class OclAxTransferChannel(
     companion object {
         private const val COPY_BUFFER_BYTES = 256 * 1024
         private const val RESERVED_FREE_BYTES = 64L * 1024L * 1024L
+        private const val MAX_TRANSFER_FOLDER_FILES = 3
+        private const val MAX_PROTOCOL_OVERHEAD_BYTES = 64L * 1024L
+        private const val MAX_TRANSFER_FOLDER_BYTES =
+            ItemStore.MAX_ITEM_BYTES + MAX_PROTOCOL_OVERHEAD_BYTES
         private const val POLL_MILLIS = 750L
         private val SEND_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5)
         private val RECEIVE_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5)
