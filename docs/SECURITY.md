@@ -221,6 +221,11 @@ Controles obligatorios antes de exponer transferencias reales:
 - La prueba LAN no crea carpetas compartidas, no transmite archivos y no cambia **Permitir sin aceptar**.
 - Local discovery puede revelar el Device ID a otros equipos de esa LAN mientras la prueba está activa; por eso nunca se enciende silenciosamente ni de forma permanente.
 - Si la prueba vence, el diagnóstico consulta el estado local del propio Syncthing para saber si discovery IPv4 y el listener LAN están sanos; los errores brutos no se muestran porque pueden contener direcciones de red.
+- Como fallback explícito de **Probar LAN**, OclAx puede sondear exclusivamente el transporte local Wi‑Fi/Ethernet activo, solo direcciones IPv4 privadas/link-local del segmento inmediato y únicamente TCP/22000; el barrido se limita a un máximo de 254 hosts, 24 conexiones paralelas y 6 segundos.
+- El fallback no escanea Internet/celular, no enumera servicios distintos de Syncthing, no muestra ni registra IPs encontradas y no transfiere contenido durante el sondeo.
+- `ACCESS_NETWORK_STATE` se declara como permiso normal (sin diálogo runtime) únicamente para identificar el transporte Wi‑Fi/Ethernet antes del sondeo.
+- Un puerto 22000 abierto es solo un candidato: la conexión no se acepta hasta que el propio Syncthing valida el Device ID emparejado y reporta `connected=true` + `isLocal=true`.
+- Las direcciones LAN explícitas son temporales y se restauran a `dynamic` al desconectar o fallar; cleanup incompleto detiene el runtime como fail-closed.
 
 ## Confianza y recepción OclAx ↔ OclAx
 
