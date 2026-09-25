@@ -324,3 +324,19 @@
 **Validación:** la CI posterior del PR #40 terminó verde en tests, lint y build antes de fusionar la base de emparejamiento.
 
 **Prevención:** para extensiones scoped de Compose como `weight`, preferir el patrón ya usado en el proyecto y no importar símbolos internos solo porque el IDE/autocompletado los sugiera.
+
+### ERR-012 — Atrás desde categorías cerraba OclAx
+**Estado:** CORREGIDO_PENDIENTE_VALIDACION_FISICA
+
+**Síntoma:** dentro de una categoría como PDF, el gesto/botón Atrás terminaba la Activity principal en vez de regresar al resumen de categorías.
+
+**Causa verificada:** la UI Compose mantenía sourceMode, búsqueda y filtro como estado local, pero no registraba un BackHandler; Android aplicaba el comportamiento por defecto de la Activity.
+
+**Corrección en PR #71:**
+- categorías/búsquedas se desenrollan antes de salir;
+- Mi dispositivo vuelve a OclAx principal;
+- la raíz de OclAx muestra confirmación y un segundo Atrás cierra;
+- el picker propio desenrolla su jerarquía antes de volver a la app llamadora;
+- la política principal tiene pruebas unitarias.
+
+**Prevención:** cualquier nueva superficie navegable debe declarar explícitamente su jerarquía de Atrás y cubrirla con prueba de política o UI.
