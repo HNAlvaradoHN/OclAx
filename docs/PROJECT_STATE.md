@@ -106,12 +106,13 @@
 
 ## Siguiente paso exacto
 
-1. Instalar en este dispositivo la próxima build de `main` que incluya la paleta semántica y confirmar visualmente las categorías en modo oscuro/claro.
-2. Cuando vuelvan a estar disponibles ambos dispositivos, instalar en ambos la misma build de `main` y conectar por LAN.
+1. **Esperar a tener ambos dispositivos disponibles**; no queda una validación prioritaria de un solo teléfono que bloquee el avance actual.
+2. Instalar en ambos la misma build vigente de `main` y conectar por LAN.
 3. Enviar un archivo pequeño desde una tarjeta OclAx al dispositivo emparejado.
 4. Con **Permitir sin aceptar** apagado, confirmar solicitud visible, **Aceptar**, progreso, aparición en la bandeja OclAx del receptor y confirmación final del emisor.
 5. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
-6. Tras terminar, desconectar LAN en ambos y confirmar retorno a modo aislado; Internet/relay queda para una autorización futura.
+6. Probar un archivo mayor y un fallo controlado de almacenamiento si el entorno lo permite; luego desconectar LAN en ambos y confirmar retorno a modo aislado.
+7. Una vez TRANSFER-004 quede físicamente validado, el siguiente bloque de UX será retirar/relegar el panel técnico de prueba y converger al flujo **Enviar → elegir dispositivo → progreso → enviado**, sin Device IDs ni controles de motor/LAN dominando la pantalla principal.
 
 ## Navegación Atrás — PR #71
 
