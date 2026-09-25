@@ -4,6 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.util.concurrent.TimeUnit
 
 class OclAxTransferProtocolTest {
     @Test
@@ -43,5 +44,17 @@ class OclAxTransferProtocolTest {
         assertEquals(0, transferPercent(-1.0))
         assertEquals(42, transferPercent(42.9))
         assertEquals(100, transferPercent(101.0))
+    }
+
+    @Test
+    fun sendTimeoutScalesAndRemainsBounded() {
+        val small = OclAxTransferChannel.sendTimeoutMillis(1024L)
+        val maximumItem = OclAxTransferChannel.sendTimeoutMillis(
+            4L * 1024L * 1024L * 1024L,
+        )
+
+        assertTrue(small >= TimeUnit.MINUTES.toMillis(5))
+        assertTrue(maximumItem > small)
+        assertEquals(TimeUnit.HOURS.toMillis(2), maximumItem)
     }
 }
