@@ -115,4 +115,4 @@
 
 ## Navegación Atrás — PR #71
 
-**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** PR #71 está fusionado y main run 281 quedó verde. En prueba física con run 281, el gesto Atrás desde la vista PDF volvió correctamente al nivel anterior en lugar de cerrar OclAx. Quedan por validar físicamente la salida confirmada en raíz, Mi dispositivo y el picker propio.
+**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** PR #71 está fusionado y main run 281 quedó verde. En prueba física con run 281, el gesto Atrás desde PDF volvió correctamente al nivel anterior y la salida desde la raíz fue confirmada como correcta. Quedan por validar físicamente Mi dispositivo, el picker propio y, cuando aplique, el botón Atrás además del gesto.
