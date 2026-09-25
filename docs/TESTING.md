@@ -472,7 +472,8 @@ Validación física pendiente:
 
 Validación automática:
 - BackNavigationPolicyTest cubre categoría/búsqueda → categorías, Mi dispositivo → OclAx, primer Atrás en inicio → confirmación y segundo Atrás → salida;
-- lint/build deben confirmar integración de BackHandler y DialogProperties.
+- PR #71 pasó tests, lint, build y verificación del APK;
+- main run 281 terminó verde y publicó el artefacto de validación.
 
 Validación física requerida:
 1. entrar a **PDF** en OclAx y usar gesto/botón Atrás: debe volver a categorías;
