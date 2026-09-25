@@ -10,6 +10,7 @@ import io.github.hnalvaradohn.oclax.model.StoredItem
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
+import java.io.FileInputStream
 import java.io.IOException
 import java.util.UUID
 
@@ -153,6 +154,63 @@ class ItemStore(private val context: Context) {
                         output.write(buffer, 0, read)
                     }
                     output.flush()
+                    total
+                }
+            }
+        }
+    }
+
+    @Synchronized
+    fun importTransferFile(
+        source: File,
+        displayName: String,
+        mimeType: String,
+        expectedBytes: Long,
+    ): StoredItem {
+        if (expectedBytes !in 1..MAX_ITEM_BYTES) {
+            throw IOException("El archivo recibido supera el límite seguro de OclAx.")
+        }
+
+        val incomingRoot = File(context.filesDir, "oclax/transfers/incoming").canonicalFile
+        val canonicalSource = source.canonicalFile
+        if (!canonicalSource.path.startsWith(incomingRoot.path + File.separator)) {
+            throw IOException("La fuente recibida no pertenece al almacenamiento temporal de OclAx.")
+        }
+        if (!canonicalSource.isFile || canonicalSource.length() != expectedBytes) {
+            throw IOException("El archivo recibido está incompleto.")
+        }
+
+        val safeMimeType = normalizeMimeType(mimeType)
+        val safeDisplayName = SafeNames.sanitize(
+            displayName,
+            fallbackNameFor(safeMimeType),
+        )
+        ensureFreeSpace(expectedBytes)
+
+        return writeNewItem(safeDisplayName, safeMimeType) { destination ->
+            FileInputStream(canonicalSource).use { input ->
+                FileOutputStream(destination).use { output ->
+                    val buffer = ByteArray(64 * 1024)
+                    var total = 0L
+                    var sinceSpaceCheck = 0L
+                    while (true) {
+                        val read = input.read(buffer)
+                        if (read < 0) break
+                        total += read
+                        sinceSpaceCheck += read
+                        if (total > MAX_ITEM_BYTES || total > expectedBytes) {
+                            throw IOException("El archivo recibido cambió durante la importación.")
+                        }
+                        if (sinceSpaceCheck >= STORAGE_RECHECK_BYTES) {
+                            ensureFreeSpace(1L)
+                            sinceSpaceCheck = 0L
+                        }
+                        output.write(buffer, 0, read)
+                    }
+                    output.flush()
+                    if (total != expectedBytes) {
+                        throw IOException("El archivo recibido cambió durante la importación.")
+                    }
                     total
                 }
             }
