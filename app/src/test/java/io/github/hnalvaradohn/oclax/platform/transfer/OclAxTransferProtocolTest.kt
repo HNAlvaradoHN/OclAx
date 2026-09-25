@@ -37,6 +37,13 @@ class OclAxTransferProtocolTest {
             displayNameHintFromTransferLabel("OclAx · documento.pdf"),
         )
         assertEquals(null, displayNameHintFromTransferLabel("Carpeta personal"))
+        assertEquals(
+            "foto privada.jpg",
+            displayNameHintFromTransferLabel("OclAx · foto\nprivada.jpg"),
+        )
+        assertTrue(
+            displayNameHintFromTransferLabel("OclAx · " + "a".repeat(200))!!.length <= 80,
+        )
     }
 
     @Test
