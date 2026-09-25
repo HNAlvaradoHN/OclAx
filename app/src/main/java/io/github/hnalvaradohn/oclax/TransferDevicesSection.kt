@@ -297,7 +297,7 @@ private fun PairedDeviceRow(
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(
-                    "Preferencia guardada para la futura recepción.",
+                    "Acepta automáticamente archivos de este dispositivo.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
