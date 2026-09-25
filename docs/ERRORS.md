@@ -2,6 +2,35 @@
 
 ## Abiertos
 
+### ERR-017 — Un extremo conserva “Conectado por LAN” después de que el peer falle
+**Estado:** CORRECCIÓN_IMPLEMENTADA_PENDIENTE_CI_FÍSICA
+
+**Síntoma físico — 2026-09-25:**
+- en el móvil, OclAx mostró **Motor activo · conexión LAN verificada / Conectado por LAN** hacia la tablet;
+- simultáneamente, la tablet terminó con **LAN no conectó · motor volvió a modo aislado** y diagnóstico de candidato LAN directo encontrado pero Device ID emparejado no verificado;
+- por tanto no existía evidencia de un enlace vivo simultáneo en ambos extremos, aunque el móvil seguía presentándolo como conectado.
+
+**Causa verificada en código:**
+- `MainActivity` marcaba `activeLanDeviceId` al completar una conexión y solo lo limpiaba por acciones/fallos locales;
+- no existía vigilancia posterior de `/rest/system/connections` para detectar que el peer remoto había perdido la sesión o se había aislado;
+- el estado visible podía quedar obsoleto y habilitar controles de transferencia sobre una conexión ya inexistente.
+
+**Corrección implementada en rama `fix/lan-peer-loss-isolation`:**
+- el runtime expone una comprobación de conexión LAN que sigue exigiendo `connected=true` + `isLocal=true` para el Device ID emparejado;
+- mientras una sesión LAN aparece activa, OclAx verifica periódicamente el enlace;
+- dos comprobaciones perdidas consecutivas disparan una revalidación final para evitar falsos positivos transitorios;
+- si la pérdida se confirma, OclAx ejecuta el mismo cleanup fail-closed de **Desconectar LAN**, limpia el estado visible y vuelve a modo aislado; si la limpieza falla, el runtime se detiene por seguridad.
+
+**No resuelto todavía:**
+- la causa de por qué la tablet no verificó al móvil en ese intento sigue **NO VERIFICADA**;
+- primero debe eliminarse el estado fantasma y repetir la prueba controlada para distinguir un fallo real de establecimiento de una UI obsoleta.
+
+**Validación requerida:**
+- CI verde del cambio;
+- misma build en móvil y tablet;
+- si un extremo falla/abandona la sesión, el otro debe dejar automáticamente **Conectado por LAN** y quedar aislado;
+- después, ambos deben mantener simultáneamente una sesión local verificada antes de reanudar TRANSFER-004.
+
 ### ERR-016 — Ambos peers LAN sanos pero Local Discovery no cruza
 **Estado:** MITIGADO_VALIDADO — NO BLOQUEA
 
