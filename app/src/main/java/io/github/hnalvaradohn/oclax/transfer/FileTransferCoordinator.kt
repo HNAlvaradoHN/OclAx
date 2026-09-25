@@ -34,14 +34,19 @@ internal class FileTransferCoordinator(
         onProgress: (TransferProgress) -> Unit,
     ): StoredItem {
         val payload = runtime.receiveTransfer(offer, onProgress)
-        val item = store.importTransferFile(
-            source = File(payload.payloadPath),
-            displayName = payload.manifest.displayName,
-            mimeType = payload.manifest.mimeType,
-            expectedBytes = payload.manifest.byteSize,
-        )
-        runtime.acknowledgeReceived(payload)
-        return item
+        return try {
+            val item = store.importTransferFile(
+                source = File(payload.payloadPath),
+                displayName = payload.manifest.displayName,
+                mimeType = payload.manifest.mimeType,
+                expectedBytes = payload.manifest.byteSize,
+            )
+            runtime.acknowledgeReceived(payload)
+            item
+        } catch (error: Exception) {
+            runCatching { runtime.abortReceived(payload.offer) }
+            throw error
+        }
     }
 
     fun reject(offer: IncomingTransferOffer) {
