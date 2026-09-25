@@ -438,7 +438,7 @@ Validación física — 2026-09-24:
 ### TRANSFER-004 — Canal real de archivos LAN + progreso
 **Estado:** IN_PROGRESS  
 **Prioridad:** alta  
-**PR:** #68
+**PR:** #68 · bloqueado físicamente por ERR-017 hasta revalidar enlace simultáneo
 
 Objetivo:
 - enviar una copia almacenada en OclAx al dispositivo emparejado sobre la conexión LAN ya verificada;
@@ -459,8 +459,9 @@ Implementación actual:
 - no se añaden permisos ni dependencias y no se habilita Internet, global discovery, relay o NAT.
 
 Pendiente:
-- CI verde y merge de PR #68;
-- prueba física con dos dispositivos: aceptar, rechazar, **Permitir sin aceptar**, progreso, archivo recibido utilizable y cleanup;
+- **ERR-017:** corregir el estado LAN unilateral: si el peer deja de estar conectado/local, el otro extremo debe detectar la pérdida, limpiar configuración y volver a aislamiento en vez de conservar “Conectado por LAN”;
+- CI/revisión/merge de la corrección de vigilancia LAN y revalidación física con ambos dispositivos simultáneamente conectados;
+- después, prueba física de archivos: aceptar, rechazar, **Permitir sin aceptar**, progreso, archivo recibido utilizable y cleanup;
 - probar un archivo mayor y falta de espacio;
 - cancelación/reintento explícitos quedan para refinamiento posterior después del primer vertical estable.
 
