@@ -110,6 +110,7 @@ import io.github.hnalvaradohn.oclax.ui.CategoryOverviewGrid
 import io.github.hnalvaradohn.oclax.ui.CategoryOverviewItem
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
@@ -152,6 +153,7 @@ class MainActivity : ComponentActivity() {
     private var itemTransferStatusById by mutableStateOf<Map<String, String>>(emptyMap())
     private var pendingIncomingTransfers by mutableStateOf<List<IncomingTransferOffer>>(emptyList())
     private var incomingTransferStatusById by mutableStateOf<Map<String, String>>(emptyMap())
+    private var incomingRefreshBusy = false
     private var pendingSystemDeleteName: String? = null
 
     private val deviceDeleteLauncher = registerForActivityResult(
@@ -501,11 +503,14 @@ class MainActivity : ComponentActivity() {
 
     private fun refreshIncomingTransfers() {
         val deviceId = activeLanDeviceId ?: return
+        if (fileTransferBusy || incomingRefreshBusy) return
+        incomingRefreshBusy = true
         fileTransferExecutor.execute {
             val result = runCatching {
                 fileTransferCoordinator.pending(deviceId)
             }
             runOnUiThread {
+                incomingRefreshBusy = false
                 result.onSuccess { offers ->
                     pendingIncomingTransfers = offers
                     val trusted = pairedDevices
@@ -1093,6 +1098,15 @@ private fun OclAxHome(
     }
     val categoryOverview = remember(allItems) {
         contentFilterOverviewItems(allItems)
+    }
+
+    LaunchedEffect(activeLanDeviceId) {
+        if (activeLanDeviceId != null) {
+            while (true) {
+                onRefreshIncomingTransfers()
+                delay(2_000L)
+            }
+        }
     }
 
     pendingDelete?.let { item ->
