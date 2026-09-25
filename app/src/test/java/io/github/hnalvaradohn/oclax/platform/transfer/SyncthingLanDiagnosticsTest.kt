@@ -94,6 +94,27 @@ class SyncthingLanDiagnosticsTest {
     }
 
     @Test
+    fun isolatedLoopbackListenerDoesNotCountAsLanListener() {
+        val health = inspectLanRuntimeHealth(
+            JSONObject(
+                """
+                {
+                  "discoveryStatus": {
+                    "IPv4 local broadcast discovery on port 21027": {"error": null}
+                  },
+                  "connectionServiceStatus": {
+                    "tcp4://127.0.0.1:22000": {"error": null}
+                  }
+                }
+                """.trimIndent(),
+            ),
+        )
+
+        assertEquals(true, health.ipv4LocalDiscoveryHealthy)
+        assertEquals(false, health.lanListenerHealthy)
+    }
+
+    @Test
     fun runtimeHealthReportsListenerFailureBeforeNetworkAdvice() {
         val health = inspectLanRuntimeHealth(
             JSONObject(
