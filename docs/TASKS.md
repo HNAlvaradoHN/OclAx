@@ -390,13 +390,13 @@ Costo:
 
 
 ### TRANSFER-002 — Emparejamiento y confianza por dispositivo
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
-Implementado en la base de emparejamiento:
+Implementado:
 - lista privada **Mis dispositivos** separada del motor Syncthing;
 - cada dispositivo guarda nombre visible, Device ID normalizado y preferencia **Permitir sin aceptar**;
-- la preferencia de autoaceptación empieza siempre apagada;
+- la preferencia de autoaceptación empieza apagada;
 - agregar/quitar/cambiar confianza no abre red ni inicia transferencias;
 - el Device ID propio solo aparece después de una prueba correcta del runtime;
 - acción explícita **Compartir ID** usa el Sharesheet de Android;
@@ -404,11 +404,12 @@ Implementado en la base de emparejamiento:
 - los datos se guardan en SharedPreferences privadas de OclAx.
 
 Validado:
-- PR #40 fusionado después de CI verde en tests, lint y build.
+- PR #40 fusionado después de CI verde;
+- validación física con dos dispositivos: ambos quedaron mutuamente emparejados de forma suficiente para alcanzar una conexión LAN autenticada por Device ID;
+- **Permitir sin aceptar** permanece como preferencia explícita por peer y será revalidada durante TRANSFER-004.
 
-Pendiente:
-- validar en dos teléfonos que cada uno puede compartir/agregar el ID del otro;
-- posteriormente añadir QR si mejora el flujo sin dependencia innecesaria.
+Mejora futura no bloqueante:
+- añadir QR si reduce fricción sin dependencia innecesaria.
 
 ### TRANSFER-003 — Conexión LAN entre dispositivos emparejados
 **Estado:** DONE  
