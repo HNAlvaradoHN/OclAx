@@ -650,15 +650,19 @@ internal class TransferRuntimeController(context: Context) {
             SyncthingRuntimeService.disableLanDiscovery(appContext)
             connection
         } catch (error: Exception) {
-            runCatching { client.pauseDevice(deviceId) }
-            runCatching { client.resetLanPeerAddresses(deviceId) }
-            val isolated = runCatching {
+            val paused = runCatching {
+                client.pauseDevice(deviceId)
+            }.isSuccess
+            val addressesReset = runCatching {
+                client.resetLanPeerAddresses(deviceId)
+            }.isSuccess
+            val privateOptionsRestored = runCatching {
                 client.enforcePrivateOptions()
             }.isSuccess
             runCatching {
                 SyncthingRuntimeService.disableLanDiscovery(appContext)
             }
-            if (!isolated) {
+            if (!paused || !addressesReset || !privateOptionsRestored) {
                 runCatching { stop() }
             }
             throw error
