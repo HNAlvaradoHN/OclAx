@@ -2,6 +2,31 @@
 
 ## Abiertos
 
+### ERR-016 — Ambos peers LAN sanos pero Local Discovery no cruza
+**Estado:** MITIGACION_IMPLEMENTADA_PENDIENTE_VALIDACION
+
+**Síntoma físico — 2026-09-24:**
+- con main run 234 en ambos dispositivos, cada uno reporta discovery IPv4 local y listener LAN activos;
+- ninguno ve al otro por Syncthing Local Discovery;
+- al fallar, ambos vuelven al modo aislado.
+
+**Causa:** **NO VERIFICADA.**
+- el filtrado/aislamiento de broadcast de la Wi‑Fi es compatible con la evidencia;
+- todavía no se atribuye el fallo al router, ROM ni a Syncthing sin una prueba adicional.
+
+**Mitigación implementada:**
+- mantener Local Discovery como primera ruta;
+- si no conecta, usar un sondeo directo acotado del segmento Wi‑Fi/Ethernet inmediato, exclusivamente TCP/22000;
+- máximo 254 hosts, sin Internet/celular ni exposición de IP;
+- entregar candidatos temporales al Syncthing del peer; Syncthing sigue verificando Device ID;
+- restaurar `dynamic` y aislamiento al terminar; fail-closed si la limpieza falla.
+
+**Validación pendiente:**
+- CI;
+- misma build en ambos dispositivos;
+- Probar LAN simultáneamente y confirmar conexión local o diagnóstico final del fallback.
+
+
 ### ERR-015 — Picker propio funcional pero visualmente desordenado
 **Estado:** RESUELTO
 
