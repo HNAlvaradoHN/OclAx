@@ -510,3 +510,22 @@ Revisión aplicable:
 ## PICKER-001 — cierre físico 2026-09-25
 
 **VERIFICADO:** un PDF elegido desde OclAx vuelve correctamente a la aplicación llamadora y queda seleccionado/adjunto. **VERIFICADO:** una imagen elegida desde **Mi dispositivo** también vuelve correctamente a la aplicación llamadora. Con las validaciones previas de presentación, navegación, cancelar y permiso negado/revocado, PICKER-001 queda físicamente cubierto para el alcance de producto actual.
+
+
+## ERR-017 — pérdida asimétrica de sesión LAN
+
+Evidencia física — 2026-09-25:
+- un dispositivo mostró **Conectado por LAN** mientras el otro ya había fallado la verificación del peer y regresado a modo aislado;
+- el estado visible de conexión no era una prueba suficiente de que el enlace siguiera vivo en ambos extremos.
+
+Validación automática de la corrección:
+- compilar/lint/test del cambio que expone salud LAN desde el runtime y usa dos fallos consecutivos + revalidación final antes de aislar;
+- confirmar que el cleanup reutiliza `disconnectLan`, por lo que pausa el peer, restaura direcciones `dynamic` y opciones privadas, con detención fail-closed si la limpieza falla;
+- no se añaden permisos, endpoints externos ni cambios a global discovery/relay/NAT.
+
+Validación física requerida:
+1. instalar la misma build en móvil y tablet;
+2. conectar ambos por LAN y mantener la pantalla abierta al menos 10 segundos;
+3. provocar pérdida en un extremo (desconectar LAN o reproducir el fallo del peer) y confirmar que el otro elimina automáticamente **Conectado por LAN** y vuelve a aislamiento en pocos segundos;
+4. repetir **Probar LAN** en ambos y exigir estado conectado simultáneo antes de iniciar transferencia;
+5. solo entonces ejecutar el guion de TRANSFER-004 de archivo pequeño, rechazo y autoaceptación.
