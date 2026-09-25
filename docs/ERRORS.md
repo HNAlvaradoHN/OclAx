@@ -3,7 +3,7 @@
 ## Abiertos
 
 ### ERR-016 — Ambos peers LAN sanos pero Local Discovery no cruza
-**Estado:** MITIGACION_IMPLEMENTADA_PENDIENTE_VALIDACION
+**Estado:** MITIGADO_VALIDADO — NO BLOQUEA
 
 **Síntoma físico — 2026-09-24:**
 - con main run 234 en ambos dispositivos, cada uno reporta discovery IPv4 local y listener LAN activos;
@@ -21,10 +21,11 @@
 - entregar candidatos temporales al Syncthing del peer; Syncthing sigue verificando Device ID;
 - restaurar `dynamic` y aislamiento al terminar; fail-closed si la limpieza falla.
 
-**Validación pendiente:**
-- CI;
-- misma build en ambos dispositivos;
-- Probar LAN simultáneamente y confirmar conexión local o diagnóstico final del fallback.
+**Validación física — 2026-09-24:**
+- los dos dispositivos emparejados alcanzaron **Conectado por LAN** con la implementación que incluye el fallback;
+- cada dispositivo volvió a **Motor aislado / Desconectado · motor aislado** al ejecutar su desconexión local;
+- por tanto, el problema histórico de Local Discovery ya no bloquea la conectividad LAN de OclAx;
+- la causa raíz de por qué broadcast Local Discovery no cruzó sigue **NO VERIFICADA** y se conserva como dato histórico, no como bloqueo activo.
 
 
 ### ERR-015 — Picker propio funcional pero visualmente desordenado
