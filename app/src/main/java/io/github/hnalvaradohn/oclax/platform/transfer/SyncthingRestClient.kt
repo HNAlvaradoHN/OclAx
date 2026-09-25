@@ -503,6 +503,9 @@ internal class SyncthingRestClient(
         )
     }
 
+    fun hasLanConnection(deviceId: String): Boolean =
+        currentLanConnection(deviceId) != null
+
     private fun currentLanConnection(deviceId: String): LanPeerConnectionResult? {
         val connection = getJson("/rest/system/connections")
             .optJSONObject("connections")
