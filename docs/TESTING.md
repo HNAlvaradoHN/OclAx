@@ -255,20 +255,22 @@ Automático:
 - el listener de la prueba es TCP IPv4 en el puerto Syncthing esperado;
 - tests del diagnóstico LAN verifican mensajes distintos para peer no descubierto, peer descubierto sin conexión y peer inesperadamente pausado;
 - el diagnóstico usa `/rest/system/discovery` solo al vencer la búsqueda y no presenta las IPs encontradas al usuario.
+- `LanDirectProbeTest` verifica rangos privados permitidos, límites /24, exclusión de self/network/broadcast y máximo de hosts;
+- el fallback solo considera Wi‑Fi/Ethernet, TCP/22000 y un máximo de 254 hosts; no añade sondeo sobre Internet/celular.
 
 Pendiente de validación física con dos teléfonos:
-1. instalar la misma build en ambos;
-2. ejecutar **Probar motor** en ambos y agregar mutuamente sus Device ID;
+1. instalar la misma build con el fallback en ambos;
+2. ejecutar **Probar motor** y confirmar emparejamiento mutuo;
 3. conectar ambos a la misma Wi‑Fi;
-4. tocar **Probar LAN** sobre el otro dispositivo en ambos teléfonos;
-5. ambos deben llegar a **Conectado por LAN** y discovery local/MulticastLock deben quedar apagados después de conectar;
-6. no debe transferirse ningún archivo en esta prueba;
-7. tocar **Desconectar LAN** y confirmar que vuelve a modo aislado;
-8. repetir con un peer incorrecto/no presente y confirmar timeout seguro, retorno a modo aislado y mensaje **no apareció en discovery local**;
-9. con ambos teléfonos tocando **Probar LAN** pero sin completar enlace, confirmar que si discovery sí ve al peer el mensaje cambia a **apareció en discovery local, pero no se completó la conexión**;
-10. simular/forzar fallo al restaurar configuración y comprobar que el runtime se detiene en vez de dejar el listener LAN abierto.
-11. si vuelve a fallar sin descubrir el peer, registrar únicamente cuál de estos estados muestra OclAx: **discovery IPv4 no activo**, **listener LAN no activo** o **discovery+listener activos pero peer ausente**; no copiar IP ni Device ID.
-12. con discovery+listener sanos, confirmar ambos teléfonos en la misma Wi-Fi y **Probar LAN** activo simultáneamente; si persiste, tratar aislamiento/broadcast de la red como hipótesis física a verificar.
+4. tocar **Probar LAN** en ambos dentro de la misma ventana;
+5. si discovery broadcast vuelve a fallar, el fallback debe intentar TCP/22000 del segmento local sin intervención manual;
+6. ambos deben llegar a **Conectado por LAN** y Syncthing debe reportar `isLocal=true`;
+7. no debe transferirse ningún archivo durante esta prueba;
+8. tocar **Desconectar LAN** y confirmar retorno a modo aislado;
+9. repetir con peer inexistente y confirmar timeout sanitizado sin IP/Device ID;
+10. si el sondeo no encuentra candidatos, confirmar mensaje de posible aislamiento de clientes;
+11. si encuentra un candidato pero no verifica el peer, confirmar mensaje de emparejamiento sin revelar IP;
+12. confirmar que el sondeo no ocurre sobre datos móviles cuando Wi‑Fi/Ethernet no está disponible.
 
 ## Revisión obligatoria TRANSFER-003 — post-merge
 
@@ -278,8 +280,8 @@ Revisión aplicada según `docs/REVIEW_ROLES.md` después de detectar que el cam
 - **Privacidad — INFORMATIVO.** Evidencia: Device ID solo se comparte por acción explícita; local discovery se activa únicamente durante búsqueda y se apaga tras conectar; no se transfieren archivos aún. Riesgo: Device ID visible temporalmente en la LAN. Recomendación: mantener consentimiento explícito y ventana corta. Validación: observar que discovery termina tras conectar.
 - **Arquitectura — NO BLOQUEANTE.** Evidencia: la lógica de transporte está en `TransferRuntimeController`/`SyncthingRestClient`, pero `MainActivity` ya acumula estado/orquestación de diagnóstico. Riesgo: el siguiente bloque de envío/progreso puede acoplar UI y dominio. Recomendación: extraer un coordinador/state holder pequeño antes de que TRANSFER-004 crezca; no sobre-modularizar. Validación: UI no debe contener reglas de transporte ni persistencia.
 - **Plataforma Android — NO BLOQUEANTE.** Evidencia: targetSdk actual 36; Android 17/API 37 requerirá permiso runtime de red local para apps que apunten a 37. Riesgo: futuras builds perderían LAN si se sube target sin flujo de permiso. Recomendación: mantener PLATFORM-001 antes de target 37. Validación: probar grant/deny/revoke al migrar.
-- **QA — INFORMATIVO.** Evidencia: tests unitarios y CI verdes; no existe todavía prueba física de dos teléfonos. Riesgo: diferencias reales de Wi‑Fi/multicast/ROM. Recomendación: no marcar DONE hasta completar el guion de prueba física. Validación: dos teléfonos, conexión local, desconexión y timeout seguro.
-- **Rendimiento — INFORMATIVO.** Evidencia: polling REST cada 500 ms solo durante una ventana de hasta 45 s y MulticastLock solo durante discovery. Riesgo: consumo temporal si se repite muchas veces. Recomendación: medir antes de optimizar; considerar eventos solo si la prueba muestra impacto. Validación: observar batería/fluidez en prueba real.
+- **QA — INFORMATIVO.** Evidencia: ya existe prueba física con dos teléfonos; ambos muestran discovery/listener local sanos pero todavía no conectan entre sí. Riesgo: diferencias reales de Wi‑Fi/broadcast/ROM. Recomendación: no marcar DONE hasta validar el fallback directo, conexión local y desconexión.
+- **Rendimiento — INFORMATIVO.** Evidencia: polling REST sigue limitado a la prueba; el fallback directo tiene deadline global de 6 s y máximo 254 hosts/24 probes paralelos. Riesgo: tráfico breve adicional solo cuando discovery falla. Recomendación: mantener el sondeo acotado y medir únicamente si la prueba física muestra impacto.
 - **Diseño/UX/Accesibilidad — NO BLOQUEANTE.** Evidencia: controles técnicos están limitados a debug y estados tienen texto además de color. Riesgo: exceso de detalles si llegan a UX final. Recomendación: retirar controles técnicos cuando exista Enviar → dispositivo → progreso. Validación: prueba de flujo final.
 - **Calidad/Limpieza — INFORMATIVO.** Evidencia: el bloque viejo de diagnóstico fue reemplazado, no quedó duplicado activo. Recomendación: mantener esta regla al reemplazar el panel técnico.
 - **Release — NO APLICA aún.** Sigue siendo build de validación; release estable requiere además SEC-001/CodeQL, licencias/atribuciones y validación física.
@@ -392,3 +394,14 @@ VERIFICADO físicamente:
 - **Plataforma Android — INFORMATIVO.** No se añaden permisos; el diagnóstico separa un fallo del motor de una posible restricción de broadcast/aislamiento de red.
 - **QA — PENDIENTE FÍSICO.** Tests cubren discovery/listener sano, fallido y loopback no válido como listener LAN; falta repetir con los dos teléfonos reales.
 - **Rendimiento — INFORMATIVO.** Añade una sola consulta REST al timeout, sin aumentar el polling.
+
+
+### Revisión TRANSFER-003 — fallback LAN directo
+
+- **Seguridad — INFORMATIVO.** Sondeo explícito, acotado a Wi‑Fi/Ethernet privado, TCP/22000 y máximo 254 hosts; un puerto abierto no autentica y Syncthing conserva la verificación por Device ID. Cleanup incompleto detiene runtime.
+- **Privacidad — INFORMATIVO.** No se muestran/registran IPs ni se envían resultados fuera del dispositivo; no hay telemetría ni nube.
+- **Arquitectura — INFORMATIVO.** `LanDirectProbe` solo descubre candidatos de transporte; `SyncthingRestClient` configura/valida Syncthing y `TransferRuntimeController` orquesta el fallback. MainActivity no recibe lógica de escaneo.
+- **Plataforma Android — INFORMATIVO.** `ACCESS_NETWORK_STATE` es normal/sin prompt runtime; ConnectivityManager restringe el sondeo a transportes Wi‑Fi/Ethernet. targetSdk 37 sigue cubierto por PLATFORM-001 antes de migrar.
+- **QA — PENDIENTE FÍSICO.** Tests cubren política/rangos/diagnósticos; falta comprobar la ruta real en los dos dispositivos.
+- **Rendimiento — INFORMATIVO.** Máximo 254 destinos, 24 probes paralelos, timeout de conexión 250 ms y deadline global de 6 s; el fallback solo corre después de fallar la ventana inicial de discovery.
+- **Calidad/Limpieza — INFORMATIVO.** No se añade dependencia externa ni protocolo de transferencia alterno.

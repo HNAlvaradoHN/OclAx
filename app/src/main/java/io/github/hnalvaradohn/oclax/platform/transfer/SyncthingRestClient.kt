@@ -94,6 +94,8 @@ internal fun describeLanTimeout(
     discoveredLocally: Boolean,
     peerPaused: Boolean?,
     runtimeHealth: LanRuntimeHealth? = null,
+    directProbeAttempted: Boolean = false,
+    directCandidateFound: Boolean = false,
 ): String = when {
     peerPaused == true ->
         "El dispositivo quedó pausado en el motor local. Volvé a intentar la prueba LAN."
@@ -109,6 +111,18 @@ internal fun describeLanTimeout(
     discoveredLocally ->
         "El otro teléfono apareció en discovery local, pero no se completó la conexión. " +
             "Confirmá que ambos tengan agregado el ID del otro y que ambos hayan tocado Probar LAN."
+
+    directProbeAttempted && directCandidateFound ->
+        "Discovery local no completó el enlace. OclAx encontró un posible Syncthing por " +
+            "conexión LAN directa, pero no verificó el dispositivo emparejado. Confirmá que " +
+            "ambos tengan agregado al otro y que Probar LAN esté activo en los dos."
+
+    directProbeAttempted &&
+        runtimeHealth?.ipv4LocalDiscoveryHealthy == true &&
+        runtimeHealth.lanListenerHealthy == true ->
+        "Discovery y el listener LAN están activos, pero tampoco se encontró al otro teléfono " +
+            "por conexión directa en el segmento local. Si ambos están probando a la vez, " +
+            "la Wi-Fi puede estar aislando clientes."
 
     runtimeHealth?.ipv4LocalDiscoveryHealthy == true &&
         runtimeHealth.lanListenerHealthy == true ->
@@ -244,6 +258,49 @@ internal class SyncthingRestClient(
         return deviceId
     }
 
+    fun setLanPeerDirectAddresses(
+        deviceId: String,
+        addresses: List<String>,
+    ) {
+        val safeAddresses = addresses
+            .asSequence()
+            .filter(::isLanPrivateIpv4)
+            .distinct()
+            .take(8)
+            .toList()
+
+        val encoded = URLEncoder.encode(deviceId, Charsets.UTF_8.name())
+        val device = getJson("/rest/config/devices/$encoded")
+        val configured = JSONArray()
+        safeAddresses.forEach { address ->
+            configured.put("tcp4://$address:${SyncthingLanPolicy.SYNC_PORT}")
+        }
+        configured.put("dynamic")
+        device.put("addresses", configured)
+        putJson("/rest/config/devices/$encoded", device)
+        checkNoRestartRequired()
+    }
+
+    fun resetLanPeerAddresses(deviceId: String) {
+        val encoded = URLEncoder.encode(deviceId, Charsets.UTF_8.name())
+        val device = getJson("/rest/config/devices/$encoded")
+        device.put("addresses", JSONArray().put("dynamic"))
+        putJson("/rest/config/devices/$encoded", device)
+        checkNoRestartRequired()
+    }
+
+    fun waitForLanConnection(
+        deviceId: String,
+        timeoutMillis: Long,
+    ): LanPeerConnectionResult? {
+        val deadline = System.currentTimeMillis() + timeoutMillis
+        while (System.currentTimeMillis() < deadline) {
+            currentLanConnection(deviceId)?.let { return it }
+            Thread.sleep(500L)
+        }
+        return currentLanConnection(deviceId)
+    }
+
     fun enableLanOnlyOptions() {
         val options = getJson("/rest/config/options")
         putJson(
@@ -285,26 +342,10 @@ internal class SyncthingRestClient(
     fun awaitLanConnection(
         deviceId: String,
         timeoutMillis: Long = 45_000L,
+        directProbeAttempted: Boolean = false,
+        directCandidateFound: Boolean = false,
     ): LanPeerConnectionResult {
-        val deadline = System.currentTimeMillis() + timeoutMillis
-        while (System.currentTimeMillis() < deadline) {
-            val connection = getJson("/rest/system/connections")
-                .optJSONObject("connections")
-                ?.optJSONObject(deviceId)
-
-            if (
-                connection != null &&
-                connection.optBoolean("connected", false) &&
-                connection.optBoolean("isLocal", false)
-            ) {
-                return LanPeerConnectionResult(
-                    deviceId = deviceId,
-                    address = connection.optString("address"),
-                    connectionType = connection.optString("type"),
-                )
-            }
-            Thread.sleep(500L)
-        }
+        waitForLanConnection(deviceId, timeoutMillis)?.let { return it }
 
         val connection = runCatching {
             getJson("/rest/system/connections")
@@ -328,7 +369,29 @@ internal class SyncthingRestClient(
                 discoveredLocally = discoveredLocally,
                 peerPaused = peerPaused,
                 runtimeHealth = runtimeHealth,
+                directProbeAttempted = directProbeAttempted,
+                directCandidateFound = directCandidateFound,
             ),
+        )
+    }
+
+    private fun currentLanConnection(deviceId: String): LanPeerConnectionResult? {
+        val connection = getJson("/rest/system/connections")
+            .optJSONObject("connections")
+            ?.optJSONObject(deviceId)
+            ?: return null
+
+        if (
+            !connection.optBoolean("connected", false) ||
+            !connection.optBoolean("isLocal", false)
+        ) {
+            return null
+        }
+
+        return LanPeerConnectionResult(
+            deviceId = deviceId,
+            address = connection.optString("address"),
+            connectionType = connection.optString("type"),
         )
     }
 
@@ -501,6 +564,7 @@ internal class TransferRuntimeController(context: Context) {
     private val appContext = context.applicationContext
     private val config = SyncthingRuntimeConfig(appContext)
     private val client = SyncthingRestClient(config)
+    private val directProbe = LanDirectProbe(appContext)
     private val startupDiagnostics = RuntimeStartupDiagnostics(appContext)
 
     fun start() {
@@ -542,19 +606,66 @@ internal class TransferRuntimeController(context: Context) {
             SyncthingRuntimeService.enableLanDiscovery(appContext)
             client.enableLanOnlyOptions()
             client.resumeDevice(deviceId)
-            val connection = client.awaitLanConnection(deviceId, timeoutMillis)
+
+            val discoveryWindow = minOf(
+                LAN_DISCOVERY_WINDOW_MILLIS,
+                timeoutMillis.coerceAtLeast(1_000L),
+            )
+            val discoveredConnection = client.waitForLanConnection(
+                deviceId = deviceId,
+                timeoutMillis = discoveryWindow,
+            )
+
+            val connection = if (discoveredConnection != null) {
+                discoveredConnection
+            } else {
+                val directResult = runCatching {
+                    directProbe.scan()
+                }.getOrDefault(
+                    LanDirectProbeResult(
+                        scannedHostCount = 0,
+                        openAddresses = emptyList(),
+                    ),
+                )
+
+                if (directResult.openAddresses.isNotEmpty()) {
+                    client.setLanPeerDirectAddresses(
+                        deviceId = deviceId,
+                        addresses = directResult.openAddresses,
+                    )
+                    client.resumeDevice(deviceId)
+                }
+
+                val remaining = (timeoutMillis - discoveryWindow)
+                    .coerceIn(
+                        MIN_DIRECT_WAIT_MILLIS,
+                        MAX_DIRECT_WAIT_MILLIS,
+                    )
+                client.awaitLanConnection(
+                    deviceId = deviceId,
+                    timeoutMillis = remaining,
+                    directProbeAttempted = directResult.scannedHostCount > 0,
+                    directCandidateFound = directResult.openAddresses.isNotEmpty(),
+                )
+            }
+
             client.stopLocalDiscoveryKeepLan()
             SyncthingRuntimeService.disableLanDiscovery(appContext)
             connection
         } catch (error: Exception) {
-            runCatching { client.pauseDevice(deviceId) }
-            val isolated = runCatching {
+            val paused = runCatching {
+                client.pauseDevice(deviceId)
+            }.isSuccess
+            val addressesReset = runCatching {
+                client.resetLanPeerAddresses(deviceId)
+            }.isSuccess
+            val privateOptionsRestored = runCatching {
                 client.enforcePrivateOptions()
             }.isSuccess
             runCatching {
                 SyncthingRuntimeService.disableLanDiscovery(appContext)
             }
-            if (!isolated) {
+            if (!paused || !addressesReset || !privateOptionsRestored) {
                 runCatching { stop() }
             }
             throw error
@@ -564,7 +675,8 @@ internal class TransferRuntimeController(context: Context) {
     fun disconnectLan(deviceId: String) {
         var isolated = false
         try {
-            runCatching { client.pauseDevice(deviceId) }
+            client.pauseDevice(deviceId)
+            client.resetLanPeerAddresses(deviceId)
             client.enforcePrivateOptions()
             isolated = true
         } finally {
@@ -579,4 +691,10 @@ internal class TransferRuntimeController(context: Context) {
 
     fun awaitStopped(timeoutMillis: Long = 7_000L): Boolean =
         client.awaitStopped(timeoutMillis)
+
+    companion object {
+        private const val LAN_DISCOVERY_WINDOW_MILLIS = 8_000L
+        private const val MIN_DIRECT_WAIT_MILLIS = 5_000L
+        private const val MAX_DIRECT_WAIT_MILLIS = 20_000L
+    }
 }

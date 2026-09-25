@@ -180,12 +180,25 @@ SyncthingLanPolicy
         ├─ global discovery / relay / NAT = off
         └─ local discovery + TCP listener = on temporal
         ↓
+ventana corta de discovery local
+        ├─ conecta → validar connected + isLocal
+        └─ no conecta
+              ↓
+        LanDirectProbe
+        ├─ solo Wi‑Fi/Ethernet
+        ├─ segmento inmediato, máximo /24
+        └─ solo TCP/22000
+              ↓ candidatos privados temporales
+        Syncthing device.addresses
+              ↓
 Syncthing REST loopback
         ↓
 /rest/system/connections → connected + isLocal
 ```
 
 La prueba no crea carpetas Syncthing ni mueve contenido. Al confirmar el peer, OclAx apaga discovery local y libera el MulticastLock manteniendo solo la conexión/listener LAN; al desconectar, el motor vuelve a `enforcePrivateOptions()`.
+
+El fallback directo no sustituye a Syncthing como motor ni autentica peers por IP. Solo encuentra candidatos TCP locales cuando los anuncios broadcast no cruzan la Wi‑Fi; Syncthing sigue aceptando la conexión únicamente si el certificado/Device ID corresponde al dispositivo emparejado. Las direcciones temporales se eliminan al terminar la prueba.
 
 Syncthing core v2.x es el motor candidato, encapsulado detrás de una capa propia. El wrapper Android oficial discontinuado no forma parte de la arquitectura OclAx.
 

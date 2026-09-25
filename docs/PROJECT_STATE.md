@@ -75,7 +75,7 @@
 - PR #57 añadió caché del runtime nativo; main run 200 pobló el caché y runs posteriores restauran el runtime sin recompilar las cuatro ABI, manteniendo verificación SHA-256;
 - ERR-005 reconciliado con la implementación vigente mediante PR #59; main run 205 terminó verde.
 - selector propio `ACTION_GET_CONTENT` implementado en PR #62 y corregido visualmente en PR #63/main run 229; la apertura y presentación base ya fueron confirmadas físicamente.
-- navegación visual por tarjetas de categoría + buscador directo está en implementación en rama `feat/visual-category-cards` para OclAx, Mi dispositivo y el picker propio.
+- navegación visual por tarjetas de categoría + buscador directo fue fusionada mediante PR #64; main run 232 quedó verde. Falta validación física específica de la navegación nueva.
 
 ## En desarrollo
 
@@ -90,20 +90,21 @@
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta validar el segundo teléfono y luego la conexión LAN;
 - todavía no existe transferencia de archivos: el canal privado + progreso permanece bloqueado hasta validar LAN con dos teléfonos.
 - PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION**: apertura/presentación ya están confirmadas; todavía faltan selección múltiple, cancelar, MIME/permiso negado y retorno de más variantes.
-- dos dispositivos físicos ya están disponibles. En el teléfono mostrado existe un peer guardado, pero un intento LAN terminó con diagnóstico **no apareció en discovery local**; causa todavía **NO VERIFICADA** y LAN sigue pendiente.
-- diagnóstico LAN adicional implementado en PR #65: al timeout distingue salud de discovery IPv4 local y del listener LAN sin exponer errores brutos, IPs ni Device IDs; pendiente CI y repetición física.
+- dos dispositivos físicos ya están disponibles y la build main run 234 fue probada en ambos. En ambos extremos el diagnóstico confirmó **discovery IPv4 local activo + listener LAN activo**, pero ninguno vio al otro por discovery local.
+- **CAUSA DEL FALLO DE DISCOVERY: NO VERIFICADA.** La evidencia es compatible con filtrado/aislamiento de broadcast de la Wi‑Fi, pero no lo demuestra por sí sola.
+- para no depender exclusivamente de discovery broadcast, está implementándose un fallback LAN directo y acotado: después de una ventana corta de discovery, OclAx inspecciona solo la red Wi‑Fi/Ethernet local, sondea únicamente TCP/22000 dentro del segmento inmediato (máximo /24) y entrega candidatos privados a Syncthing, que sigue verificando el Device ID.
 
 ## Bloqueos
 
-- **TRANSFER-001/003:** ya hay dos dispositivos disponibles, pero LAN aún no está validado. Un intento físico no vio al peer por discovery local; falta repetir la prueba con ambos teléfonos accionando **Probar LAN** dentro de la misma ventana y misma Wi-Fi antes de atribuir causa;
+- **TRANSFER-001/003:** ambos teléfonos ya demostraron listener + discovery local sanos, pero discovery no cruza entre ellos. LAN sigue sin validar; el fallback directo debe pasar CI y prueba física antes de avanzar al canal real de archivos;
 - siguen pendientes validaciones físicas de miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes;
 - Internet directo, relay y canal real de archivos no deben implementarse antes de validar físicamente LAN según la autorización vigente.
 
 ## Siguiente paso exacto
 
-1. Completar y validar la navegación por tarjetas + búsqueda global autorizada en OclAx, Mi dispositivo y **Elegir con OclAx**.
-2. En paralelo, con los dos teléfonos ya disponibles y en la misma Wi-Fi, confirmar **Probar motor** en el segundo si todavía no está verificado y asegurar que ambos tengan agregado el ID del otro.
-3. Tocar **Probar LAN** en ambos dentro de la misma ventana. Si no conecta, registrar el diagnóstico exacto: `no apareció en discovery local`, `apareció pero no conectó` o `quedó pausado`.
-4. Confirmar **Desconectar LAN** y retorno a modo aislado.
+1. Terminar CI/revisión del fallback LAN directo acotado.
+2. Instalar la misma build resultante en ambos teléfonos, mantenerlos en la misma Wi‑Fi y tocar **Probar LAN** en ambos dentro de la misma ventana.
+3. Si conecta, confirmar **Desconectar LAN** y retorno a modo aislado.
+4. Si no conecta, registrar solo el nuevo diagnóstico sanitizado: **directo no encontró peer** o **encontró candidato Syncthing pero no verificó el dispositivo emparejado**.
 5. Solo después de validar LAN, diseñar/implementar el canal privado de archivos + progreso; Internet/relay continúa fuera de alcance hasta esa validación.
-6. Mantener las validaciones físicas pendientes de selección múltiple/cancelar del picker, miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes.
+6. Mantener las validaciones físicas pendientes de navegación por tarjetas, selección múltiple/cancelar del picker, miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes.

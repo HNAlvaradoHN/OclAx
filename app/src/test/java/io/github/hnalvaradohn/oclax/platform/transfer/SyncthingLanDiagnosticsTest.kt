@@ -134,6 +134,40 @@ class SyncthingLanDiagnosticsTest {
     }
 
     @Test
+    fun directProbeFailureExplainsClientIsolationWhenRuntimeIsHealthy() {
+        val message = describeLanTimeout(
+            discoveredLocally = false,
+            peerPaused = false,
+            runtimeHealth = LanRuntimeHealth(
+                ipv4LocalDiscoveryHealthy = true,
+                lanListenerHealthy = true,
+            ),
+            directProbeAttempted = true,
+            directCandidateFound = false,
+        )
+
+        assertTrue(message.contains("tampoco se encontró"))
+        assertTrue(message.contains("Wi-Fi puede estar aislando clientes"))
+    }
+
+    @Test
+    fun directCandidateWithoutVerifiedPeerExplainsPairingPath() {
+        val message = describeLanTimeout(
+            discoveredLocally = false,
+            peerPaused = false,
+            runtimeHealth = LanRuntimeHealth(
+                ipv4LocalDiscoveryHealthy = true,
+                lanListenerHealthy = true,
+            ),
+            directProbeAttempted = true,
+            directCandidateFound = true,
+        )
+
+        assertTrue(message.contains("posible Syncthing"))
+        assertTrue(message.contains("dispositivo emparejado"))
+    }
+
+    @Test
     fun healthyRuntimePointsToLanBroadcastPathWhenPeerIsMissing() {
         val message = describeLanTimeout(
             discoveredLocally = false,
