@@ -59,7 +59,10 @@
 - con la build main run 207, el scroll completo de OclAx quedó confirmado físicamente;
 - con la build main run 207, **Mi dispositivo** muestra fecha y hora de modificación físicamente en el teléfono;
 - portada de PDF, apertura de PDF/Word/imagen/video/audio/APK, borrado/cancelación de imagen y PDF/documento, Apps instaladas y persistencia Lista/Cuadrícula fueron confirmados físicamente.
-- con main run 229, el selector propio **Elegir con OclAx** fue revalidado físicamente y el dueño confirmó que la presentación corregida ya aparece bien.
+- con main run 229, el selector propio **Elegir con OclAx** fue revalidado físicamente y el dueño confirmó que la presentación corregida ya aparece bien;
+- con la build que incluye PR #66, dos dispositivos emparejados llegaron físicamente a **Conectado por LAN**;
+- en ambos dispositivos, **Desconectar LAN** devolvió el estado a **Motor aislado / Desconectado · motor aislado**. TRANSFER-003 queda físicamente validado;
+- la causa de que Local Discovery broadcast no cruzara en la prueba anterior sigue **NO VERIFICADA**; la validación actual demuestra conectividad OclAx LAN, no cuál ruta concreta produjo el enlace.
 
 ## Implementado recientemente
 
@@ -86,9 +89,9 @@
 - conexión LAN-only está implementada con peer pausado por defecto, discovery local temporal, listener TCP restringido a redes privadas y retorno fail-closed a modo aislado;
 - el parser XML incompatible en Android fue corregido y validado físicamente en un teléfono;
 - el panel técnico, búsqueda, filtros y tarjetas comparten un único scroll vertical; PR #55/main run 196 y validación física con main run 207 confirman desplazamiento completo;
-- el diagnóstico LAN mejorado ya está fusionado y validado automáticamente; falta validación física con dos teléfonos;
-- TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta validar el segundo teléfono y luego la conexión LAN;
-- todavía no existe transferencia de archivos: el canal privado + progreso permanece bloqueado hasta validar LAN con dos teléfonos.
+- TRANSFER-003 queda **DONE** para la conectividad LAN: dos dispositivos conectaron físicamente y ambos restauraron aislamiento al desconectar;
+- TRANSFER-004 está **IN_PROGRESS** en PR #68: primer canal real OclAx↔OclAx sobre LAN verificada, con carpetas efímeras Syncthing privadas, aceptación/autoaceptación por dispositivo, progreso, importación a ItemStore y cleanup;
+- la transferencia real todavía requiere CI verde, merge y validación física de envío/recepción antes de declararse terminada.
 - PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION**: apertura/presentación ya están confirmadas; todavía faltan selección múltiple, cancelar, MIME/permiso negado y retorno de más variantes.
 - dos dispositivos físicos ya están disponibles y la build main run 234 fue probada en ambos. En ambos extremos el diagnóstico confirmó **discovery IPv4 local activo + listener LAN activo**, pero ninguno vio al otro por discovery local.
 - **CAUSA DEL FALLO DE DISCOVERY: NO VERIFICADA.** La evidencia es compatible con filtrado/aislamiento de broadcast de la Wi‑Fi, pero no lo demuestra por sí sola.
@@ -96,15 +99,15 @@
 
 ## Bloqueos
 
-- **TRANSFER-001/003:** ambos teléfonos ya demostraron listener + discovery local sanos, pero discovery no cruza entre ellos. El fallback directo ya pasó CI en main run 237; LAN sigue sin validar hasta repetir la prueba física en ambos antes de avanzar al canal real de archivos;
+- **TRANSFER-004:** la conectividad LAN ya está validada; el canal real de archivos está implementándose en PR #68 y no se considera validado hasta CI/merge + prueba física de envío, aceptación/rechazo, autoaceptación, progreso, recepción y cleanup;
 - siguen pendientes validaciones físicas de miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes;
-- Internet directo, relay y canal real de archivos no deben implementarse antes de validar físicamente LAN según la autorización vigente.
+- Internet directo y relay continúan fuera de alcance de este bloque; no se habilitan global discovery, NAT ni relay.
 
 ## Siguiente paso exacto
 
-1. Instalar la build de main run 237 en ambos teléfonos, mantenerlos en la misma Wi‑Fi y tocar **Probar LAN** en ambos dentro de la misma ventana.
-2. Confirmar que, si discovery broadcast vuelve a fallar, el fallback directo se ejecuta sin intervención manual.
-3. Si conecta, confirmar **Desconectar LAN** y retorno a modo aislado.
-4. Si no conecta, registrar solo el nuevo diagnóstico sanitizado: **directo no encontró peer** o **encontró candidato Syncthing pero no verificó el dispositivo emparejado**.
-5. Solo después de validar LAN, diseñar/implementar el canal privado de archivos + progreso; Internet/relay continúa fuera de alcance hasta esa validación.
-6. Mantener las validaciones físicas pendientes de navegación por tarjetas, selección múltiple/cancelar del picker, miniaturas de video, compartir apps APK/splits, revocación de permisos y rendimiento con inventarios grandes.
+1. Completar CI y revisiones de PR #68 sin fusionar con CI fallando.
+2. Instalar en ambos dispositivos la misma build de `main` que contenga TRANSFER-004.
+3. Conectar ambos por LAN y enviar un archivo pequeño desde una tarjeta OclAx al dispositivo emparejado.
+4. Con **Permitir sin aceptar** apagado, confirmar solicitud visible, **Aceptar**, progreso, aparición en la bandeja OclAx del receptor y confirmación final del emisor.
+5. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
+6. Tras terminar, desconectar LAN en ambos y confirmar retorno a modo aislado; Internet/relay queda para una autorización futura.

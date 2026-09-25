@@ -303,3 +303,18 @@ Controles:
 - Los MIME suministrados por una app externa se tratan como no confiables: longitud/cantidad acotadas y matching fail-closed para entradas inválidas.
 - La selección múltiple tiene un límite defensivo para evitar resultados/transactions desproporcionados.
 - No se añaden permisos, telemetría, red ni ejecución de archivos por esta integración.
+
+
+## Canal real de archivos LAN — controles TRANSFER-004
+
+- Una transferencia requiere un peer ya conectado por LAN que Syncthing reporte `isLocal=true`; una IP/puerto abierto nunca sustituye la identidad por Device ID.
+- Cada transferencia usa un ID aleatorio bajo namespace estricto `oclax-` y una carpeta efímera en almacenamiento privado de la app.
+- La carpeta se comparte únicamente con el Device ID emparejado activo; global discovery, relay, NAT y telemetría permanecen desactivados.
+- El receptor solo considera ofertas con ID/label OclAx provenientes del peer activo. **Permitir sin aceptar** nunca aplica a un dispositivo no emparejado.
+- Antes de importar se valida manifest versionado, transferId, Device ID remitente, límites de nombre/MIME, tamaño declarado/real y estructura esperada.
+- El receptor rechaza directorios, symlinks, más archivos que el protocolo y un tamaño global por encima de 4 GiB + overhead defensivo.
+- Manifest y ACK tienen límites pequeños y se rechazan symlinks antes de leerlos.
+- El nombre se vuelve a sanitizar y el MIME se normaliza en ItemStore; contenido recibido nunca se ejecuta, abre o instala automáticamente.
+- El ACK se emite solo después de que ItemStore complete la copia privada; el emisor no muestra éxito antes de esa confirmación.
+- El staging temporal se elimina al completar/fallar; detener o desconectar se bloquea en UI durante una transferencia activa para evitar cortar cleanup deliberadamente.
+- No se registran IP, contenido, rutas privadas ni payloads en GitHub/telemetría; el nombre del archivo sí forma parte de la oferta al peer emparejado porque es necesario para la decisión de recepción.

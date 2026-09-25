@@ -580,3 +580,27 @@ Fallback aprobado dentro de **Probar LAN**:
 **Límites:** no se escanea Internet/celular, no se habilita global discovery/NAT/relay, no se muestran IPs, no se transfieren archivos y no se considera un puerto abierto como identidad.
 
 **Motivo:** separar la conectividad LAN directa de la confiabilidad de broadcast/multicast sin introducir servidor, nube ni otro motor de transferencia.
+
+
+---
+
+## DEC-030 — Transferencias LAN mediante carpetas Syncthing efímeras controladas por OclAx
+
+**Contexto:** TRANSFER-003 ya demostró conexión LAN OclAx↔OclAx y retorno al modo aislado en dos dispositivos. El siguiente bloque necesita mover un archivo sin convertir la UX en una sincronización permanente de carpetas.
+
+**Decisión:** cada envío crea una carpeta Syncthing efímera y privada con namespace OclAx, compartida solo con el Device ID emparejado activo.
+
+Protocolo mínimo:
+1. el emisor prepara `payload.bin` + manifest acotado en almacenamiento privado;
+2. ofrece la carpeta efímera al peer LAN autenticado;
+3. el receptor detecta solo ofertas OclAx del peer activo y acepta manualmente salvo confianza **Permitir sin aceptar**;
+4. antes de importar se valida remitente, tamaño, estructura y archivos regulares;
+5. ItemStore materializa una nueva copia OclAx;
+6. el receptor escribe ACK solo tras importar;
+7. ambos eliminan configuración y staging efímeros.
+
+**Límites:** sin Internet/relay/NAT/global discovery; sin autoejecución/instalación; máximo de contenido heredado de ItemStore; directorios/symlinks y estructuras extra se rechazan.
+
+**Motivo:** reutilizar integridad, cifrado de transporte y autenticación por Device ID de Syncthing sin exponer su modelo de carpetas al usuario y manteniendo una transferencia con principio/fin controlados por OclAx.
+
+**Consecuencia:** el primer vertical de TRANSFER-004 opera sobre copias ya presentes en OclAx. Envío directo desde **Mi dispositivo**, cancelación/reintento refinados y UX final de selección de destino pueden evolucionar después de validar físicamente este canal.

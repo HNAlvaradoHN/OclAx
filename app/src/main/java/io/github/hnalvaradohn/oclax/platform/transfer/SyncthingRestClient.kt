@@ -32,6 +32,25 @@ internal data class LanRuntimeStatusEntry(
     val healthy: Boolean,
 )
 
+internal data class PendingTransferFolder(
+    val folderId: String,
+    val label: String,
+)
+
+internal data class TransferFolderCompletion(
+    val completion: Double,
+    val needBytes: Long,
+    val needItems: Int,
+    val remoteState: String,
+)
+
+internal data class TransferFolderStatus(
+    val globalBytes: Long,
+    val globalFiles: Int,
+    val globalDirectories: Int,
+    val globalSymlinks: Int,
+)
+
 internal fun evaluateLanRuntimeHealth(
     discoveryStatusPresent: Boolean,
     discoveryEntries: List<LanRuntimeStatusEntry>,
@@ -234,6 +253,14 @@ internal class SyncthingRestClient(
         )
     }
 
+    fun currentDeviceId(): String {
+        val deviceId = getJson("/rest/system/status").optString("myID")
+        check(deviceId.isNotBlank()) {
+            "El motor no devolvió un identificador de dispositivo."
+        }
+        return deviceId
+    }
+
     fun canonicalDeviceId(rawDeviceId: String): String {
         val encoded = URLEncoder.encode(rawDeviceId, Charsets.UTF_8.name())
         val response = getJson("/rest/svc/deviceid?id=$encoded")
@@ -337,6 +364,107 @@ internal class SyncthingRestClient(
             "/rest/system/pause?device=" +
                 URLEncoder.encode(deviceId, Charsets.UTF_8.name()),
         )
+    }
+
+    fun configureTransferFolder(
+        folderId: String,
+        label: String,
+        path: String,
+        deviceId: String,
+    ) {
+        check(isOclAxTransferFolderId(folderId)) {
+            "Identificador de transferencia inválido."
+        }
+        val folder = getJson("/rest/config/defaults/folder")
+        folder.put("id", folderId)
+        folder.put("label", label)
+        folder.put("path", path)
+        folder.put("type", "sendreceive")
+        folder.put("rescanIntervalS", 0)
+        folder.put("fsWatcherEnabled", false)
+        folder.put("ignorePerms", true)
+        folder.put("paused", false)
+        folder.put(
+            "devices",
+            JSONArray().put(
+                JSONObject()
+                    .put("deviceID", deviceId)
+                    .put("introducedBy", "")
+                    .put("encryptionPassword", ""),
+            ),
+        )
+        postJson("/rest/config/folders", folder)
+        checkNoRestartRequired()
+    }
+
+    fun pendingTransferFolders(deviceId: String): List<PendingTransferFolder> {
+        val encodedDevice = URLEncoder.encode(deviceId, Charsets.UTF_8.name())
+        val pending = getJson("/rest/cluster/pending/folders?device=$encodedDevice")
+        return pending.keys().asSequence().mapNotNull { folderId ->
+            val folder = pending.optJSONObject(folderId) ?: return@mapNotNull null
+            val offeredBy = folder.optJSONObject("offeredBy") ?: return@mapNotNull null
+            val offer = offeredBy.optJSONObject(deviceId) ?: return@mapNotNull null
+            PendingTransferFolder(
+                folderId = folderId,
+                label = offer.optString("label"),
+            )
+        }.toList()
+    }
+
+    fun dismissPendingTransferFolder(
+        folderId: String,
+        deviceId: String,
+    ) {
+        val encodedFolder = URLEncoder.encode(folderId, Charsets.UTF_8.name())
+        val encodedDevice = URLEncoder.encode(deviceId, Charsets.UTF_8.name())
+        deleteEmpty(
+            "/rest/cluster/pending/folders?folder=$encodedFolder&device=$encodedDevice",
+        )
+    }
+
+    fun scanFolder(folderId: String) {
+        val encodedFolder = URLEncoder.encode(folderId, Charsets.UTF_8.name())
+        postEmpty("/rest/db/scan?folder=$encodedFolder")
+    }
+
+    fun transferFolderCompletion(
+        folderId: String,
+        deviceId: String?,
+    ): TransferFolderCompletion {
+        val encodedFolder = URLEncoder.encode(folderId, Charsets.UTF_8.name())
+        val path = if (deviceId.isNullOrBlank()) {
+            "/rest/db/completion?folder=$encodedFolder"
+        } else {
+            val encodedDevice = URLEncoder.encode(deviceId, Charsets.UTF_8.name())
+            "/rest/db/completion?folder=$encodedFolder&device=$encodedDevice"
+        }
+        val completion = getJson(path)
+        return TransferFolderCompletion(
+            completion = completion.optDouble("completion", 0.0),
+            needBytes = completion.optLong("needBytes", Long.MAX_VALUE),
+            needItems = completion.optInt("needItems", Int.MAX_VALUE),
+            remoteState = completion.optString("remoteState"),
+        )
+    }
+
+    fun transferFolderStatus(folderId: String): TransferFolderStatus {
+        val encodedFolder = URLEncoder.encode(folderId, Charsets.UTF_8.name())
+        val status = getJson("/rest/db/status?folder=$encodedFolder")
+        return TransferFolderStatus(
+            globalBytes = status.optLong("globalBytes", Long.MAX_VALUE),
+            globalFiles = status.optInt("globalFiles", Int.MAX_VALUE),
+            globalDirectories = status.optInt("globalDirectories", Int.MAX_VALUE),
+            globalSymlinks = status.optInt("globalSymlinks", Int.MAX_VALUE),
+        )
+    }
+
+    fun removeTransferFolder(folderId: String) {
+        check(isOclAxTransferFolderId(folderId)) {
+            "Identificador de transferencia inválido."
+        }
+        val encodedFolder = URLEncoder.encode(folderId, Charsets.UTF_8.name())
+        deleteEmpty("/rest/config/folders/$encodedFolder")
+        checkNoRestartRequired()
     }
 
     fun awaitLanConnection(
@@ -464,6 +592,15 @@ internal class SyncthingRestClient(
         )
     }
 
+    private fun deleteEmpty(path: String) {
+        request(
+            method = "DELETE",
+            path = path,
+            authenticated = true,
+            body = ByteArray(0),
+        )
+    }
+
     private fun request(
         method: String,
         path: String,
@@ -564,6 +701,7 @@ internal class TransferRuntimeController(context: Context) {
     private val appContext = context.applicationContext
     private val config = SyncthingRuntimeConfig(appContext)
     private val client = SyncthingRestClient(config)
+    private val transferChannel = OclAxTransferChannel(appContext, client)
     private val directProbe = LanDirectProbe(appContext)
     private val startupDiagnostics = RuntimeStartupDiagnostics(appContext)
 
@@ -670,6 +808,53 @@ internal class TransferRuntimeController(context: Context) {
             }
             throw error
         }
+    }
+
+    fun sendFile(
+        deviceId: String,
+        source: java.io.File,
+        displayName: String,
+        mimeType: String,
+        byteSize: Long,
+        onProgress: (TransferProgress) -> Unit,
+    ) {
+        check(client.waitForLanConnection(deviceId, 1_000L) != null) {
+            "El dispositivo no está conectado por LAN."
+        }
+        transferChannel.send(
+            deviceId = deviceId,
+            ownDeviceId = client.currentDeviceId(),
+            source = source,
+            displayName = displayName,
+            mimeType = mimeType,
+            byteSize = byteSize,
+            onProgress = onProgress,
+        )
+    }
+
+    fun pendingTransfers(deviceId: String): List<IncomingTransferOffer> {
+        check(client.waitForLanConnection(deviceId, 1_000L) != null) {
+            "El dispositivo no está conectado por LAN."
+        }
+        return transferChannel.pending(deviceId)
+    }
+
+    fun receiveTransfer(
+        offer: IncomingTransferOffer,
+        onProgress: (TransferProgress) -> Unit,
+    ): ReceivedTransferPayload =
+        transferChannel.receive(offer, onProgress)
+
+    fun acknowledgeReceived(payload: ReceivedTransferPayload) {
+        transferChannel.acknowledgeImported(payload)
+    }
+
+    fun abortReceived(offer: IncomingTransferOffer) {
+        transferChannel.abortIncoming(offer)
+    }
+
+    fun rejectTransfer(offer: IncomingTransferOffer) {
+        transferChannel.reject(offer)
     }
 
     fun disconnectLan(deviceId: String) {

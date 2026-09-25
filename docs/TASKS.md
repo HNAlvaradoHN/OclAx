@@ -373,10 +373,10 @@ Spike técnico, en orden:
 12. **FALLO UX CORREGIDO_PENDIENTE_VALIDACIÓN_FÍSICA:** PR #55 fusionado y main run 196 verde; OclAx usa una única lista desplazable para panel, búsqueda, controles y tarjetas.
 13. **DIAGNÓSTICO LAN IMPLEMENTADO_PENDIENTE_CI/FÍSICA:** al vencer la búsqueda, consulta `/rest/system/discovery` y diferencia `no visto por discovery`, `visto sin conexión` y `peer pausado`, sin exponer IPs.
 14. **VALIDADO EN PRIMER TELÉFONO:** main run 207 confirma scroll completo, Device ID + loopback y fecha/hora en Mi dispositivo.
-15. **SIGUIENTE:** con el segundo teléfono disponible, probar motor, emparejamiento y LAN usando el nuevo diagnóstico si falla.
-16. emparejar dos instalaciones de prueba y validar conexión LAN;
-17. validar conexión Internet directa y relay público como fallback;
-18. recién después conectar progreso/cancelación/reintento y la UX visible **Enviar a dispositivo**.
+15. **COMPLETADO:** segundo dispositivo emparejado y motor validado;
+16. **COMPLETADO:** conexión LAN verificada físicamente y aislamiento restaurado al desconectar en ambos;
+17. **ACTUAL:** implementar y validar el canal privado de archivos LAN + progreso;
+18. Internet directo/relay queda fuera de alcance hasta terminar la transferencia LAN y recibir autorización para ese bloque.
 
 Política de recepción:
 - **Mis dispositivos / confiables:** opción Permitir sin aceptar;
@@ -390,13 +390,13 @@ Costo:
 
 
 ### TRANSFER-002 — Emparejamiento y confianza por dispositivo
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
-Implementado en la base de emparejamiento:
+Implementado:
 - lista privada **Mis dispositivos** separada del motor Syncthing;
 - cada dispositivo guarda nombre visible, Device ID normalizado y preferencia **Permitir sin aceptar**;
-- la preferencia de autoaceptación empieza siempre apagada;
+- la preferencia de autoaceptación empieza apagada;
 - agregar/quitar/cambiar confianza no abre red ni inicia transferencias;
 - el Device ID propio solo aparece después de una prueba correcta del runtime;
 - acción explícita **Compartir ID** usa el Sharesheet de Android;
@@ -404,52 +404,62 @@ Implementado en la base de emparejamiento:
 - los datos se guardan en SharedPreferences privadas de OclAx.
 
 Validado:
-- PR #40 fusionado después de CI verde en tests, lint y build.
+- PR #40 fusionado después de CI verde;
+- validación física con dos dispositivos: ambos quedaron mutuamente emparejados de forma suficiente para alcanzar una conexión LAN autenticada por Device ID;
+- **Permitir sin aceptar** permanece como preferencia explícita por peer y será revalidada durante TRANSFER-004.
 
-Pendiente:
-- validar en dos teléfonos que cada uno puede compartir/agregar el ID del otro;
-- posteriormente añadir QR si mejora el flujo sin dependencia innecesaria.
+Mejora futura no bloqueante:
+- añadir QR si reduce fricción sin dependencia innecesaria.
 
 ### TRANSFER-003 — Conexión LAN entre dispositivos emparejados
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Implementado:
-- **Probar LAN** por dispositivo emparejado dentro del panel técnico;
-- OclAx pide al propio Syncthing validar/canonizar el Device ID antes de configurarlo;
-- el peer se crea pausado, sin autoaceptar carpetas y sin funciones de introducer;
-- durante la prueba LAN se habilita únicamente un listener TCP IPv4 y discovery local;
-- global discovery, relay, NAT traversal, usage reporting y crash reporting permanecen apagados;
-- el peer queda limitado a rangos IPv4 privados/link-local; no se permite `0.0.0.0/0`, `::/0` ni CGNAT como red de confianza;
-- Android mantiene un MulticastLock solo durante la búsqueda por discovery local y lo libera en cuanto la conexión LAN queda confirmada;
-- la conexión solo se considera válida cuando Syncthing informa `connected=true` e `isLocal=true`;
-- **Desconectar LAN** pausa el peer, restaura el motor a modo aislado y libera el MulticastLock; si la restauración falla, el runtime se detiene por seguridad;
-- al vencer la búsqueda, el diagnóstico consulta el cache local de discovery de Syncthing y distingue si el peer nunca apareció, apareció pero no conectó o quedó pausado;
-- el diagnóstico de timeout también consulta `/rest/system/status` para distinguir discovery IPv4 local inactivo, listener LAN inactivo o motor local sano con peer ausente, sin mostrar el error bruto;
-- no se muestran direcciones IP del cache en UI y no se comparte ninguna carpeta ni archivo todavía;
-- fallback directo fusionado en PR #66: si discovery no conecta tras una ventana corta, OclAx limita el sondeo al transporte Wi‑Fi/Ethernet activo, máximo 254 hosts del segmento inmediato y solo TCP/22000; cualquier candidato se configura como dirección privada explícita del peer y Syncthing conserva la verificación criptográfica por Device ID;
-- las direcciones explícitas temporales vuelven a `dynamic` al fallar o desconectar; si la limpieza o aislamiento no se confirma, el runtime se detiene.
+- conexión LAN explícita por dispositivo emparejado con Syncthing core;
+- Local Discovery como primera ruta y fallback directo acotado al segmento Wi‑Fi/Ethernet inmediato, únicamente TCP/22000;
+- éxito solo con Device ID emparejado y `connected=true` + `isLocal=true`;
+- global discovery, relay, NAT, usage reporting y crash reporting apagados;
+- al desconectar, peer pausado, direcciones temporales restauradas a `dynamic` y motor vuelve a aislamiento; cleanup incompleto detiene runtime.
 
-Validado:
-- PR #42 fusionado;
-- CI final de main (run 150) verde en tests, lint, build multi-ABI, verificación de runtimes y APK debug;
-- PR #66 fusionado con fallback LAN directo acotado;
-- main run 237 verde en runtime nativo, tests, lint, build, verificación del APK y publicación del artefacto.
+Validación automática:
+- PR #66 fusionado;
+- main run 237 verde en runtime nativo, tests, lint, build, verificación de APK y artefacto.
 
-Validación física parcial — 2026-09-24:
-- ambos dispositivos ejecutaron la build main run 234;
-- en ambos extremos Syncthing reportó **discovery IPv4 local activo + listener LAN activo**;
-- ninguno vio al otro por discovery local;
-- el cleanup volvió a modo aislado al fallar;
-- **CAUSA DEL FALLO DE DISCOVERY: NO VERIFICADA**. El filtrado/aislamiento de broadcast es una hipótesis compatible con la evidencia, no una conclusión.
+Validación física — 2026-09-24:
+- los dos dispositivos emparejados alcanzaron **Conectado por LAN**;
+- al pulsar **Desconectar LAN** en cada uno, cada dispositivo volvió correctamente a **Motor aislado / Desconectado · motor aislado**;
+- el cierre es local por dispositivo en esta fase: desconectar uno no envía una orden remota para cambiar la UI/configuración del otro;
+- **CAUSA DEL FALLO HISTÓRICO DE LOCAL DISCOVERY: NO VERIFICADA.** La prueba valida conectividad LAN OclAx, no demuestra qué ruta concreta produjo el enlace.
+
+### TRANSFER-004 — Canal real de archivos LAN + progreso
+**Estado:** IN_PROGRESS  
+**Prioridad:** alta  
+**PR:** #68
+
+Objetivo:
+- enviar una copia almacenada en OclAx al dispositivo emparejado sobre la conexión LAN ya verificada;
+- pedir aceptación por defecto y respetar **Permitir sin aceptar** por dispositivo;
+- mostrar progreso/estado;
+- materializar lo recibido primero en almacenamiento privado OclAx;
+- limpiar configuración y staging efímeros al terminar o fallar.
+
+Implementación actual:
+- `FileTransferCoordinator` separa orquestación de UI;
+- `OclAxTransferChannel` crea una carpeta Syncthing efímera por transferencia dentro de almacenamiento privado;
+- protocolo acotado a `payload.bin`, manifest JSON y ACK JSON, con namespace `oclax-<id>`;
+- receptor consulta solicitudes periódicamente mientras LAN está activa; puede Aceptar/Rechazar y autoacepta solo si el peer guardado tiene **Permitir sin aceptar**;
+- manifest valida transferId, Device ID remitente, nombre/MIME y tamaño; ItemStore vuelve a sanitizar nombre/MIME;
+- se rechazan directorios, symlinks, exceso de archivos y carpetas por encima del límite defensivo;
+- el remitente no marca éxito hasta recibir ACK después de que ItemStore haya importado la copia;
+- timeout escala con tamaño hasta un máximo acotado; UI bloquea detener/desconectar mientras una transferencia está activa;
+- no se añaden permisos ni dependencias y no se habilita Internet, global discovery, relay o NAT.
 
 Pendiente:
-- instalar la build de main run 237 en ambos;
-- repetir **Probar LAN** simultáneamente en la misma Wi‑Fi;
-- confirmar que ambos muestran **Conectado por LAN**;
-- confirmar que **Desconectar LAN** restaura `dynamic`, pausa el peer y vuelve al modo aislado;
-- si el fallback no encuentra TCP/22000 en el segmento, mantener aislamiento de clientes como hipótesis física;
-- solo después crear el canal privado de archivos y progreso.
+- CI verde y merge de PR #68;
+- prueba física con dos dispositivos: aceptar, rechazar, **Permitir sin aceptar**, progreso, archivo recibido utilizable y cleanup;
+- probar un archivo mayor y falta de espacio;
+- cancelación/reintento explícitos quedan para refinamiento posterior después del primer vertical estable.
 
 ### PLATFORM-001 — Compatibilidad de permisos de red local Android 17
 **Estado:** PENDING  

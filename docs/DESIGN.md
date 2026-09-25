@@ -341,3 +341,16 @@ El dueño pidió explícitamente no perder el logo/identidad OclAx.
 - mantener visible la marca **OclAx** y el naranja aprobado;
 - no copiar literalmente la apariencia de otro gestor de archivos: las tarjetas deben sentirse propias de OclAx;
 - **NO VERIFICADO / PENDIENTE:** no existe actualmente un asset gráfico oficial de logo/icono versionado en el repositorio. No inventar uno como si fuera oficial; integrar el asset aprobado cuando esté disponible.
+
+
+## TRANSFER-004 — primera UX verificable de envío LAN
+
+Mientras se valida el transporte real:
+- una tarjeta OclAx muestra acción **Enviar a dispositivo** solo cuando existe un peer LAN activo;
+- el estado de preparación/envío/confirmación aparece como texto en la misma tarjeta;
+- el receptor muestra una solicitud con nombre de archivo y acciones **Aceptar / Rechazar** cuando **Permitir sin aceptar** está apagado;
+- **Permitir sin aceptar** elimina únicamente la confirmación, no abre ni ejecuta el archivo;
+- el panel técnico mantiene **Revisar solicitudes** como fallback de diagnóstico aunque la detección sea periódica;
+- controles que cortarían el runtime/LAN se deshabilitan mientras una transferencia está activa.
+
+Esto es una UX de validación. El objetivo final sigue siendo **Enviar → elegir dispositivo → progreso**, ocultando Device IDs y controles de motor/LAN cuando el transporte quede físicamente estable.

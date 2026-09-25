@@ -36,6 +36,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import io.github.hnalvaradohn.oclax.data.PairedDevice
+import io.github.hnalvaradohn.oclax.platform.transfer.IncomingTransferOffer
 
 @Composable
 internal fun TransferDevicesSection(
@@ -46,6 +47,9 @@ internal fun TransferDevicesSection(
     lanBusyDeviceId: String?,
     activeLanDeviceId: String?,
     lanStatusByDevice: Map<String, String>,
+    fileTransferBusy: Boolean,
+    pendingIncomingTransfers: List<IncomingTransferOffer>,
+    incomingTransferStatusById: Map<String, String>,
     onProbe: () -> Unit,
     onStop: () -> Unit,
     onShareOwnId: () -> Unit,
@@ -54,8 +58,12 @@ internal fun TransferDevicesSection(
     onRemoveDevice: (deviceId: String) -> Unit,
     onTestLan: (PairedDevice) -> Unit,
     onDisconnectLan: (PairedDevice) -> Unit,
+    onRefreshIncoming: () -> Unit,
+    onAcceptIncoming: (IncomingTransferOffer) -> Unit,
+    onRejectIncoming: (IncomingTransferOffer) -> Unit,
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
+    val uiBusy = busy || fileTransferBusy
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -83,14 +91,14 @@ internal fun TransferDevicesSection(
             ) {
                 OutlinedButton(
                     onClick = onProbe,
-                    enabled = !busy && activeLanDeviceId == null,
+                    enabled = !uiBusy && activeLanDeviceId == null,
                     contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
                 ) {
                     Text("Probar motor")
                 }
                 TextButton(
                     onClick = onStop,
-                    enabled = !busy,
+                    enabled = !uiBusy,
                 ) {
                     Text("Detener")
                 }
@@ -137,7 +145,7 @@ internal fun TransferDevicesSection(
                 )
                 TextButton(
                     onClick = { showAddDialog = true },
-                    enabled = ownDeviceId != null && !busy,
+                    enabled = ownDeviceId != null && !uiBusy,
                 ) {
                     Icon(
                         imageVector = Icons.Filled.Add,
@@ -165,7 +173,7 @@ internal fun TransferDevicesSection(
                 devices.forEach { device ->
                     PairedDeviceRow(
                         device = device,
-                        busy = busy,
+                        busy = uiBusy,
                         lanBusy = lanBusyDeviceId == device.deviceId,
                         active = activeLanDeviceId == device.deviceId,
                         anotherActive =
@@ -175,6 +183,31 @@ internal fun TransferDevicesSection(
                         onRemoveDevice = onRemoveDevice,
                         onTestLan = onTestLan,
                         onDisconnectLan = onDisconnectLan,
+                    )
+                }
+
+                if (activeLanDeviceId != null) {
+                    Spacer(Modifier.height(8.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.End,
+                    ) {
+                        TextButton(
+                            onClick = onRefreshIncoming,
+                            enabled = !uiBusy,
+                        ) {
+                            Text("Revisar solicitudes")
+                        }
+                    }
+                }
+
+                pendingIncomingTransfers.forEach { offer ->
+                    IncomingTransferRow(
+                        offer = offer,
+                        status = incomingTransferStatusById[offer.folderId],
+                        busy = uiBusy,
+                        onAccept = onAcceptIncoming,
+                        onReject = onRejectIncoming,
                     )
                 }
             }
@@ -264,7 +297,7 @@ private fun PairedDeviceRow(
                     style = MaterialTheme.typography.bodySmall,
                 )
                 Text(
-                    "Preferencia guardada para la futura recepción.",
+                    "Acepta automáticamente archivos de este dispositivo.",
                     style = MaterialTheme.typography.labelSmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -304,6 +337,64 @@ private fun PairedDeviceRow(
 }
 
 @Composable
+private fun IncomingTransferRow(
+    offer: IncomingTransferOffer,
+    status: String?,
+    busy: Boolean,
+    onAccept: (IncomingTransferOffer) -> Unit,
+    onReject: (IncomingTransferOffer) -> Unit,
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 8.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary),
+    ) {
+        Column(modifier = Modifier.padding(10.dp)) {
+            Text(
+                "Archivo entrante",
+                style = MaterialTheme.typography.labelMedium,
+                fontWeight = FontWeight.Medium,
+            )
+            Text(
+                offer.displayNameHint,
+                style = MaterialTheme.typography.bodyMedium,
+                maxLines = 2,
+                overflow = TextOverflow.Ellipsis,
+            )
+            status?.let {
+                Text(
+                    it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.primary,
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End,
+            ) {
+                TextButton(
+                    onClick = { onReject(offer) },
+                    enabled = !busy,
+                ) {
+                    Text("Rechazar")
+                }
+                Button(
+                    onClick = { onAccept(offer) },
+                    enabled = !busy,
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 0.dp),
+                ) {
+                    Text("Aceptar")
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun AddPairedDeviceDialog(
     onDismiss: () -> Unit,
     onAdd: (name: String, deviceId: String) -> String?,
@@ -318,7 +409,7 @@ private fun AddPairedDeviceDialog(
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
-                    "Pegá el ID que muestra OclAx en el otro teléfono. No se intercambian archivos todavía.",
+                    "Pegá el ID que muestra OclAx en el otro teléfono para conectarlo y enviar contenido.",
                     style = MaterialTheme.typography.bodySmall,
                 )
                 OutlinedTextField(

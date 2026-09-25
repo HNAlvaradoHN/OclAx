@@ -408,3 +408,35 @@ VERIFICADO físicamente:
 - **QA — PENDIENTE FÍSICO.** Tests cubren política/rangos/diagnósticos; falta comprobar la ruta real en los dos dispositivos.
 - **Rendimiento — INFORMATIVO.** Máximo 254 destinos, 24 probes paralelos, timeout de conexión 250 ms y deadline global de 6 s; el fallback solo corre después de fallar la ventana inicial de discovery.
 - **Calidad/Limpieza — INFORMATIVO.** No se añade dependencia externa ni protocolo de transferencia alterno.
+
+
+## TRANSFER-004 — canal real de archivos LAN
+
+Validación automática:
+- `OclAxTransferProtocolTest` cubre namespace estricto, label sanitizado/acotado, hints de oferta, porcentaje y timeout escalado/acotado;
+- el receptor valida tamaño global, número de archivos, ausencia de directorios/symlinks, manifest acotado, tamaño exacto de payload y Device ID remitente;
+- lint/build deben confirmar Compose, API Android y REST wiring;
+- APK debe seguir conteniendo los runtimes nativos verificados.
+
+Validación física requerida antes de DONE:
+1. misma build en los dos dispositivos ya emparejados;
+2. conectar ambos por LAN;
+3. con **Permitir sin aceptar** apagado, enviar un archivo pequeño desde OclAx;
+4. confirmar que el receptor detecta la solicitud sin refresco manual, muestra nombre y permite Aceptar/Rechazar;
+5. Aceptar y observar progreso en ambos; confirmar que aparece una nueva copia OclAx utilizable y que el emisor solo finaliza después del ACK;
+6. repetir con Rechazar: no debe quedar una copia recibida ni staging visible;
+7. activar **Permitir sin aceptar** para ese peer y repetir: debe entrar sin toque de Aceptar pero nunca abrirse/ejecutarse/instalarse;
+8. probar falta de espacio/archivo grande y confirmar fallo controlado sin dejar configuración efímera permanente;
+9. al terminar, desconectar LAN en ambos y confirmar retorno a modo aislado.
+
+### Revisión obligatoria TRANSFER-004
+
+- **Seguridad — INFORMATIVO.** Evidencia: conexión requiere Device ID + `isLocal`; namespace/estructura/tamaño acotados; se rechazan symlinks/directorios; ACK posterior a importación. Riesgo residual: un peer deliberadamente confiado puede enviar metadatos/contenido malicioso. Mitigación: sanitización, límites, no autoejecución y almacenamiento privado. Validación: tests + prueba física.
+- **Privacidad — INFORMATIVO.** Evidencia: no hay nube/telemetría; el nombre del archivo solo viaja al peer emparejado como parte de la oferta. Riesgo: el nombre puede contener información sensible. Recomendación: no registrar ofertas y mantenerlas limitadas al peer elegido. Validación: revisar logs/UI.
+- **Arquitectura — INFORMATIVO.** Evidencia: `FileTransferCoordinator` separa ItemStore/transfer de MainActivity y `OclAxTransferChannel` encapsula el protocolo. Riesgo: el polling temporal de UI no debe convertirse en regla de dominio. Recomendación: migrarlo a state holder/service cuando se retire el panel debug si el flujo crece.
+- **Plataforma Android — INFORMATIVO.** Evidencia: staging bajo `filesDir`, runtime existente foreground y sin permisos nuevos. Riesgo futuro API 37 permanece en PLATFORM-001. Validación: Android real + lifecycle.
+- **QA — PENDIENTE FÍSICO.** Caminos aceptar/rechazar/autoaceptar, error de espacio, pérdida LAN y cleanup requieren dos dispositivos.
+- **Rendimiento — INFORMATIVO.** Evidencia: ofertas se consultan cada 2 s solo mientras LAN está activa; copia staging consume I/O/espacio temporal; timeout de envío escala con tamaño y se limita a 2 h. Riesgo: archivos grandes requieren espacio adicional temporal. Validación: probar archivo mayor y observar fluidez/espacio.
+- **Diseño/UX/Accesibilidad — NO BLOQUEANTE.** Evidencia: acción Enviar tiene descripción accesible y estados son texto además de color; recepción aún vive en panel técnico debug. Recomendación: después de validar transporte, sustituirlo por flujo final elegir dispositivo → progreso.
+- **Calidad/Limpieza — INFORMATIVO.** No se añade dependencia externa ni segundo protocolo; se reutiliza Syncthing ya pinneado.
+- **Release — NO APLICA.** Sigue siendo build de validación, no release candidata.

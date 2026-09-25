@@ -318,3 +318,38 @@ Responsabilidades:
 - `InstalledAppExporter` prepara copias temporales del código APK; no conoce datos privados de apps.
 - `DeviceContentRepository` ejecuta el borrado con la URI MediaStore seleccionada; en Android 11+ usa eliminación directa bajo acceso amplio y, si un medio exige confirmación, genera una solicitud con la URI específica de Imagen/Video/Audio.
 - `ViewModePreferences` persiste lista/cuadrícula por categoría sin mezclarlo con reglas de dominio.
+
+
+## Canal real de archivos LAN — TRANSFER-004
+
+El primer canal real conserva Syncthing como motor, pero OclAx controla el contrato visible y el ciclo de vida.
+
+```text
+ItemCard (Enviar a dispositivo)
+        ↓
+FileTransferCoordinator
+        ↓
+TransferRuntimeController
+        ↓
+OclAxTransferChannel
+        ├─ staging privado filesDir/oclax/transfers/{outgoing|incoming}
+        ├─ carpeta Syncthing efímera oclax-<id>
+        ├─ payload.bin
+        ├─ .oclax-manifest.json
+        └─ .oclax-ack.json
+        ↓
+SyncthingRestClient (REST loopback autenticado)
+        ↓
+peer ya verificado connected + isLocal
+```
+
+Contratos:
+- una transferencia solo se inicia contra el único peer LAN activo;
+- el ID de carpeta usa namespace OclAx estricto y no se expone como concepto de producto;
+- el receptor solo presenta ofertas del peer emparejado activo y con label OclAx válido;
+- aceptación manual es el default; **Permitir sin aceptar** solo aplica al peer guardado que ya pasó la confianza por Device ID;
+- el contenido entra primero a staging privado y solo después de validar manifest/tamaño/remitente se importa mediante ItemStore;
+- ACK se genera únicamente después de una importación exitosa; recién entonces el emisor considera la transferencia completada;
+- carpetas/configuración/staging son efímeros y se retiran tras ACK o error;
+- polling de ofertas en la pantalla solo dispara consultas; las reglas de transferencia permanecen en `FileTransferCoordinator`/`OclAxTransferChannel`;
+- no aparecen carpetas Syncthing, rutas, IP, REST ni conceptos BEP en la UX de producto.
