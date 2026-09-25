@@ -220,6 +220,7 @@ Controles obligatorios antes de exponer transferencias reales:
 - Al cancelar, fallar o pulsar **Desconectar LAN**, OclAx intenta pausar el peer, restaura las opciones privadas y libera el MulticastLock; si no puede confirmar el retorno al modo aislado, detiene el runtime completo como fail-closed.
 - La prueba LAN no crea carpetas compartidas, no transmite archivos y no cambia **Permitir sin aceptar**.
 - Local discovery puede revelar el Device ID a otros equipos de esa LAN mientras la prueba está activa; por eso nunca se enciende silenciosamente ni de forma permanente.
+- Si la prueba vence, el diagnóstico consulta el estado local del propio Syncthing para saber si discovery IPv4 y el listener LAN están sanos; los errores brutos no se muestran porque pueden contener direcciones de red.
 
 ## Confianza y recepción OclAx ↔ OclAx
 
