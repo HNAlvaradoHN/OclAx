@@ -27,54 +27,67 @@ internal data class LanRuntimeHealth(
     val lanListenerHealthy: Boolean?,
 )
 
-internal fun inspectLanRuntimeHealth(status: JSONObject): LanRuntimeHealth {
-    val discoveryStatus = status.optJSONObject("discoveryStatus")
-    val ipv4DiscoveryKeys = discoveryStatus
-        ?.keys()
-        ?.asSequence()
-        ?.filter { key ->
-            val normalized = key.lowercase()
-            normalized.contains("ipv4") &&
-                normalized.contains("local") &&
-                !normalized.contains("global")
-        }
-        ?.toList()
-        .orEmpty()
+internal data class LanRuntimeStatusEntry(
+    val key: String,
+    val healthy: Boolean,
+)
 
+internal fun evaluateLanRuntimeHealth(
+    discoveryStatusPresent: Boolean,
+    discoveryEntries: List<LanRuntimeStatusEntry>,
+    connectionStatusPresent: Boolean,
+    connectionEntries: List<LanRuntimeStatusEntry>,
+): LanRuntimeHealth {
+    val ipv4DiscoveryEntries = discoveryEntries.filter { entry ->
+        val normalized = entry.key.lowercase()
+        normalized.contains("ipv4") &&
+            normalized.contains("local") &&
+            !normalized.contains("global")
+    }
     val ipv4LocalDiscoveryHealthy = when {
-        discoveryStatus == null -> null
-        ipv4DiscoveryKeys.isEmpty() -> false
-        else -> ipv4DiscoveryKeys.all { key ->
-            val entry = discoveryStatus.optJSONObject(key)
-            entry != null && (!entry.has("error") || entry.isNull("error"))
-        }
+        !discoveryStatusPresent -> null
+        ipv4DiscoveryEntries.isEmpty() -> false
+        else -> ipv4DiscoveryEntries.all { it.healthy }
     }
 
-    val connectionStatus = status.optJSONObject("connectionServiceStatus")
-    val listenerKeys = connectionStatus
-        ?.keys()
-        ?.asSequence()
-        ?.filter { key ->
-            val normalized = key.lowercase()
-            normalized.startsWith("tcp") &&
-                normalized.contains("0.0.0.0:${SyncthingLanPolicy.SYNC_PORT}")
-        }
-        ?.toList()
-        .orEmpty()
-
+    val lanListenerEntries = connectionEntries.filter { entry ->
+        val normalized = entry.key.lowercase()
+        normalized.startsWith("tcp") &&
+            normalized.contains("0.0.0.0:${SyncthingLanPolicy.SYNC_PORT}")
+    }
     val lanListenerHealthy = when {
-        connectionStatus == null -> null
-        listenerKeys.isEmpty() -> false
-        else -> listenerKeys.any { key ->
-            val entry = connectionStatus.optJSONObject(key)
-            entry != null && (!entry.has("error") || entry.isNull("error"))
-        }
+        !connectionStatusPresent -> null
+        lanListenerEntries.isEmpty() -> false
+        else -> lanListenerEntries.any { it.healthy }
     }
 
     return LanRuntimeHealth(
         ipv4LocalDiscoveryHealthy = ipv4LocalDiscoveryHealthy,
         lanListenerHealthy = lanListenerHealthy,
     )
+}
+
+internal fun inspectLanRuntimeHealth(status: JSONObject): LanRuntimeHealth {
+    val discoveryStatus = status.optJSONObject("discoveryStatus")
+    val connectionStatus = status.optJSONObject("connectionServiceStatus")
+
+    return evaluateLanRuntimeHealth(
+        discoveryStatusPresent = discoveryStatus != null,
+        discoveryEntries = discoveryStatus.toHealthEntries(),
+        connectionStatusPresent = connectionStatus != null,
+        connectionEntries = connectionStatus.toHealthEntries(),
+    )
+}
+
+private fun JSONObject?.toHealthEntries(): List<LanRuntimeStatusEntry> {
+    val source = this ?: return emptyList()
+    return source.keys().asSequence().map { key ->
+        val entry = source.optJSONObject(key)
+        LanRuntimeStatusEntry(
+            key = key,
+            healthy = entry != null && (!entry.has("error") || entry.isNull("error")),
+        )
+    }.toList()
 }
 
 internal fun describeLanTimeout(
