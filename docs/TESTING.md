@@ -500,3 +500,8 @@ Revisión aplicable:
 ## NAV-001 — cierre físico 2026-09-25
 
 **VERIFICADO:** el dueño confirmó el flujo completo de Atrás en el dispositivo probado: PDF vuelve al nivel anterior, la raíz confirma la salida y **Elegir con OclAx** desenrolla categoría/resumen/origen hasta regresar a la aplicación llamadora sin cerrar ni romper el flujo. NAV-001 puede considerarse físicamente validado en navegación por gestos.
+
+
+## PICKER-001 — validación física adicional 2026-09-25
+
+**VERIFICADO:** cancelar desde **Elegir con OclAx** regresa correctamente a la aplicación llamadora. **VERIFICADO:** con acceso de almacenamiento negado/revocado, el flujo no se rompe y conserva la ruta prevista para conceder acceso. También quedó confirmada la navegación por tarjetas/categorías. Permanece pendiente ampliar la validación de devolución efectiva de archivos seleccionados a distintas aplicaciones llamadoras.
