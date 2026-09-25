@@ -106,13 +106,14 @@
 
 ## Siguiente paso exacto
 
-1. Instalar en este dispositivo la próxima build de `main` que incluya la paleta semántica y confirmar visualmente las categorías en modo oscuro/claro.
-2. Cuando vuelvan a estar disponibles ambos dispositivos, instalar en ambos la misma build de `main` y conectar por LAN.
-3. Enviar un archivo pequeño desde una tarjeta OclAx al dispositivo emparejado.
-4. Con **Permitir sin aceptar** apagado, confirmar solicitud visible, **Aceptar**, progreso, aparición en la bandeja OclAx del receptor y confirmación final del emisor.
-5. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
-6. Tras terminar, desconectar LAN en ambos y confirmar retorno a modo aislado; Internet/relay queda para una autorización futura.
+1. Instalar en este dispositivo la build de `main` run 281 y validar Atrás: PDF/lista → categorías → OclAx principal → confirmación de salida; repetir en Mi dispositivo y, cuando sea posible, en Elegir con OclAx.
+2. Confirmar también la paleta semántica en modo oscuro/claro.
+3. Cuando vuelvan a estar disponibles ambos dispositivos, instalar en ambos la misma build de `main` y conectar por LAN.
+4. Enviar un archivo pequeño desde una tarjeta OclAx al dispositivo emparejado.
+5. Con **Permitir sin aceptar** apagado, confirmar solicitud visible, **Aceptar**, progreso, aparición en la bandeja OclAx del receptor y confirmación final del emisor.
+6. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
+7. Tras terminar, desconectar LAN en ambos y confirmar retorno a modo aislado; Internet/relay queda para una autorización futura.
 
 ## Navegación Atrás — PR #71
 
-**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** se corrigió el cierre accidental al usar Atrás desde categorías/búsquedas. PR #71 implementa desenrollado jerárquico en OclAx, Mi dispositivo y picker propio, más confirmación de salida en la raíz y prueba unitaria de la política. Falta CI/merge y validación física en el teléfono.
+**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:** se corrigió el cierre accidental al usar Atrás desde categorías/búsquedas. PR #71 está fusionado y main run 281 quedó verde en tests, lint, build, verificación del APK y artefacto. Falta únicamente la validación física del gesto/botón Atrás en el teléfono.
