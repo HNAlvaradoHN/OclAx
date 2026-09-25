@@ -267,6 +267,8 @@ Pendiente de validación física con dos teléfonos:
 8. repetir con un peer incorrecto/no presente y confirmar timeout seguro, retorno a modo aislado y mensaje **no apareció en discovery local**;
 9. con ambos teléfonos tocando **Probar LAN** pero sin completar enlace, confirmar que si discovery sí ve al peer el mensaje cambia a **apareció en discovery local, pero no se completó la conexión**;
 10. simular/forzar fallo al restaurar configuración y comprobar que el runtime se detiene en vez de dejar el listener LAN abierto.
+11. si vuelve a fallar sin descubrir el peer, registrar únicamente cuál de estos estados muestra OclAx: **discovery IPv4 no activo**, **listener LAN no activo** o **discovery+listener activos pero peer ausente**; no copiar IP ni Device ID.
+12. con discovery+listener sanos, confirmar ambos teléfonos en la misma Wi-Fi y **Probar LAN** activo simultáneamente; si persiste, tratar aislamiento/broadcast de la red como hipótesis física a verificar.
 
 ## Revisión obligatoria TRANSFER-003 — post-merge
 
@@ -329,3 +331,13 @@ Fix a validar:
 5. tarjetas compactas equivalentes a la app;
 6. selección y retorno correctos a la aplicación llamadora;
 7. selección múltiple y Cancelar.
+
+
+### Revisión LAN — diagnóstico de salud local
+
+- **Seguridad — INFORMATIVO.** Solo se consulta `/rest/system/status` por loopback autenticado; no se abre ningún puerto adicional ni se habilitan relay/global discovery/NAT.
+- **Privacidad — INFORMATIVO.** Los errores brutos de Syncthing pueden contener direcciones; el UI recibe únicamente estados booleanos sanitizados y nunca muestra IP/Device ID.
+- **Arquitectura — INFORMATIVO.** El parsing de salud queda junto al cliente REST y el mensaje de diagnóstico sigue desacoplado de la UI Compose.
+- **Plataforma Android — INFORMATIVO.** No se añaden permisos; el diagnóstico ayuda a separar un fallo del motor de un problema de broadcast/aislamiento de la red.
+- **QA — PENDIENTE FÍSICO.** Tests cubren discovery/listener sano y fallido; falta repetir con los dos teléfonos reales.
+- **Rendimiento — INFORMATIVO.** Añade una sola consulta REST al timeout, no más polling.
