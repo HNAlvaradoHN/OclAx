@@ -246,6 +246,14 @@ internal class SyncthingRestClient(
         )
     }
 
+    fun currentDeviceId(): String {
+        val deviceId = getJson("/rest/system/status").optString("myID")
+        check(deviceId.isNotBlank()) {
+            "El motor no devolvió un identificador de dispositivo."
+        }
+        return deviceId
+    }
+
     fun canonicalDeviceId(rawDeviceId: String): String {
         val encoded = URLEncoder.encode(rawDeviceId, Charsets.UTF_8.name())
         val response = getJson("/rest/svc/deviceid?id=$encoded")
@@ -675,6 +683,7 @@ internal class TransferRuntimeController(context: Context) {
     private val appContext = context.applicationContext
     private val config = SyncthingRuntimeConfig(appContext)
     private val client = SyncthingRestClient(config)
+    private val transferChannel = OclAxTransferChannel(appContext, client)
     private val directProbe = LanDirectProbe(appContext)
     private val startupDiagnostics = RuntimeStartupDiagnostics(appContext)
 
@@ -781,6 +790,49 @@ internal class TransferRuntimeController(context: Context) {
             }
             throw error
         }
+    }
+
+    fun sendFile(
+        deviceId: String,
+        source: java.io.File,
+        displayName: String,
+        mimeType: String,
+        byteSize: Long,
+        onProgress: (TransferProgress) -> Unit,
+    ) {
+        check(client.waitForLanConnection(deviceId, 1_000L) != null) {
+            "El dispositivo no está conectado por LAN."
+        }
+        transferChannel.send(
+            deviceId = deviceId,
+            ownDeviceId = client.currentDeviceId(),
+            source = source,
+            displayName = displayName,
+            mimeType = mimeType,
+            byteSize = byteSize,
+            onProgress = onProgress,
+        )
+    }
+
+    fun pendingTransfers(deviceId: String): List<IncomingTransferOffer> {
+        check(client.waitForLanConnection(deviceId, 1_000L) != null) {
+            "El dispositivo no está conectado por LAN."
+        }
+        return transferChannel.pending(deviceId)
+    }
+
+    fun receiveTransfer(
+        offer: IncomingTransferOffer,
+        onProgress: (TransferProgress) -> Unit,
+    ): ReceivedTransferPayload =
+        transferChannel.receive(offer, onProgress)
+
+    fun acknowledgeReceived(payload: ReceivedTransferPayload) {
+        transferChannel.acknowledgeImported(payload)
+    }
+
+    fun rejectTransfer(offer: IncomingTransferOffer) {
+        transferChannel.reject(offer)
     }
 
     fun disconnectLan(deviceId: String) {
