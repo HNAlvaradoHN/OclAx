@@ -48,6 +48,7 @@ internal data class TransferFolderStatus(
     val globalBytes: Long,
     val globalFiles: Int,
     val globalDirectories: Int,
+    val globalSymlinks: Int,
 )
 
 internal fun evaluateLanRuntimeHealth(
@@ -453,6 +454,7 @@ internal class SyncthingRestClient(
             globalBytes = status.optLong("globalBytes", Long.MAX_VALUE),
             globalFiles = status.optInt("globalFiles", Int.MAX_VALUE),
             globalDirectories = status.optInt("globalDirectories", Int.MAX_VALUE),
+            globalSymlinks = status.optInt("globalSymlinks", Int.MAX_VALUE),
         )
     }
 
