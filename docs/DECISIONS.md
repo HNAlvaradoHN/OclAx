@@ -558,3 +558,25 @@ Esta decisión sustituye al selector desplegable compacto como mecanismo princip
 **Marca:** conservar identidad OclAx negro/naranja. Un logo gráfico oficial solo se incorporará cuando exista un asset aprobado/versionado; no se inventa un reemplazo.
 
 **Motivo:** presentar primero una estructura visual reconocible, reducir la sensación de lista mezclada y permitir que quien ya conoce el nombre del contenido llegue directamente mediante búsqueda.
+
+
+---
+
+## DEC-029 — Discovery local no es requisito único para LAN
+
+**Contexto:** en la prueba física con dos dispositivos y main run 234, ambos reportaron discovery IPv4 local y listener TCP LAN sanos, pero ninguno recibió el anuncio del otro. La causa de esa pérdida de discovery sigue **NO VERIFICADA**.
+
+**Decisión:** mantener Syncthing Local Discovery como primera ruta, pero no hacerlo requisito único de una conexión LAN OclAx.
+
+Fallback aprobado dentro de **Probar LAN**:
+1. abrir listener LAN y discovery local como hasta ahora;
+2. esperar una ventana corta;
+3. si no hay conexión, identificar únicamente un transporte Wi‑Fi/Ethernet activo;
+4. sondear un máximo de 254 hosts del segmento IPv4 inmediato y únicamente TCP/22000;
+5. pasar solo los candidatos privados a `device.addresses` de Syncthing, conservando `dynamic`;
+6. aceptar éxito solo si Syncthing confirma el Device ID emparejado y `isLocal=true`;
+7. al fallar/desconectar, restaurar `addresses=["dynamic"]` y el modo aislado; cleanup incompleto detiene el runtime.
+
+**Límites:** no se escanea Internet/celular, no se habilita global discovery/NAT/relay, no se muestran IPs, no se transfieren archivos y no se considera un puerto abierto como identidad.
+
+**Motivo:** separar la conectividad LAN directa de la confiabilidad de broadcast/multicast sin introducir servidor, nube ni otro motor de transferencia.
