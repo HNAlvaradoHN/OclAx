@@ -79,7 +79,7 @@
 - ERR-005 reconciliado con la implementación vigente mediante PR #59; main run 205 terminó verde.
 - selector propio `ACTION_GET_CONTENT` implementado en PR #62 y corregido visualmente en PR #63/main run 229; la apertura y presentación base ya fueron confirmadas físicamente.
 - navegación visual por tarjetas de categoría + buscador directo fue fusionada mediante PR #64; main run 232 quedó verde. Falta validación física específica de la navegación nueva.
-- paleta semántica por categoría aprobada visualmente e implementada sobre el componente compartido de tarjetas: PDF rojo, Apps/APK verde, Documentos azul, Imágenes verde, Texto/Código morado, Video magenta, Fijados dorado, Audio cian y Todo/Recientes naranja; validación física pendiente.
+- paleta semántica por categoría aprobada visualmente y fusionada mediante PR #69: PDF rojo, Apps/APK verde, Documentos azul, Imágenes verde, Texto/Código morado, Video magenta, Fijados dorado, Audio cian y Todo/Recientes naranja; main run 273 quedó verde y la validación visual física sigue pendiente.
 
 ## En desarrollo
 
