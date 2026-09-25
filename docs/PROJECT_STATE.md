@@ -87,6 +87,7 @@
 - el diagnóstico LAN mejorado ya está fusionado y validado automáticamente; falta validación física con dos teléfonos;
 - TRANSFER-003 sigue **IMPLEMENTED_PENDING_VALIDATION** hasta validar el segundo teléfono y luego la conexión LAN;
 - todavía no existe transferencia de archivos: el canal privado + progreso permanece bloqueado hasta validar LAN con dos teléfonos.
+- prueba física actual con los dos dispositivos: un intento agotó el tiempo porque el peer no apareció en discovery local; el retorno seguro a modo aislado sí se observó. Se añadió diagnóstico de salud de discovery IPv4/listener para la siguiente repetición.
 - PICKER-001 permanece **IMPLEMENTED_PENDING_VALIDATION** hasta confirmar el flujo desde una aplicación real que use `ACTION_GET_CONTENT`.
 
 ## Bloqueos
