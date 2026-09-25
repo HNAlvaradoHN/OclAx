@@ -258,8 +258,11 @@ Automático:
 - `LanDirectProbeTest` verifica rangos privados permitidos, límites /24, exclusión de self/network/broadcast y máximo de hosts;
 - el fallback solo considera Wi‑Fi/Ethernet, TCP/22000 y un máximo de 254 hosts; no añade sondeo sobre Internet/celular.
 
+Validación automática confirmada:
+- PR #66 y main run 237 verdes en runtime nativo, tests, lint, build, verificación del APK y publicación del artefacto.
+
 Pendiente de validación física con dos teléfonos:
-1. instalar la misma build con el fallback en ambos;
+1. instalar la build de main run 237 en ambos;
 2. ejecutar **Probar motor** y confirmar emparejamiento mutuo;
 3. conectar ambos a la misma Wi‑Fi;
 4. tocar **Probar LAN** en ambos dentro de la misma ventana;
