@@ -1150,7 +1150,7 @@ private fun OclAxHome(
 
     if (showExitConfirmation) {
         AlertDialog(
-            onDismissRequest = { showExitConfirmation = false },
+            onDismissRequest = onExitApp,
             title = { Text("¿Salir de OclAx?") },
             text = {
                 Text("Podés elegir Salir o quedarte. Si volvés a presionar Atrás, OclAx se cerrará.")
@@ -1165,7 +1165,10 @@ private fun OclAxHome(
                     Text("No")
                 }
             },
-            properties = DialogProperties(dismissOnBackPress = false),
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = false,
+            ),
         )
     }
 
