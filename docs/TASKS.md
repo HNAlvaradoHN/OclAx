@@ -303,7 +303,7 @@ Pendiente:
 - validar rendimiento en teléfonos con muchos archivos.
 
 ### PICKER-001 — Elegir contenido con UI propia de OclAx desde otras apps
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Objetivo:
@@ -337,11 +337,12 @@ Validado físicamente — main run 229 / run 281:
 - **Elegir con OclAx** aparece y la presentación visual corregida fue confirmada como correcta por el dueño;
 - la entrada por tarjetas y la navegación por categorías funcionan en el dispositivo probado;
 - cancelar devuelve correctamente a la aplicación llamadora;
-- con acceso de almacenamiento negado/revocado, el flujo no falla y permite continuar por la ruta prevista para conceder acceso.
+- con acceso de almacenamiento negado/revocado, el flujo no falla y permite continuar por la ruta prevista para conceder acceso;
+- seleccionar un PDF desde OclAx devuelve correctamente el archivo a la aplicación llamadora;
+- seleccionar una imagen desde **Mi dispositivo** devuelve correctamente el archivo a la aplicación llamadora.
 
-Pendiente:
-- confirmar devolución efectiva de un archivo seleccionado a la aplicación llamadora en más variantes;
-- la selección múltiple existente queda como compatibilidad técnica de `ACTION_GET_CONTENT` cuando la app llamadora la solicite; **no es una función de producto propuesta por el dueño ni una validación prioritaria**.
+Nota:
+- la selección múltiple existente queda como compatibilidad técnica de `ACTION_GET_CONTENT` cuando la app llamadora la solicite; no es una función de producto propuesta por el dueño ni un gate pendiente.
 
 ### TRANSFER-001 — Envíos OclAx ↔ OclAx
 **Estado:** IN_PROGRESS  
