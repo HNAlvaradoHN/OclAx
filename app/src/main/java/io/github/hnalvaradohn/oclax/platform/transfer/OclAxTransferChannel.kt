@@ -139,6 +139,9 @@ internal class OclAxTransferChannel(
                     folderId = offer.folderId,
                     deviceId = null,
                 )
+                if (completion.needBytes > 0L) {
+                    ensureStagingSpace(completion.needBytes)
+                }
                 val percent = transferPercent(completion.completion)
                 onProgress(TransferProgress(percent, "Recibiendo… $percent%"))
 
