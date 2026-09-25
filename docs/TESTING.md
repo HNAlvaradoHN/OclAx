@@ -445,6 +445,8 @@ Validación física requerida antes de DONE:
 ## PRODUCT-004 — paleta semántica de categorías
 
 Validación automática:
+- PR #69 fusionado después de CI verde;
+- main run 273 verde en runtime nativo, tests, lint, build, verificación del APK y publicación del artefacto;
 - `CategoryAccentTest` verifica los colores semánticos principales en modo oscuro;
 - verifica aliases compartidos entre superficies (`ALL/RECENT`, `APK/apps`);
 - verifica variantes de modo claro y fallback de categorías desconocidas;
