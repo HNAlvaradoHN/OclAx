@@ -354,3 +354,27 @@ Mientras se valida el transporte real:
 - controles que cortarían el runtime/LAN se deshabilitan mientras una transferencia está activa.
 
 Esto es una UX de validación. El objetivo final sigue siendo **Enviar → elegir dispositivo → progreso**, ocultando Device IDs y controles de motor/LAN cuando el transporte quede físicamente estable.
+
+
+## Colores semánticos por categoría — 2026-09-25
+
+El dueño aprobó visualmente una variante de las tarjetas de categoría con identidad cromática propia por tipo, manteniendo la base negro/naranja de OclAx.
+
+Paleta aprobada:
+- **Todo / Recientes:** naranja;
+- **Fijados:** amarillo/dorado;
+- **Imágenes:** verde;
+- **Documentos:** azul;
+- **PDF:** rojo;
+- **Apps / APK guardados:** verde Android;
+- **Texto/Código:** morado;
+- **Video:** magenta/rosado;
+- **Audio:** cian;
+- **Otros:** neutro gris.
+
+Reglas:
+- el color vive principalmente en el contenedor e icono de categoría; la tarjeta conserva la superficie normal de OclAx;
+- modo oscuro usa fondos de acento profundos + iconos vivos; modo claro usa fondos suaves + iconos más oscuros para conservar legibilidad;
+- la identidad naranja de OclAx no se sustituye: navegación principal, marca y acciones de identidad siguen usando el naranja aprobado;
+- ninguna categoría depende solo del color: siempre conserva icono + nombre;
+- la paleta se aplica mediante el componente compartido de categorías para mantener coherencia entre **OclAx**, **Mi dispositivo** y **Elegir con OclAx**.
