@@ -474,8 +474,11 @@ Validación automática:
 - BackNavigationPolicyTest cubre categoría/búsqueda → categorías, Mi dispositivo → OclAx, primer Atrás en inicio → confirmación y segundo Atrás → salida;
 - lint/build deben confirmar integración de BackHandler y DialogProperties.
 
-Validación física requerida:
-1. entrar a **PDF** en OclAx y usar gesto/botón Atrás: debe volver a categorías;
+Validación física:
+- **VERIFICADO con run 281:** entrar a **PDF** en OclAx y usar el gesto Atrás vuelve al nivel anterior sin cerrar la app.
+
+Validación física todavía requerida:
+1. repetir con el botón Atrás físico/sistema cuando esté disponible;
 2. desde categorías OclAx, Atrás debe mostrar **¿Salir de OclAx?**;
 3. elegir **No** y volver a presionar Atrás: debe cerrar;
 4. repetir dejando el diálogo abierto y presionar Atrás de nuevo: debe cerrar;
