@@ -51,6 +51,8 @@ internal data class TransferFolderStatus(
     val globalSymlinks: Int,
 )
 
+private const val LAN_CONNECTION_POLL_MILLIS = 500L
+
 internal fun evaluateLanRuntimeHealth(
     discoveryStatusPresent: Boolean,
     discoveryEntries: List<LanRuntimeStatusEntry>,
@@ -109,6 +111,20 @@ private fun JSONObject?.toHealthEntries(): List<LanRuntimeStatusEntry> {
     }.toList()
 }
 
+internal fun lanPrivateIpv4FromConnectionAddress(address: String): String? {
+    val normalized = address.trim()
+    if (normalized.isEmpty()) return null
+
+    val endpoint = normalized.substringAfter("://", normalized)
+    val host = if (endpoint.count { it == ':' } == 1) {
+        endpoint.substringBefore(':')
+    } else {
+        endpoint
+    }
+
+    return host.takeIf(::isLanPrivateIpv4)
+}
+
 internal fun describeLanTimeout(
     discoveredLocally: Boolean,
     peerPaused: Boolean?,
@@ -132,9 +148,10 @@ internal fun describeLanTimeout(
             "Confirmá que ambos tengan agregado el ID del otro y que ambos hayan tocado Probar LAN."
 
     directProbeAttempted && directCandidateFound ->
-        "Discovery local no completó el enlace. OclAx encontró un posible Syncthing por " +
-            "conexión LAN directa, pero no verificó el dispositivo emparejado. Confirmá que " +
-            "ambos tengan agregado al otro y que Probar LAN esté activo en los dos."
+        "Discovery local no completó el enlace. OclAx encontró un puerto Syncthing candidato por " +
+            "conexión LAN directa, pero no logró establecer y mantener una sesión verificada con " +
+            "el dispositivo emparejado. Confirmá que ambos tengan agregado al otro y que Probar LAN " +
+            "esté activo en los dos."
 
     directProbeAttempted &&
         runtimeHealth?.ipv4LocalDiscoveryHealthy == true &&
@@ -323,9 +340,41 @@ internal class SyncthingRestClient(
         val deadline = System.currentTimeMillis() + timeoutMillis
         while (System.currentTimeMillis() < deadline) {
             currentLanConnection(deviceId)?.let { return it }
-            Thread.sleep(500L)
+            Thread.sleep(LAN_CONNECTION_POLL_MILLIS)
         }
         return currentLanConnection(deviceId)
+    }
+
+    fun waitForStableLanConnection(
+        deviceId: String,
+        timeoutMillis: Long,
+        requiredSamples: Int,
+    ): LanPeerConnectionResult? {
+        require(requiredSamples > 0)
+        val deadline = System.currentTimeMillis() + timeoutMillis
+        var consecutiveSamples = 0
+        var latestConnection: LanPeerConnectionResult? = null
+
+        while (System.currentTimeMillis() < deadline) {
+            val connection = runCatching {
+                currentLanConnection(deviceId)
+            }.getOrNull()
+
+            if (connection == null) {
+                consecutiveSamples = 0
+                latestConnection = null
+            } else {
+                consecutiveSamples += 1
+                latestConnection = connection
+                if (consecutiveSamples >= requiredSamples) {
+                    return latestConnection
+                }
+            }
+
+            Thread.sleep(LAN_CONNECTION_POLL_MILLIS)
+        }
+
+        return null
     }
 
     fun enableLanOnlyOptions() {
@@ -790,9 +839,45 @@ internal class TransferRuntimeController(context: Context) {
                 )
             }
 
+            val settledConnection = client.waitForStableLanConnection(
+                deviceId = deviceId,
+                timeoutMillis = LAN_STABILITY_TIMEOUT_MILLIS,
+                requiredSamples = LAN_STABILITY_REQUIRED_SAMPLES,
+            ) ?: throw IOException(
+                "La conexión LAN apareció, pero no se mantuvo estable mientras ambos dispositivos " +
+                    "terminaban de conectarse.",
+            )
+
+            val verifiedPeerAddress =
+                lanPrivateIpv4FromConnectionAddress(settledConnection.address)
+                    ?: throw IOException(
+                        "La conexión LAN verificada no devolvió una ruta IPv4 local segura.",
+                    )
+
+            client.setLanPeerDirectAddresses(
+                deviceId = deviceId,
+                addresses = listOf(verifiedPeerAddress),
+            )
+            client.resumeDevice(deviceId)
+
+            client.waitForStableLanConnection(
+                deviceId = deviceId,
+                timeoutMillis = LAN_STABILITY_TIMEOUT_MILLIS,
+                requiredSamples = LAN_STABILITY_REQUIRED_SAMPLES,
+            ) ?: throw IOException(
+                "La conexión LAN se perdió al fijar la ruta local del dispositivo emparejado.",
+            )
+
             client.stopLocalDiscoveryKeepLan()
             SyncthingRuntimeService.disableLanDiscovery(appContext)
-            connection
+
+            client.waitForStableLanConnection(
+                deviceId = deviceId,
+                timeoutMillis = LAN_STABILITY_TIMEOUT_MILLIS,
+                requiredSamples = LAN_STABILITY_REQUIRED_SAMPLES,
+            ) ?: throw IOException(
+                "La conexión LAN se perdió al cerrar discovery local; OclAx volvió a modo aislado.",
+            )
         } catch (error: Exception) {
             val paused = runCatching {
                 client.pauseDevice(deviceId)
@@ -887,5 +972,7 @@ internal class TransferRuntimeController(context: Context) {
         private const val LAN_DISCOVERY_WINDOW_MILLIS = 8_000L
         private const val MIN_DIRECT_WAIT_MILLIS = 5_000L
         private const val MAX_DIRECT_WAIT_MILLIS = 20_000L
+        private const val LAN_STABILITY_TIMEOUT_MILLIS = 6_000L
+        private const val LAN_STABILITY_REQUIRED_SAMPLES = 3
     }
 }
