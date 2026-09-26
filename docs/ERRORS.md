@@ -3,7 +3,7 @@
 ## Abiertos
 
 ### ERR-018 — Un peer llega a “Conectado por LAN” antes de que la sesión quede estable en ambos extremos
-**Estado:** CORRECCIÓN_IMPLEMENTADA_PENDIENTE_CI_FÍSICA
+**Estado:** CORRECCIÓN_IMPLEMENTADA_CI_VERDE_PENDIENTE_FÍSICA
 
 **Síntoma físico — 2026-09-25:**
 - con main run 296, el móvil llegó a **Motor activo · conexión LAN verificada / Conectado por LAN**;
