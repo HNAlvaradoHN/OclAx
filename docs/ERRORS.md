@@ -34,7 +34,7 @@ La debilidad anterior explica el éxito prematuro y deja una ventana real de ine
 - el diagnóstico de candidato directo deja de afirmar una causa de identidad que el runtime no había demostrado.
 
 **Validación requerida:**
-- tests/lint/build/CI;
+- **VERIFICADO:** PR #77 CI run 299 verde en runtime nativo, tests, lint, build, verificación del APK y artefacto;
 - misma build en móvil y tablet;
 - ambos deben llegar a **Conectado por LAN** y permanecer así al menos 10 segundos;
 - repetir pérdida deliberada de un extremo y confirmar que ERR-017 sigue aislando al otro;
