@@ -543,3 +543,43 @@ Validación física requerida:
 - **Diseño/UX/Accesibilidad — INFORMATIVO.** Evita mostrar una conexión fantasma y comunica explícitamente pérdida/restauración de aislamiento mediante texto, no solo color.
 - **Calidad/Limpieza — INFORMATIVO.** Reutiliza `disconnectLan` en lugar de duplicar reglas de cleanup; no añade dependencias ni segundo mecanismo de red.
 - **Release — NO APLICA.** Continúa como build de validación física.
+
+
+## ERR-018 — estabilización posterior a la primera conexión LAN
+
+Evidencia física — 2026-09-25:
+- con main run 296, el móvil llegó a **Conectado por LAN** mientras la tablet seguía buscando;
+- la tablet encontró al menos un candidato TCP/22000, pero no sostuvo una sesión verificada;
+- el móvil terminó detectando la pérdida y restaurando aislamiento, validando el comportamiento de ERR-017 en este escenario;
+- el Device ID del móvil almacenado en la tablet coincide exactamente con el Device ID actual del móvil.
+
+Interpretación corregida:
+- encontrar un candidato TCP/22000 no demuestra por sí solo que exista un Device ID incorrecto;
+- el diagnóstico anterior era demasiado específico y se ajusta para describir únicamente que la sesión verificada no llegó a establecerse/mantenerse.
+
+Validación automática requerida para la corrección:
+- **VERIFICADO:** PR #77 CI run 299 verde en runtime nativo, tests, lint, build, verificación del APK y artefacto;
+- `SyncthingLanDiagnosticsTest` cubre extracción de una IPv4 privada desde la dirección de una conexión Syncthing ya autenticada y rechaza rutas públicas/IPv6 para este flujo IPv4;
+- el controlador debe exigir varias muestras consecutivas `connected=true` + `isLocal=true` antes de apagar discovery;
+- después de obtener una conexión verificada, debe conservar temporalmente la IPv4 privada del peer como dirección directa, sin eliminar `dynamic`;
+- debe revalidar la sesión después de fijar la ruta y nuevamente después de apagar Local Discovery;
+- cualquier fallo debe reutilizar el cleanup fail-closed: peer pausado, dirección restaurada a `dynamic`, opciones privadas y detención del runtime si la limpieza no puede confirmarse;
+- no se añaden permisos, endpoints externos, relay, NAT, global discovery ni telemetría.
+
+Validación física requerida:
+1. instalar la misma build en móvil y tablet;
+2. tocar **Probar LAN** en ambos dentro de la misma ventana;
+3. exigir **Conectado por LAN** simultáneo en ambos y mantenerlo al menos 10 segundos;
+4. confirmar que ninguno muestra éxito y luego cae durante la transición de apagado de discovery;
+5. desconectar/fallar deliberadamente un extremo y confirmar que el otro vuelve a aislamiento automáticamente;
+6. reconectar y, solo entonces, continuar TRANSFER-004 con archivo pequeño, rechazo y autoaceptación.
+
+### Revisión aplicable — ERR-018
+
+- **Seguridad — INFORMATIVO.** La dirección temporal se obtiene únicamente después de que Syncthing ya autenticó el Device ID y reportó una conexión local. Además se filtra a IPv4 privada/link-local y el puerto sigue fijo a 22000. No se usa una IP como identidad.
+- **Privacidad — INFORMATIVO.** La dirección del peer permanece en la configuración privada local de Syncthing durante la sesión; no se muestra, registra ni transmite a GitHub/telemetría. Se restaura a `dynamic` al desconectar/fallar.
+- **Arquitectura — INFORMATIVO.** La estabilización permanece dentro de `TransferRuntimeController`/`SyncthingRestClient`; la UI solo recibe éxito o error y no incorpora reglas de transporte.
+- **Plataforma Android — INFORMATIVO.** No cambia permisos, lifecycle ni foreground service; el MulticastLock sigue limitado a la fase explícita de discovery y ahora se libera únicamente después de que la sesión sobrevive la transición.
+- **QA — PENDIENTE FÍSICO.** CI puede validar parser/tests/build, pero la condición decisiva es una sesión simultánea estable en dos dispositivos reales.
+- **Rendimiento — INFORMATIVO.** Se añaden unas pocas consultas REST loopback de 500 ms durante el establecimiento; no hay polling extra después de quedar conectado.
+- **Calidad/Limpieza — INFORMATIVO.** Reutiliza las rutas directas y cleanup ya existentes; no añade dependencia ni protocolo alternativo.
