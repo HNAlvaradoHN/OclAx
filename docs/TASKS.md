@@ -438,7 +438,7 @@ Validación física — 2026-09-24:
 ### TRANSFER-004 — Canal real de archivos LAN + progreso
 **Estado:** IN_PROGRESS  
 **Prioridad:** alta  
-**PR:** #68 · canal fusionado; ERR-017 corregido en PR #75/main run 296 · pendiente revalidación física del enlace simultáneo
+**PR:** #68 · canal fusionado; ERR-017 corregido en PR #75/main run 296; ERR-018 en corrección para estabilizar la sesión antes de declararla conectada
 
 Objetivo:
 - enviar una copia almacenada en OclAx al dispositivo emparejado sobre la conexión LAN ya verificada;
@@ -459,8 +459,9 @@ Implementación actual:
 - no se añaden permisos ni dependencias y no se habilita Internet, global discovery, relay o NAT.
 
 Pendiente:
-- **ERR-017:** corrección fusionada en PR #75; main run 296 verde. Falta confirmar físicamente que si el peer deja de estar conectado/local, el otro extremo detecta la pérdida, limpia configuración y vuelve a aislamiento en vez de conservar “Conectado por LAN”;
-- revalidar físicamente con ambos dispositivos simultáneamente conectados antes de iniciar archivos;
+- **ERR-018:** la prueba de main run 296 confirmó que un extremo puede anunciar conexión antes de que ambos hayan estabilizado la sesión. La corrección exige muestras consecutivas, conserva temporalmente la ruta IPv4 privada del peer ya autenticado y revalida después de apagar Local Discovery;
+- **ERR-017:** la vigilancia ya hizo que el móvil abandonara automáticamente el estado conectado cuando la sesión de la tablet no se sostuvo; repetir la pérdida deliberada con la build de ERR-018 antes de cerrar físicamente la regresión;
+- revalidar físicamente con ambos dispositivos simultáneamente conectados y estables al menos 10 segundos antes de iniciar archivos;
 - después, prueba física de archivos: aceptar, rechazar, **Permitir sin aceptar**, progreso, archivo recibido utilizable y cleanup;
 - probar un archivo mayor y falta de espacio;
 - cancelación/reintento explícitos quedan para refinamiento posterior después del primer vertical estable.
