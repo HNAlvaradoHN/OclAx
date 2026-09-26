@@ -519,6 +519,7 @@ Evidencia física — 2026-09-25:
 - el estado visible de conexión no era una prueba suficiente de que el enlace siguiera vivo en ambos extremos.
 
 Validación automática de la corrección:
+- **VERIFICADO:** PR #75 terminó con CI verde y fue fusionado; main run 296 quedó verde en runtime nativo, tests, lint, build, verificación del APK y artefacto;
 - compilar/lint/test del cambio que expone salud LAN desde el runtime y usa dos fallos consecutivos + revalidación final antes de aislar;
 - confirmar que el cleanup reutiliza `disconnectLan`, por lo que pausa el peer, restaura direcciones `dynamic` y opciones privadas, con detención fail-closed si la limpieza falla;
 - no se añaden permisos, endpoints externos ni cambios a global discovery/relay/NAT.

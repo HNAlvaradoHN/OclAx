@@ -3,7 +3,7 @@
 ## Abiertos
 
 ### ERR-017 — Un extremo conserva “Conectado por LAN” después de que el peer falle
-**Estado:** CORRECCIÓN_IMPLEMENTADA_PENDIENTE_CI_FÍSICA
+**Estado:** CORRECCIÓN_IMPLEMENTADA_CI_VERDE_PENDIENTE_FÍSICA
 
 **Síntoma físico — 2026-09-25:**
 - en el móvil, OclAx mostró **Motor activo · conexión LAN verificada / Conectado por LAN** hacia la tablet;
@@ -15,7 +15,7 @@
 - no existía vigilancia posterior de `/rest/system/connections` para detectar que el peer remoto había perdido la sesión o se había aislado;
 - el estado visible podía quedar obsoleto y habilitar controles de transferencia sobre una conexión ya inexistente.
 
-**Corrección implementada en rama `fix/lan-peer-loss-isolation`:**
+**Corrección fusionada en PR #75:**
 - el runtime expone una comprobación de conexión LAN que sigue exigiendo `connected=true` + `isLocal=true` para el Device ID emparejado;
 - mientras una sesión LAN aparece activa, OclAx verifica periódicamente el enlace;
 - dos comprobaciones perdidas consecutivas disparan una revalidación final para evitar falsos positivos transitorios;
@@ -25,9 +25,12 @@
 - la causa de por qué la tablet no verificó al móvil en ese intento sigue **NO VERIFICADA**;
 - primero debe eliminarse el estado fantasma y repetir la prueba controlada para distinguir un fallo real de establecimiento de una UI obsoleta.
 
-**Validación requerida:**
-- CI verde del cambio;
-- misma build en móvil y tablet;
+**Validación automática:**
+- PR #75 fusionado después de CI verde;
+- main run 296 verde en runtime nativo, tests, lint, build, verificación del APK y publicación del artefacto.
+
+**Validación física requerida:**
+- misma build de main run 296 en móvil y tablet;
 - si un extremo falla/abandona la sesión, el otro debe dejar automáticamente **Conectado por LAN** y quedar aislado;
 - después, ambos deben mantener simultáneamente una sesión local verificada antes de reanudar TRANSFER-004.
 
