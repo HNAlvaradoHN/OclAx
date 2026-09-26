@@ -25,7 +25,7 @@
 **Causa completa del fallo físico:** **NO VERIFICADA.**
 La debilidad anterior explica el éxito prematuro y deja una ventana real de inestabilidad, pero la prueba física siguiente debe confirmar si es además la causa suficiente del fallo asimétrico observado.
 
-**Corrección implementada en `fix/lan-post-connect-stability`:**
+**Corrección fusionada en PR #77:**
 - exige varias muestras consecutivas de `connected=true` + `isLocal=true` antes de avanzar;
 - toma la IPv4 privada del peer desde una conexión ya autenticada por Syncthing y la conserva temporalmente como ruta `tcp4://…:22000` junto a `dynamic`;
 - revalida la sesión después de fijar esa ruta y otra vez después de apagar Local Discovery;
@@ -34,7 +34,7 @@ La debilidad anterior explica el éxito prematuro y deja una ventana real de ine
 - el diagnóstico de candidato directo deja de afirmar una causa de identidad que el runtime no había demostrado.
 
 **Validación requerida:**
-- **VERIFICADO:** PR #77 CI run 299 verde en runtime nativo, tests, lint, build, verificación del APK y artefacto;
+- **VERIFICADO:** PR #77 CI run 299 verde y PR #77 fusionado; main run 303 verde en runtime nativo, tests, lint, build, verificación del APK y artefacto;
 - misma build en móvil y tablet;
 - ambos deben llegar a **Conectado por LAN** y permanecer así al menos 10 segundos;
 - repetir pérdida deliberada de un extremo y confirmar que ERR-017 sigue aislando al otro;
