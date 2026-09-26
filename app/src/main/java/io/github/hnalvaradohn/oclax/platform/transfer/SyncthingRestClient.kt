@@ -806,9 +806,7 @@ internal class TransferRuntimeController(context: Context) {
                 timeoutMillis = discoveryWindow,
             )
 
-            val connection = if (discoveredConnection != null) {
-                discoveredConnection
-            } else {
+            if (discoveredConnection == null) {
                 val directResult = runCatching {
                     directProbe.scan()
                 }.getOrDefault(
