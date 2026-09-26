@@ -2,6 +2,44 @@
 
 ## Abiertos
 
+### ERR-018 — Un peer llega a “Conectado por LAN” antes de que la sesión quede estable en ambos extremos
+**Estado:** CORRECCIÓN_IMPLEMENTADA_PENDIENTE_CI_FÍSICA
+
+**Síntoma físico — 2026-09-25:**
+- con main run 296, el móvil llegó a **Motor activo · conexión LAN verificada / Conectado por LAN**;
+- la tablet siguió buscando y terminó indicando que encontró un candidato Syncthing por LAN directa pero no logró verificar el peer;
+- después, el móvil detectó la pérdida y volvió automáticamente a aislamiento, por lo que la corrección de ERR-017 sí actuó;
+- el dueño confirmó que la tablet tiene guardado exactamente el Device ID actual del móvil, descartando esa discrepancia de emparejamiento en ese sentido.
+
+**Corrección de interpretación:**
+- el mensaje anterior “no verificó el dispositivo emparejado” era más específico que la evidencia disponible;
+- el código solo sabía que el sondeo TCP/22000 había encontrado al menos un candidato y que `/rest/system/connections` no sostuvo una sesión `connected=true` + `isLocal=true`;
+- por tanto, ese texto no demostraba por sí solo un Device ID incorrecto ni un fallo TLS concreto.
+
+**Debilidad verificada en código:**
+- `connectLan()` consideraba suficiente la primera muestra `connected=true` + `isLocal=true`;
+- inmediatamente después apagaba Local Discovery y liberaba el MulticastLock sin comprobar que la sesión sobreviviera a esa transición de configuración;
+- si la conexión se renegociaba o caía en ese punto, la UI podía anunciar éxito brevemente y el otro dispositivo seguir sin una sesión estable;
+- cuando la primera conexión venía de discovery, OclAx tampoco fijaba temporalmente la dirección IPv4 privada del peer ya autenticado antes de apagar discovery.
+
+**Causa completa del fallo físico:** **NO VERIFICADA.**
+La debilidad anterior explica el éxito prematuro y deja una ventana real de inestabilidad, pero la prueba física siguiente debe confirmar si es además la causa suficiente del fallo asimétrico observado.
+
+**Corrección implementada en `fix/lan-post-connect-stability`:**
+- exige varias muestras consecutivas de `connected=true` + `isLocal=true` antes de avanzar;
+- toma la IPv4 privada del peer desde una conexión ya autenticada por Syncthing y la conserva temporalmente como ruta `tcp4://…:22000` junto a `dynamic`;
+- revalida la sesión después de fijar esa ruta y otra vez después de apagar Local Discovery;
+- solo entonces devuelve éxito a la UI;
+- cualquier fallo conserva el cleanup fail-closed existente;
+- el diagnóstico de candidato directo deja de afirmar una causa de identidad que el runtime no había demostrado.
+
+**Validación requerida:**
+- tests/lint/build/CI;
+- misma build en móvil y tablet;
+- ambos deben llegar a **Conectado por LAN** y permanecer así al menos 10 segundos;
+- repetir pérdida deliberada de un extremo y confirmar que ERR-017 sigue aislando al otro;
+- solo después continuar TRANSFER-004.
+
 ### ERR-017 — Un extremo conserva “Conectado por LAN” después de que el peer falle
 **Estado:** CORRECCIÓN_IMPLEMENTADA_CI_VERDE_PENDIENTE_FÍSICA
 
