@@ -438,7 +438,7 @@ Validación física — 2026-09-24:
 ### TRANSFER-004 — Canal real de archivos LAN + progreso
 **Estado:** IN_PROGRESS  
 **Prioridad:** alta  
-**PR:** #68 · canal fusionado; ERR-017 corregido en PR #75/main run 296; ERR-018 en corrección para estabilizar la sesión antes de declararla conectada
+**PR:** #68 · canal fusionado; ERR-017 corregido en PR #75/main run 296; ERR-018 implementado en PR #77 con CI run 299 verde y pendiente validación física
 
 Objetivo:
 - enviar una copia almacenada en OclAx al dispositivo emparejado sobre la conexión LAN ya verificada;
