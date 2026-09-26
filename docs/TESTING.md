@@ -558,7 +558,7 @@ Interpretación corregida:
 - el diagnóstico anterior era demasiado específico y se ajusta para describir únicamente que la sesión verificada no llegó a establecerse/mantenerse.
 
 Validación automática requerida para la corrección:
-- **VERIFICADO:** PR #77 CI run 299 verde en runtime nativo, tests, lint, build, verificación del APK y artefacto;
+- **VERIFICADO:** PR #77 CI run 299 verde; PR #77 fusionado y main run 303 verde en runtime nativo, tests, lint, build, verificación del APK y artefacto;
 - `SyncthingLanDiagnosticsTest` cubre extracción de una IPv4 privada desde la dirección de una conexión Syncthing ya autenticada y rechaza rutas públicas/IPv6 para este flujo IPv4;
 - el controlador debe exigir varias muestras consecutivas `connected=true` + `isLocal=true` antes de apagar discovery;
 - después de obtener una conexión verificada, debe conservar temporalmente la IPv4 privada del peer como dirección directa, sin eliminar `dynamic`;
