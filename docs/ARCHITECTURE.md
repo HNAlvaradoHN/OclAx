@@ -196,9 +196,9 @@ Syncthing REST loopback
 /rest/system/connections → connected + isLocal
 ```
 
-La prueba no crea carpetas Syncthing ni mueve contenido. Al confirmar el peer, OclAx apaga discovery local y libera el MulticastLock manteniendo solo la conexión/listener LAN; al desconectar, el motor vuelve a `enforcePrivateOptions()`.
+La prueba no crea carpetas Syncthing ni mueve contenido. Una primera muestra `connected=true` + `isLocal=true` no se considera suficiente: el controlador exige estabilidad consecutiva, toma la IPv4 privada del peer desde esa conexión ya autenticada y la conserva temporalmente como ruta directa junto a `dynamic`. Después revalida la sesión, apaga discovery local, libera el MulticastLock y vuelve a revalidar antes de informar éxito a la UI. Al desconectar o fallar, la dirección se restaura a `dynamic` y el motor vuelve a `enforcePrivateOptions()`.
 
-El fallback directo no sustituye a Syncthing como motor ni autentica peers por IP. Solo encuentra candidatos TCP locales cuando los anuncios broadcast no cruzan la Wi‑Fi; Syncthing sigue aceptando la conexión únicamente si el certificado/Device ID corresponde al dispositivo emparejado. Las direcciones temporales se eliminan al terminar la prueba.
+El fallback directo no sustituye a Syncthing como motor ni autentica peers por IP. Solo encuentra candidatos TCP locales cuando los anuncios broadcast no cruzan la Wi‑Fi; Syncthing sigue aceptando la conexión únicamente si el certificado/Device ID corresponde al dispositivo emparejado. Incluso la ruta fijada después de conectar procede de un peer ya autenticado y nunca reemplaza esa identidad. Las direcciones temporales se eliminan al terminar la prueba.
 
 Syncthing core v2.x es el motor candidato, encapsulado detrás de una capa propia. El wrapper Android oficial discontinuado no forma parte de la arquitectura OclAx.
 
