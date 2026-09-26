@@ -100,7 +100,7 @@
 
 ## Bloqueos
 
-- **ERR-018 / TRANSFER-004:** con main run 296 el móvil llegó temporalmente a **Conectado por LAN**, la tablet no sostuvo una sesión verificada y el móvil después se aisló correctamente. El Device ID del móvil guardado en la tablet coincide con el actual. La rama `fix/lan-post-connect-stability` cierra la ventana de éxito prematuro mediante estabilización, ruta privada temporal del peer autenticado y revalidación después de apagar Local Discovery; falta CI y prueba física;
+- **ERR-018 / TRANSFER-004:** con main run 296 el móvil llegó temporalmente a **Conectado por LAN**, la tablet no sostuvo una sesión verificada y el móvil después se aisló correctamente. El Device ID del móvil guardado en la tablet coincide con el actual. PR #77 implementa el cierre de la ventana de éxito prematuro mediante estabilización, ruta privada temporal del peer autenticado y revalidación después de apagar Local Discovery; CI run 299 quedó verde y falta prueba física;
 - **ERR-017:** la vigilancia de pérdida remota actuó en la nueva prueba: el móvil dejó el estado conectado y volvió a aislamiento cuando la sesión se perdió. Falta repetirlo de forma deliberada con una build que también incluya ERR-018 antes de dar la regresión por cerrada físicamente;
 - **TRANSFER-004:** PR #68 ya está fusionado y main run 269 quedó verde; no se considera DONE hasta conseguir primero un enlace LAN simultáneamente vivo en ambos y luego envío, aceptación/rechazo, autoaceptación, progreso, recepción y cleanup;
 - el dueño confirmó que Mi dispositivo funciona correctamente en las rutas probadas y que compartir app/APK funciona; siguen pendientes el caso explícito de APK con splits, revocación de permisos y rendimiento con inventarios grandes;
