@@ -100,7 +100,7 @@
 
 ## Bloqueos
 
-- **ERR-018 / TRANSFER-004:** con main run 296 el móvil llegó temporalmente a **Conectado por LAN**, la tablet no sostuvo una sesión verificada y el móvil después se aisló correctamente. El Device ID del móvil guardado en la tablet coincide con el actual. PR #77 implementa el cierre de la ventana de éxito prematuro mediante estabilización, ruta privada temporal del peer autenticado y revalidación después de apagar Local Discovery; CI run 299 quedó verde y falta prueba física;
+- **ERR-018 / TRANSFER-004:** con main run 296 el móvil llegó temporalmente a **Conectado por LAN**, la tablet no sostuvo una sesión verificada y el móvil después se aisló correctamente. El Device ID del móvil guardado en la tablet coincide con el actual. PR #77 ya fue fusionado; main run 303 quedó verde con estabilización, ruta privada temporal del peer autenticado y revalidación después de apagar Local Discovery. Falta prueba física;
 - **ERR-017:** la vigilancia de pérdida remota actuó en la nueva prueba: el móvil dejó el estado conectado y volvió a aislamiento cuando la sesión se perdió. Falta repetirlo de forma deliberada con una build que también incluya ERR-018 antes de dar la regresión por cerrada físicamente;
 - **TRANSFER-004:** PR #68 ya está fusionado y main run 269 quedó verde; no se considera DONE hasta conseguir primero un enlace LAN simultáneamente vivo en ambos y luego envío, aceptación/rechazo, autoaceptación, progreso, recepción y cleanup;
 - el dueño confirmó que Mi dispositivo funciona correctamente en las rutas probadas y que compartir app/APK funciona; siguen pendientes el caso explícito de APK con splits, revocación de permisos y rendimiento con inventarios grandes;
@@ -108,13 +108,12 @@
 
 ## Siguiente paso exacto
 
-1. Completar CI/revisión de `fix/lan-post-connect-stability` y fusionar solo con CI verde.
-2. Instalar la misma build resultante en móvil y tablet.
-3. Repetir **Probar LAN** en los dos y exigir que ambos lleguen a **Conectado por LAN** y permanezcan así al menos 10 segundos.
-4. Provocar una pérdida en un extremo y confirmar que el otro vuelve automáticamente a aislamiento, cubriendo la regresión de ERR-017.
-5. Reconectar ambos; solo con sesión simultánea estable, enviar un archivo pequeño con **Permitir sin aceptar** apagado y confirmar solicitud, **Aceptar**, progreso, aparición en OclAx receptor y ACK final.
-6. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
-7. Probar un archivo mayor y un fallo controlado de almacenamiento si el entorno lo permite; luego desconectar LAN y confirmar aislamiento seguro.
+1. Instalar en móvil y tablet la misma build de main run 303 que contiene PR #77.
+2. Repetir **Probar LAN** en los dos y exigir que ambos lleguen a **Conectado por LAN** y permanezcan así al menos 10 segundos.
+3. Provocar una pérdida en un extremo y confirmar que el otro vuelve automáticamente a aislamiento, cubriendo la regresión de ERR-017.
+4. Reconectar ambos; solo con sesión simultánea estable, enviar un archivo pequeño con **Permitir sin aceptar** apagado y confirmar solicitud, **Aceptar**, progreso, aparición en OclAx receptor y ACK final.
+5. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
+6. Probar un archivo mayor y un fallo controlado de almacenamiento si el entorno lo permite; luego desconectar LAN y confirmar aislamiento seguro.
 
 ## Navegación Atrás — PR #71
 
