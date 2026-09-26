@@ -151,7 +151,7 @@ class SyncthingLanDiagnosticsTest {
     }
 
     @Test
-    fun directCandidateWithoutVerifiedPeerExplainsPairingPath() {
+    fun directCandidateExplainsUnverifiedSessionWithoutClaimingIdentityMismatch() {
         val message = describeLanTimeout(
             discoveredLocally = false,
             peerPaused = false,
@@ -163,8 +163,27 @@ class SyncthingLanDiagnosticsTest {
             directCandidateFound = true,
         )
 
-        assertTrue(message.contains("posible Syncthing"))
-        assertTrue(message.contains("dispositivo emparejado"))
+        assertTrue(message.contains("puerto Syncthing candidato"))
+        assertTrue(message.contains("sesión verificada"))
+    }
+
+    @Test
+    fun verifiedConnectionAddressExtractsOnlyPrivateIpv4Host() {
+        assertEquals(
+            "192.168.1.44",
+            lanPrivateIpv4FromConnectionAddress("192.168.1.44:22000"),
+        )
+        assertEquals(
+            "10.20.30.40",
+            lanPrivateIpv4FromConnectionAddress("tcp4://10.20.30.40:53117"),
+        )
+        assertEquals(
+            "172.16.8.9",
+            lanPrivateIpv4FromConnectionAddress("172.16.8.9"),
+        )
+        assertEquals(null, lanPrivateIpv4FromConnectionAddress("8.8.8.8:22000"))
+        assertEquals(null, lanPrivateIpv4FromConnectionAddress("[fd00::1]:22000"))
+        assertEquals(null, lanPrivateIpv4FromConnectionAddress(""))
     }
 
     @Test
