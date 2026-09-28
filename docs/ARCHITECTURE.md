@@ -223,8 +223,9 @@ El runtime nativo:
 - se construye para las ABI Android soportadas en un job CI separado de secretos de firma y se entrega al job Android como artefacto con checksum verificado;
 - se empaqueta como librería nativa extraíble y se ejecuta como proceso hijo desde `applicationInfo.nativeLibraryDir`;
 - `SyncthingPrivateConfig` genera/endurece la configuración antes de arrancar: GUI/API y listener BEP solo loopback; discovery/relay/NAT apagados durante el probe local;
-- `SyncthingRuntimeService` es un foreground service `dataSync` on-demand, no un daemon permanente;
+- `SyncthingRuntimeService` es un foreground service `dataSync` on-demand, no un daemon permanente; puede sobrevivir mientras la tarea siga en segundo plano, pero retirar la tarea dispara cierre del runtime y la salida explícita de OclAx también solicita detenerlo, evitando una sesión LAN huérfana sin UI propietaria;
 - `SyncthingRestClient` vuelve a imponer/verificar el perfil privado y controla salud, autenticación, Device ID y apagado únicamente contra `127.0.0.1:8384`;
+- durante envío/recepción, el canal revalida que el peer siga conectado por LAN y aborta tras dos pérdidas consecutivas en vez de esperar el timeout largo de la transferencia;
 - Android Network Security Config permite HTTP cleartext solo para `127.0.0.1`/`localhost`; el resto de destinos conserva cleartext bloqueado;
 - no filtra conceptos de carpetas Syncthing hacia la UI principal.
 
