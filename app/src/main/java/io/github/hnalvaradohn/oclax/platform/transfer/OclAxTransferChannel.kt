@@ -129,7 +129,9 @@ internal class OclAxTransferChannel(
             while (System.currentTimeMillis() < deadline) {
                 lanConnectionMisses = nextLanConnectionMissCount(
                     currentMisses = lanConnectionMisses,
-                    connected = client.hasLanConnection(offer.senderDeviceId),
+                    connected = runCatching {
+                        client.hasLanConnection(offer.senderDeviceId)
+                    }.getOrDefault(false),
                 )
                 if (lanConnectionMisses >= TRANSFER_LAN_MISSES_BEFORE_ABORT) {
                     throw IOException("La conexión LAN se perdió durante la recepción.")
@@ -243,7 +245,9 @@ internal class OclAxTransferChannel(
 
             lanConnectionMisses = nextLanConnectionMissCount(
                 currentMisses = lanConnectionMisses,
-                connected = client.hasLanConnection(deviceId),
+                connected = runCatching {
+                    client.hasLanConnection(deviceId)
+                }.getOrDefault(false),
             )
             if (lanConnectionMisses >= TRANSFER_LAN_MISSES_BEFORE_ABORT) {
                 throw IOException("La conexión LAN se perdió durante el envío.")
