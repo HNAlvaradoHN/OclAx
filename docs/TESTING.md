@@ -612,8 +612,8 @@ Validación física requerida:
 - **Seguridad — INFORMATIVO.** El cambio reduce exposición: una tarea retirada ya no deja el listener/runtime LAN activo indefinidamente. El cierre del runtime sigue siendo local y no habilita rutas nuevas.
 - **Privacidad — INFORMATIVO.** No se añaden logs, telemetría ni identificadores; se acorta la vida del proceso de red cuando el usuario cierra la tarea.
 - **Arquitectura — INFORMATIVO.** El ownership del runtime queda en la capa plataforma/service; MainActivity solo solicita cierre en salida explícita. La verificación durante transferencias vive en `OclAxTransferChannel`, no en la UI.
-- **Plataforma Android — BLOQUEANTE HASTA CI/FÍSICA.** `onTaskRemoved` es la señal correcta para retirada de tarea con `stopWithTask=false`; requiere build/lint y prueba real porque OEM/lifecycle no se valida con JVM solamente.
-- **QA — BLOQUEANTE HASTA FÍSICA.** Debe cubrir retirada de tarea, pérdida durante transferencia, reapertura/reconexión y segundo plano sin retirada.
+- **Plataforma Android — NO BLOQUEANTE TRAS CI.** `onTaskRemoved` mantiene el cleanup en la capa Service con `stopWithTask=false`; build/lint cubren compatibilidad estática y la semántica OEM/lifecycle queda pendiente de prueba física.
+- **QA — PENDIENTE FÍSICO.** Debe cubrir retirada de tarea, pérdida durante transferencia, reapertura/reconexión y segundo plano sin retirada. Esta validación usa la APK resultante y no bloquea fusionar después de CI verde.
 - **Rendimiento — INFORMATIVO.** La verificación añade una consulta REST loopback por ciclo de transferencia (750 ms), sin tráfico externo adicional.
 - **Calidad/Limpieza — INFORMATIVO.** Reutiliza `requestStop`, el monitor REST existente y cleanup de transferencias; no introduce un segundo mecanismo de transporte.
 - **Diseño/UX/Accesibilidad — INFORMATIVO.** El efecto visible esperado es que el estado conectado desaparezca cuando el peer realmente cierra OclAx; no se añaden controles ni dependencia de color.
