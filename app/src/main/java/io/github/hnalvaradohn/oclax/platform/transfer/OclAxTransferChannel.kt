@@ -125,7 +125,17 @@ internal class OclAxTransferChannel(
 
             val deadline = System.currentTimeMillis() + RECEIVE_TIMEOUT_MILLIS
             var manifest: TransferManifest? = null
+            var lanConnectionMisses = 0
             while (System.currentTimeMillis() < deadline) {
+                if (client.hasLanConnection(offer.senderDeviceId)) {
+                    lanConnectionMisses = 0
+                } else {
+                    lanConnectionMisses += 1
+                    if (lanConnectionMisses >= TRANSFER_LAN_MISSES_BEFORE_ABORT) {
+                        throw IOException("La conexión LAN se perdió durante la recepción.")
+                    }
+                }
+
                 val status = client.transferFolderStatus(offer.folderId)
                 if (
                     status.globalBytes > MAX_TRANSFER_FOLDER_BYTES ||
@@ -227,9 +237,19 @@ internal class OclAxTransferChannel(
     ) {
         val deadline = System.currentTimeMillis() + sendTimeoutMillis(byteSize)
         val ack = File(directory, OCLAX_TRANSFER_ACK)
+        var lanConnectionMisses = 0
 
         while (System.currentTimeMillis() < deadline) {
             if (ack.isFile && validAck(ack, folderId)) return
+
+            if (client.hasLanConnection(deviceId)) {
+                lanConnectionMisses = 0
+            } else {
+                lanConnectionMisses += 1
+                if (lanConnectionMisses >= TRANSFER_LAN_MISSES_BEFORE_ABORT) {
+                    throw IOException("La conexión LAN se perdió durante el envío.")
+                }
+            }
 
             val completion = client.transferFolderCompletion(
                 folderId = folderId,
@@ -404,6 +424,7 @@ internal class OclAxTransferChannel(
         private const val MAX_TRANSFER_FOLDER_BYTES =
             ItemStore.MAX_ITEM_BYTES + MAX_PROTOCOL_OVERHEAD_BYTES
         private const val POLL_MILLIS = 750L
+        private const val TRANSFER_LAN_MISSES_BEFORE_ABORT = 2
         private const val MIN_TRANSFER_BYTES_PER_SECOND = 512L * 1024L
         private val MIN_SEND_TIMEOUT_MILLIS = TimeUnit.MINUTES.toMillis(5)
         private val MAX_SEND_TIMEOUT_MILLIS = TimeUnit.HOURS.toMillis(2)
