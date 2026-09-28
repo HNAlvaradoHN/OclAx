@@ -604,3 +604,22 @@ Protocolo mínimo:
 **Motivo:** reutilizar integridad, cifrado de transporte y autenticación por Device ID de Syncthing sin exponer su modelo de carpetas al usuario y manteniendo una transferencia con principio/fin controlados por OclAx.
 
 **Consecuencia:** el primer vertical de TRANSFER-004 opera sobre copias ya presentes en OclAx. Envío directo desde **Mi dispositivo**, cancelación/reintento refinados y UX final de selección de destino pueden evolucionar después de validar físicamente este canal.
+
+
+---
+
+## DEC-031 — La presencia LAN termina al retirar la tarea de OclAx
+
+**Contexto:** una prueba física confirmó que el foreground service de Syncthing podía seguir vivo después de cerrar/retirar la tarea de OclAx. El peer remoto seguía viendo una conexión LAN auténtica durante minutos aunque ya no hubiera UI capaz de aceptar solicitudes.
+
+**Decisión:** distinguir segundo plano de cierre explícito.
+
+- enviar OclAx a segundo plano sin retirar su tarea puede conservar el runtime mientras exista la sesión;
+- retirar la tarea de OclAx debe solicitar cierre del foreground runtime;
+- la salida explícita desde la propia UI también solicita detener el runtime cuando fue iniciado;
+- el peer remoto sigue detectando la pérdida mediante la verificación `connected=true` + `isLocal=true`;
+- una transferencia ya iniciada no depende del polling de UI: envío/recepción abortan tras dos pérdidas LAN consecutivas.
+
+**Motivo:** “Conectado por LAN” debe representar un peer OclAx realmente disponible, no un proceso Syncthing huérfano sin superficie de producto capaz de responder. El cierre debe ser fail-closed sin convertir un simple paso a segundo plano en desconexión involuntaria.
+
+**Consecuencia:** retirar la tarea cancela la disponibilidad LAN y puede interrumpir una transferencia activa; el usuario deberá volver a abrir/conectar OclAx para reanudar un nuevo intento.
