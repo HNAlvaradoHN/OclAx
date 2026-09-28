@@ -253,7 +253,10 @@ class MainActivity : ComponentActivity() {
                     onRefreshIncomingTransfers = ::refreshIncomingTransfers,
                     onAcceptIncomingTransfer = ::acceptIncomingTransfer,
                     onRejectIncomingTransfer = ::rejectIncomingTransfer,
-                    onExitApp = { finish() },
+                    onExitApp = {
+                        runCatching { transferRuntimeController.stop() }
+                        finish()
+                    },
                 )
             }
         }
