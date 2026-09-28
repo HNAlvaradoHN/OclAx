@@ -127,13 +127,12 @@ internal class OclAxTransferChannel(
             var manifest: TransferManifest? = null
             var lanConnectionMisses = 0
             while (System.currentTimeMillis() < deadline) {
-                if (client.hasLanConnection(offer.senderDeviceId)) {
-                    lanConnectionMisses = 0
-                } else {
-                    lanConnectionMisses += 1
-                    if (lanConnectionMisses >= TRANSFER_LAN_MISSES_BEFORE_ABORT) {
-                        throw IOException("La conexión LAN se perdió durante la recepción.")
-                    }
+                lanConnectionMisses = nextLanConnectionMissCount(
+                    currentMisses = lanConnectionMisses,
+                    connected = client.hasLanConnection(offer.senderDeviceId),
+                )
+                if (lanConnectionMisses >= TRANSFER_LAN_MISSES_BEFORE_ABORT) {
+                    throw IOException("La conexión LAN se perdió durante la recepción.")
                 }
 
                 val status = client.transferFolderStatus(offer.folderId)
@@ -242,13 +241,12 @@ internal class OclAxTransferChannel(
         while (System.currentTimeMillis() < deadline) {
             if (ack.isFile && validAck(ack, folderId)) return
 
-            if (client.hasLanConnection(deviceId)) {
-                lanConnectionMisses = 0
-            } else {
-                lanConnectionMisses += 1
-                if (lanConnectionMisses >= TRANSFER_LAN_MISSES_BEFORE_ABORT) {
-                    throw IOException("La conexión LAN se perdió durante el envío.")
-                }
+            lanConnectionMisses = nextLanConnectionMissCount(
+                currentMisses = lanConnectionMisses,
+                connected = client.hasLanConnection(deviceId),
+            )
+            if (lanConnectionMisses >= TRANSFER_LAN_MISSES_BEFORE_ABORT) {
+                throw IOException("La conexión LAN se perdió durante el envío.")
             }
 
             val completion = client.transferFolderCompletion(
