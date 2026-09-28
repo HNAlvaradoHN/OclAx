@@ -54,6 +54,19 @@ class OclAxTransferProtocolTest {
     }
 
     @Test
+    fun lanConnectionMissesResetAfterAHealthySample() {
+        var misses = nextLanConnectionMissCount(0, connected = false)
+        assertEquals(1, misses)
+
+        misses = nextLanConnectionMissCount(misses, connected = true)
+        assertEquals(0, misses)
+
+        misses = nextLanConnectionMissCount(misses, connected = false)
+        misses = nextLanConnectionMissCount(misses, connected = false)
+        assertEquals(2, misses)
+    }
+
+    @Test
     fun sendTimeoutScalesAndRemainsBounded() {
         val small = OclAxTransferChannel.sendTimeoutMillis(1024L)
         val maximumItem = OclAxTransferChannel.sendTimeoutMillis(
