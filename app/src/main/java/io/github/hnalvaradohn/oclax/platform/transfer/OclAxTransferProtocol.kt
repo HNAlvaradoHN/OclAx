@@ -62,3 +62,12 @@ internal fun displayNameHintFromTransferLabel(label: String): String? =
 
 internal fun transferPercent(value: Double): Int =
     value.coerceIn(0.0, 100.0).toInt()
+
+internal fun nextLanConnectionMissCount(
+    currentMisses: Int,
+    connected: Boolean,
+): Int = if (connected) {
+    0
+} else {
+    (currentMisses.coerceAtLeast(0) + 1).coerceAtMost(Int.MAX_VALUE)
+}
