@@ -69,5 +69,5 @@ internal fun nextLanConnectionMissCount(
 ): Int = if (connected) {
     0
 } else {
-    (currentMisses.coerceAtLeast(0) + 1).coerceAtMost(Int.MAX_VALUE)
+    currentMisses.coerceIn(0, Int.MAX_VALUE - 1) + 1
 }
