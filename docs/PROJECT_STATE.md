@@ -92,7 +92,7 @@
 - el panel técnico, búsqueda, filtros y tarjetas comparten un único scroll vertical; PR #55/main run 196 y validación física con main run 207 confirman desplazamiento completo;
 - TRANSFER-003 conserva la validación histórica de conectividad LAN y aislamiento manual, pero una prueba física posterior reveló **ERR-017**: un dispositivo puede conservar en UI “Conectado por LAN” después de que el peer falle y vuelva a modo aislado;
 - TRANSFER-004 está **IMPLEMENTED_PENDING_VALIDATION**: PR #68 ya fue fusionado; el primer canal real OclAx↔OclAx sobre LAN verificada incluye carpetas efímeras Syncthing privadas, aceptación/autoaceptación por dispositivo, progreso, importación a ItemStore y cleanup;
-- la transferencia real pasó CI de main run 269 en verde; la corrección de estado LAN fantasma de ERR-017 fue fusionada en PR #75 y main run 296 quedó verde. La revalidación física confirmó que el móvil ya abandona correctamente el estado conectado cuando la tablet falla, pero reveló **ERR-018**: la primera muestra de conexión puede anunciar éxito antes de que la sesión quede estable en ambos extremos.
+- la transferencia real pasó CI de main run 269 en verde; PR #75/run 296 añadió vigilancia de pérdida y PR #77/run 303 estabilizó el establecimiento. La validación física posterior confirmó transferencia real bidireccional rápida (imagen y APK), pero reveló **ERR-019**: cerrar/retirar la tarea del peer podía dejar su foreground runtime Syncthing activo, por lo que el otro extremo seguía viendo una conexión LAN real durante minutos y un envío quedaba esperando aceptación.
 - PICKER-001 queda **DONE**: apertura/presentación, navegación por tarjetas, cancelar, permiso de almacenamiento negado/revocado y devolución efectiva a la app llamadora fueron confirmados físicamente, incluyendo PDF desde OclAx e imagen desde Mi dispositivo. La selección múltiple existente permanece solo como compatibilidad técnica del intent externo.
 - dos dispositivos físicos ya están disponibles y la build main run 234 fue probada en ambos. En ambos extremos el diagnóstico confirmó **discovery IPv4 local activo + listener LAN activo**, pero ninguno vio al otro por discovery local.
 - **CAUSA DEL FALLO DE DISCOVERY: NO VERIFICADA.** La evidencia es compatible con filtrado/aislamiento de broadcast de la Wi‑Fi, pero no lo demuestra por sí sola.
@@ -100,20 +100,22 @@
 
 ## Bloqueos
 
-- **ERR-018 / TRANSFER-004:** con main run 296 el móvil llegó temporalmente a **Conectado por LAN**, la tablet no sostuvo una sesión verificada y el móvil después se aisló correctamente. El Device ID del móvil guardado en la tablet coincide con el actual. PR #77 ya fue fusionado; main run 303 quedó verde con estabilización, ruta privada temporal del peer autenticado y revalidación después de apagar Local Discovery. Falta prueba física;
-- **ERR-017:** la vigilancia de pérdida remota actuó en la nueva prueba: el móvil dejó el estado conectado y volvió a aislamiento cuando la sesión se perdió. Falta repetirlo de forma deliberada con una build que también incluya ERR-018 antes de dar la regresión por cerrada físicamente;
-- **TRANSFER-004:** PR #68 ya está fusionado y main run 269 quedó verde; no se considera DONE hasta conseguir primero un enlace LAN simultáneamente vivo en ambos y luego envío, aceptación/rechazo, autoaceptación, progreso, recepción y cleanup;
+- **ERR-019 / TRANSFER-004:** la transferencia real funciona en ambos sentidos, pero retirar/cerrar la tarea de un peer no detenía su foreground runtime; Syncthing seguía conectado y el otro dispositivo conservaba **Conectado por LAN** durante más de cinco minutos. La rama `fix/lan-task-removal-isolation` detiene el runtime al retirar la tarea/salir explícitamente y aborta transferencias tras pérdida LAN confirmada; falta CI y validación física;
+- **ERR-018:** PR #77/main run 303 quedó verde y endureció el establecimiento. La nueva evidencia demuestra que el canal real sí puede transferir en ambos sentidos; mantener este error abierto hasta revalidar conexión simultánea con la corrección de lifecycle;
+- **ERR-017:** el monitor sigue siendo válido para pérdidas reales de transporte; la nueva causa ERR-019 explica por qué cerrar la UI no generaba esa pérdida. Debe revalidarse físicamente después del fix de lifecycle;
+- **TRANSFER-004:** PR #68 ya está fusionado y el canal real fue validado físicamente para imagen y APK en ambos sentidos. Sigue pendiente cerrar lifecycle/pérdida, aceptación/rechazo/autoaceptación y cleanup bajo fallo antes de DONE;
 - el dueño confirmó que Mi dispositivo funciona correctamente en las rutas probadas y que compartir app/APK funciona; siguen pendientes el caso explícito de APK con splits, revocación de permisos y rendimiento con inventarios grandes;
 - Internet directo y relay continúan fuera de alcance de este bloque; no se habilitan global discovery, NAT ni relay.
 
 ## Siguiente paso exacto
 
-1. Instalar en móvil y tablet la misma build de main run 303 que contiene PR #77.
-2. Repetir **Probar LAN** en los dos y exigir que ambos lleguen a **Conectado por LAN** y permanezcan así al menos 10 segundos.
-3. Provocar una pérdida en un extremo y confirmar que el otro vuelve automáticamente a aislamiento, cubriendo la regresión de ERR-017.
-4. Reconectar ambos; solo con sesión simultánea estable, enviar un archivo pequeño con **Permitir sin aceptar** apagado y confirmar solicitud, **Aceptar**, progreso, aparición en OclAx receptor y ACK final.
-5. Repetir con **Rechazar** y con **Permitir sin aceptar** activado; verificar que nunca se autoejecuta/instala contenido.
-6. Probar un archivo mayor y un fallo controlado de almacenamiento si el entorno lo permite; luego desconectar LAN y confirmar aislamiento seguro.
+1. Completar CI/revisión de `fix/lan-task-removal-isolation` y fusionar solo con CI verde.
+2. Instalar la misma build resultante en móvil y tablet y conectar ambos por LAN.
+3. Retirar/cerrar completamente la tarea de un dispositivo y confirmar que el otro abandona **Conectado por LAN** en pocos segundos y vuelve a ofrecer **Probar LAN**.
+4. Repetir cerrando el peer durante un envío y confirmar fallo rápido + cleanup, sin espera de varios minutos.
+5. Reconectar ambos y repetir transferencia de imagen/archivo en ambos sentidos para comprobar ausencia de regresión.
+6. Completar aceptación, rechazo y **Permitir sin aceptar**, verificando que nunca se autoejecuta/instala contenido.
+7. Probar archivo mayor y falta de espacio si el entorno lo permite; después desconectar y confirmar aislamiento seguro.
 
 ## Navegación Atrás — PR #71
 

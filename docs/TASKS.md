@@ -438,7 +438,7 @@ Validación física — 2026-09-24:
 ### TRANSFER-004 — Canal real de archivos LAN + progreso
 **Estado:** IN_PROGRESS  
 **Prioridad:** alta  
-**PR:** #68 · canal fusionado; ERR-017 corregido en PR #75/main run 296; ERR-018 fusionado en PR #77 con main run 303 verde y pendiente validación física
+**PR:** #68 · canal fusionado; ERR-017 PR #75/run 296; ERR-018 PR #77/run 303; ERR-019 en corrección para cerrar runtime al retirar la tarea y abortar transferencias si se pierde LAN
 
 Objetivo:
 - enviar una copia almacenada en OclAx al dispositivo emparejado sobre la conexión LAN ya verificada;
@@ -459,10 +459,10 @@ Implementación actual:
 - no se añaden permisos ni dependencias y no se habilita Internet, global discovery, relay o NAT.
 
 Pendiente:
-- **ERR-018:** la prueba de main run 296 confirmó que un extremo puede anunciar conexión antes de que ambos hayan estabilizado la sesión. La corrección exige muestras consecutivas, conserva temporalmente la ruta IPv4 privada del peer ya autenticado y revalida después de apagar Local Discovery;
-- **ERR-017:** la vigilancia ya hizo que el móvil abandonara automáticamente el estado conectado cuando la sesión de la tablet no se sostuvo; repetir la pérdida deliberada con la build de ERR-018 antes de cerrar físicamente la regresión;
-- revalidar físicamente con ambos dispositivos simultáneamente conectados y estables al menos 10 segundos antes de iniciar archivos;
-- después, prueba física de archivos: aceptar, rechazar, **Permitir sin aceptar**, progreso, archivo recibido utilizable y cleanup;
+- **ERR-019:** validación física demostró que cerrar/retirar la tarea del peer dejaba su runtime Syncthing activo y la sesión LAN seguía real durante más de cinco minutos. La corrección detiene el runtime al retirar la tarea/salir explícitamente y hace que envío/recepción aborten tras dos pérdidas LAN consecutivas;
+- **ERR-017/018:** revalidar pérdida y establecimiento con la build que incluya ERR-019;
+- la transferencia real de imagen y APK ya fue confirmada físicamente en ambos sentidos y con velocidad LAN alta;
+- completar prueba física de aceptación, rechazo, **Permitir sin aceptar**, progreso, archivo recibido utilizable y cleanup;
 - probar un archivo mayor y falta de espacio;
 - cancelación/reintento explícitos quedan para refinamiento posterior después del primer vertical estable.
 

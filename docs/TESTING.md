@@ -583,3 +583,38 @@ Validación física requerida:
 - **QA — PENDIENTE FÍSICO.** CI puede validar parser/tests/build, pero la condición decisiva es una sesión simultánea estable en dos dispositivos reales.
 - **Rendimiento — INFORMATIVO.** Se añaden unas pocas consultas REST loopback de 500 ms durante el establecimiento; no hay polling extra después de quedar conectado.
 - **Calidad/Limpieza — INFORMATIVO.** Reutiliza las rutas directas y cleanup ya existentes; no añade dependencia ni protocolo alternativo.
+
+
+## ERR-019 — runtime LAN huérfano tras cerrar la tarea
+
+**Evidencia física — 2026-09-25:**
+- transferencia real imagen y APK funcionó móvil → tablet y tablet → móvil, con velocidad LAN alta;
+- al cerrar/retirar completamente OclAx en la tablet, el móvil permaneció **Conectado por LAN** durante más de cinco minutos;
+- un envío iniciado desde el móvil quedó esperando aceptación y continuó cuando la tablet volvió a abrir OclAx, demostrando que Syncthing había quedado activo aunque la UI receptora ya no existía.
+
+**Causa verificada en código:** `SyncthingRuntimeService` usa `stopWithTask=false` y no tenía `onTaskRemoved`; por eso el foreground service podía sobrevivir a la retirada de la tarea. El watcher de ERR-017 no fallaba: `/rest/system/connections` seguía viendo una sesión local real. Durante una transferencia, además, el polling de MainActivity se omite por `fileTransferBusy` y el canal no verificaba pérdida LAN por sí mismo.
+
+**Validación automática requerida:**
+- test unitario del contador de pérdidas LAN confirma que una muestra sana reinicia el contador y dos pérdidas consecutivas se conservan como umbral de abort;
+- lint/build deben validar `Service.onTaskRemoved`, cierre idempotente y cambios de lifecycle;
+- no se añaden permisos, dependencias, endpoints externos, global discovery, relay, NAT ni telemetría.
+
+**Validación física requerida:**
+1. conectar móvil y tablet y confirmar transferencia normal en ambos sentidos;
+2. retirar la tarea del receptor desde Recientes, sin usar **Desconectar LAN**;
+3. confirmar que el emisor abandona **Conectado por LAN** en pocos segundos y vuelve a ofrecer **Probar LAN**;
+4. reconectar, iniciar un envío y retirar la tarea del receptor durante el envío; debe fallar rápido, no esperar el timeout largo;
+5. volver a abrir ambos, reconectar y confirmar nueva transferencia normal;
+6. mandar OclAx solamente a segundo plano sin retirar la tarea y confirmar que ese gesto por sí solo no fuerza desconexión.
+
+### Revisión aplicable — ERR-019
+
+- **Seguridad — INFORMATIVO.** El cambio reduce exposición: una tarea retirada ya no deja el listener/runtime LAN activo indefinidamente. El cierre del runtime sigue siendo local y no habilita rutas nuevas.
+- **Privacidad — INFORMATIVO.** No se añaden logs, telemetría ni identificadores; se acorta la vida del proceso de red cuando el usuario cierra la tarea.
+- **Arquitectura — INFORMATIVO.** El ownership del runtime queda en la capa plataforma/service; MainActivity solo solicita cierre en salida explícita. La verificación durante transferencias vive en `OclAxTransferChannel`, no en la UI.
+- **Plataforma Android — NO BLOQUEANTE TRAS CI.** `onTaskRemoved` mantiene el cleanup en la capa Service con `stopWithTask=false`; build/lint cubren compatibilidad estática y la semántica OEM/lifecycle queda pendiente de prueba física.
+- **QA — PENDIENTE FÍSICO.** Debe cubrir retirada de tarea, pérdida durante transferencia, reapertura/reconexión y segundo plano sin retirada. Esta validación usa la APK resultante y no bloquea fusionar después de CI verde.
+- **Rendimiento — INFORMATIVO.** La verificación añade una consulta REST loopback por ciclo de transferencia (750 ms), sin tráfico externo adicional.
+- **Calidad/Limpieza — INFORMATIVO.** Reutiliza `requestStop`, el monitor REST existente y cleanup de transferencias; no introduce un segundo mecanismo de transporte.
+- **Diseño/UX/Accesibilidad — INFORMATIVO.** El efecto visible esperado es que el estado conectado desaparezca cuando el peer realmente cierra OclAx; no se añaden controles ni dependencia de color.
+- **Release — NO APLICA.** Continúa como build de validación física.

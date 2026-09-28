@@ -2,6 +2,34 @@
 
 ## Abiertos
 
+### ERR-019 — El runtime LAN sobrevive al cierre de la app y el peer parece disponible indefinidamente
+**Estado:** CORRECCIÓN_IMPLEMENTADA_PENDIENTE_CI_FÍSICA
+
+**Síntoma físico — 2026-09-25:**
+- la transferencia real quedó validada en ambos sentidos entre móvil y tablet, incluyendo imagen y APK, con velocidad LAN alta;
+- al cerrar por completo OclAx en la tablet, el móvil mantuvo **Conectado por LAN** durante más de cinco minutos;
+- al intentar enviar desde el móvil, el envío quedó esperando aceptación; al volver a abrir OclAx en la tablet y reconectar, la transferencia pendiente continuó;
+- por tanto, el canal Syncthing seguía vivo aunque ya no existiera una superficie OclAx capaz de aceptar la transferencia.
+
+**Causa verificada en código:**
+- `SyncthingRuntimeService` estaba declarado con `stopWithTask=false` y no implementaba `onTaskRemoved`, por lo que retirar/cerrar la tarea podía dejar el foreground service y el proceso Syncthing activos;
+- el monitor de ERR-017 consulta correctamente `/rest/system/connections`, pero mientras el runtime remoto seguía vivo Syncthing reportaba una conexión local real, así que no existía una pérdida de transporte que detectar;
+- además, durante una transferencia `MainActivity` suspende el polling de solicitudes/salud, y `OclAxTransferChannel` no abortaba por pérdida posterior del enlace, de modo que un envío podía esperar hasta su timeout aun si el peer desaparecía después de comenzar.
+
+**Corrección implementada en `fix/lan-task-removal-isolation`:**
+- `SyncthingRuntimeService.onTaskRemoved()` solicita cierre del runtime y libera discovery; el cierre es idempotente;
+- la salida explícita desde OclAx solicita detener el runtime cuando fue iniciado, sin iniciar un servicio nuevo solo para salir;
+- envío y recepción comprueban la conexión LAN durante la transferencia y abortan tras dos muestras perdidas consecutivas, tolerando un fallo transitorio;
+- el cleanup existente sigue eliminando staging/configuración efímera y conserva el comportamiento fail-closed;
+- poner la app en segundo plano sin retirar la tarea no se trata como cierre explícito.
+
+**Validación requerida:**
+- CI: tests, lint, build, verificación de APK y artefacto;
+- física: conectar ambos, retirar/cerrar completamente la tarea de uno y confirmar que el otro deja **Conectado por LAN** en pocos segundos;
+- intentar enviar después del cierre y confirmar fallo rápido, sin quedar esperando minutos;
+- repetir pérdida durante un envío para confirmar abort/cleanup;
+- volver a abrir ambos y confirmar que reconexión y transferencia bidireccional siguen funcionando.
+
 ### ERR-018 — Un peer llega a “Conectado por LAN” antes de que la sesión quede estable en ambos extremos
 **Estado:** CORRECCIÓN_IMPLEMENTADA_CI_VERDE_PENDIENTE_FÍSICA
 

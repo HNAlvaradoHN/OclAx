@@ -253,7 +253,7 @@ class MainActivity : ComponentActivity() {
                     onRefreshIncomingTransfers = ::refreshIncomingTransfers,
                     onAcceptIncomingTransfer = ::acceptIncomingTransfer,
                     onRejectIncomingTransfer = ::rejectIncomingTransfer,
-                    onExitApp = { finish() },
+                    onExitApp = ::exitApp,
                 )
             }
         }
@@ -262,6 +262,18 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         refresh()
+    }
+
+    private fun exitApp() {
+        if (
+            transferDeviceId != null ||
+            activeLanDeviceId != null ||
+            transferRuntimeBusy ||
+            lanBusyDeviceId != null
+        ) {
+            runCatching { transferRuntimeController.stop() }
+        }
+        finish()
     }
 
     override fun onDestroy() {

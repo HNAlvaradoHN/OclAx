@@ -97,6 +97,11 @@ internal class SyncthingRuntimeService : Service() {
 
     override fun onBind(intent: Intent?): IBinder? = null
 
+    override fun onTaskRemoved(rootIntent: Intent?) {
+        requestStop()
+        super.onTaskRemoved(rootIntent)
+    }
+
     override fun onDestroy() {
         stopping = true
         releaseLanDiscovery()
@@ -195,6 +200,7 @@ internal class SyncthingRuntimeService : Service() {
     }
 
     private fun requestStop() {
+        if (stopping) return
         stopping = true
         releaseLanDiscovery()
         worker.execute {
