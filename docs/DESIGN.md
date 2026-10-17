@@ -204,3 +204,30 @@ No bloqueantes:
 - animaciones solo si aportan claridad.
 
 No introducir una nueva estética durante la limpieza técnica.
+
+## Selección múltiple OclAx
+
+La selección múltiple es explícita:
+- botón **Seleccionar** en una lista/resultados OclAx;
+- checkbox visible en cada tarjeta;
+- borde primario reforzado para seleccionados;
+- contador de seleccionados;
+- **Todos/Ninguno**;
+- acciones masivas: Compartir, Fijar/Desfijar y Eliminar copias;
+- **Cancelar** sale del modo selección;
+- Atrás cancela selección antes de navegar;
+- la búsqueda queda deshabilitada mientras la selección está activa.
+
+Eliminar en lote debe decir claramente que solo afecta copias OclAx y nunca originales.
+
+No llenar la barra con acciones que no tienen contrato definido. Renombrado/mover masivo quedan fuera hasta tener reglas de producto explícitas.
+
+## Iconos de aplicaciones en Android Files
+
+OclAx ofrece thumbnail con el icono real de la app cuando Android Files lo solicita.
+
+Reglas visuales:
+- no sacrificar estabilidad del listado por iconos;
+- si el icono no puede cargarse, Files debe poder usar su representación genérica;
+- apps split siguen siendo carpetas porque representan varios APK;
+- Android Files decide finalmente si muestra thumbnail en carpetas; OclAx no controla esa UI.
