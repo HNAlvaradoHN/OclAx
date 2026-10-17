@@ -39,6 +39,12 @@ Valida la nueva excepción de capturas:
 ### ContentTypeTest
 Valida clasificación por MIME y elegibilidad de Copiar.
 
+### BulkActionPolicyTest
+Valida:
+- MIME específico cuando todos los elementos comparten tipo;
+- wildcard `*/*` para lotes mixtos;
+- objetivo Fijar/Desfijar según el estado actual de la selección.
+
 ### PickerCategoryTest / PickerMimeMatcherTest
 Validan categorías, MIME exacto/wildcard, restricciones del caller y que **Aplicaciones** solo aparezca cuando el MIME solicitado acepta APK.
 
@@ -277,3 +283,32 @@ Validación física:
 5. seleccionar una app de APK único;
 6. abrir una app split y comprobar base + splits;
 7. volver atrás y entrar otra vez para detectar fallos por reconsulta.
+
+### PRODUCT-005 — Selección múltiple e iconos de apps
+
+Validación automática:
+1. `BulkActionPolicyTest`;
+2. compilar modo selección Compose;
+3. ACTION_SEND_MULTIPLE usa FileProvider y grants de lectura;
+4. borrado múltiple llama solo a `ItemStore.deleteItem`;
+5. DocumentsProvider resuelve icono por package puntual;
+6. el cache se consulta antes de recargar thumbnail;
+7. tests, lint y assembleDebug verdes.
+
+Validación física — selección:
+1. entrar a **Todo** o una categoría con varios elementos;
+2. tocar **Seleccionar**;
+3. elegir 2+ tarjetas y confirmar contador/borde/checkbox;
+4. **Todos/Ninguno**;
+5. compartir 2+ elementos y comprobar recepción;
+6. fijar selección mixta y comprobar que todos quedan fijados;
+7. seleccionar solo fijados, Desfijar y comprobar estado;
+8. eliminar varias copias y confirmar que los originales del teléfono siguen existiendo;
+9. Atrás debe cancelar selección antes de salir de la categoría.
+
+Validación física — iconos:
+1. **Archivos → OclAx → Mi dispositivo → Aplicaciones**;
+2. confirmar que la lista sigue cargando sin ERR-021;
+3. observar si Android Files solicita/muestra iconos reales;
+4. entrar a una app split y comprobar que la carpeta sigue abriendo;
+5. si Files no muestra thumbnail en carpetas, registrar limitación de plataforma sin romper el flujo.
