@@ -6,7 +6,7 @@
 **Aplicación:** funcional en main; renovación local fusionada con CI verde. Validación física en progreso.  
 **Repositorio:** público.  
 **Protocol version:** 6.  
-**Autorización actual:** cerrar el hallazgo físico de aplicaciones ausentes en Android Files/DocumentsProvider.
+**Autorización actual:** añadir selección múltiple segura en OclAx y recuperar iconos de aplicaciones en Android Files sin reintroducir el fallo de carga.
 
 ## Dirección vigente
 
@@ -159,6 +159,33 @@ Corrección implementada en `fix/files-applications-load`:
 - sin thumbnails para APK virtuales;
 - pantalla principal y picker propio conservan sus iconos.
 
+## Evidencia física adicional — run 321
+
+VERIFICADO por capturas del dispositivo:
+- **Aplicaciones** carga correctamente dentro de Android Files;
+- la lista de aplicaciones instaladas es visible;
+- una aplicación con splits abre una carpeta virtual;
+- dentro aparecen `base.apk` y un split;
+- ERR-021 no se reproduce.
+
+Esto cierra PICKER-004. PICKER-003 todavía necesita validar selección/retorno de APK a una app receptora.
+
+## Trabajo actual — PRODUCT-005
+
+IMPLEMENTADO_PENDIENTE_VALIDACIÓN en `feat/bulk-actions-app-icons`:
+- modo de selección múltiple para elementos OclAx;
+- seleccionar todos los elementos visibles;
+- compartir varios elementos;
+- fijar/desfijar varios;
+- borrar varias copias OclAx con confirmación y sin tocar originales;
+- política unitaria para MIME compartido y objetivo de Fijados;
+- iconos de aplicaciones solicitados de forma puntual por package;
+- cache de thumbnails antes de repetir lookup;
+- soporte de thumbnail para documentos APK virtuales y carpetas virtuales de apps split.
+
+Límite de plataforma:
+- Android Files decide si usa y cómo presenta thumbnails en carpetas. OclAx puede ofrecer el icono, no controlar su renderizado exacto.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
@@ -173,14 +200,14 @@ Corrección implementada en `fix/files-applications-load`:
 
 ## Siguiente paso exacto
 
-1. Ejecutar CI de la rama con tests, lint y assembleDebug.
-2. Corregir cualquier fallo introducido por la renovación.
-3. Ejecutar revisiones obligatorias de Seguridad, Privacidad, Arquitectura, Plataforma Android, Calidad/Limpieza, QA y UX.
-4. Fusionar solo con CI verde.
-5. Validar en dispositivo:
-   - captura nueva compartida en ≤60 s;
-   - captura existente compartida después de >60 s;
-   - Fijados;
-   - renombrado;
-   - Files/DocumentsProvider con contenido OclAx + Mi dispositivo.
-6. Registrar resultados físicos y cerrar las tareas correspondientes.
+1. Ejecutar CI de `feat/bulk-actions-app-icons`.
+2. Corregir cualquier fallo introducido.
+3. Revisar Seguridad, Privacidad, Arquitectura, Plataforma Android, Calidad, Rendimiento, QA y UX aplicables.
+4. Fusionar solo con CI verde y comprobar main.
+5. Validar físicamente:
+   - seleccionar varios elementos OclAx;
+   - compartirlos;
+   - fijar/desfijar;
+   - borrar copias y confirmar que originales sobreviven;
+   - Android Files → Aplicaciones y comprobar iconos reales cuando el sistema los solicite.
+6. Registrar resultados y continuar con los pendientes de capturas/renombrado que aún no estén físicamente cerrados.

@@ -186,3 +186,28 @@ No existe base de datos ni servicio remoto.
 ## Regla de reemplazo
 
 Cuando una función se retire, sus consumidores, recursos, permisos, configuración, tests y CI se eliminan si ya no sirven a otra función. Git conserva el historial; el árbol activo solo conserva lo vigente.
+
+## Selección múltiple
+
+La selección vive en estado de presentación de `OclAxHome`; las operaciones reales siguen delegadas:
+
+- Compartir lote → `MainActivity` construye ACTION_SEND_MULTIPLE con FileProvider;
+- Fijar/Desfijar lote → `ItemStore.setPinned` por id;
+- Eliminar lote → `ItemStore.deleteItem` por id.
+
+`BulkActionPolicy` contiene decisiones puras reutilizables como MIME de lote y objetivo de Fijados.
+
+No se crea una capa nueva de persistencia ni se mezclan originales de **Mi dispositivo** con borrado masivo de copias OclAx.
+
+## Iconos de aplicaciones en DocumentsProvider
+
+La enumeración de **Aplicaciones** sigue usando `InstalledAppDocumentInfo` ligero.
+
+Solo ante `openDocumentThumbnail(documentId)`:
+1. se valida/parsea el documentId;
+2. se revisa cache privada del thumbnail;
+3. si falta, `InstalledAppsRepository.loadInstalledAppIcon(packageName)` hace lookup de un único package;
+4. se rasteriza y cachea PNG;
+5. se devuelve AssetFileDescriptor.
+
+Esto evita volver al patrón de enumerar/cargar iconos de todo el inventario que precedió ERR-021.

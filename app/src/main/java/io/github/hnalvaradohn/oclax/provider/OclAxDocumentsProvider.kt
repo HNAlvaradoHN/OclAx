@@ -10,6 +10,7 @@ import android.os.ParcelFileDescriptor
 import android.os.StatFs
 import android.provider.DocumentsContract
 import android.provider.DocumentsProvider
+import androidx.core.graphics.drawable.toBitmap
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
@@ -380,41 +381,13 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         sizeHint: Point,
         signal: CancellationSignal?,
     ): AssetFileDescriptor {
-        if (isDirectoryDocument(documentId)) {
+        val appRef = InstalledAppDocumentIds.parse(documentId)
+        if (isDirectoryDocument(documentId) && appRef !is InstalledAppDocumentRef.Directory) {
             throw FileNotFoundException("Una carpeta no tiene miniatura.")
         }
 
         signal?.throwIfCanceled()
         val targetPx = maxOf(sizeHint.x, sizeHint.y).coerceIn(96, 1024)
-
-        val appRef = InstalledAppDocumentIds.parse(documentId)
-        if (appRef != null) {
-            throw FileNotFoundException("Los APK instalados usan el icono genérico del sistema.")
-        }
-
-        val bitmap = when {
-            documentId.startsWith(DEVICE_FILE_PREFIX) -> {
-                val file = resolveDeviceFile(documentId)
-                    ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
-                if (!supportsThumbnail(file.mimeType)) {
-                    throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
-                }
-                thumbnailLoader.loadDevice(file, targetPx)
-            }
-
-            else -> {
-                val item = store.findItem(documentId)
-                    ?: throw FileNotFoundException("Documento no encontrado.")
-                if (!supportsThumbnail(item.mimeType)) {
-                    throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
-                }
-                val source = store.payloadFile(documentId)
-                    ?: throw FileNotFoundException("Documento no encontrado.")
-                thumbnailLoader.loadFile(source, contentTypeFor(item.mimeType), targetPx)
-            }
-        } ?: throw FileNotFoundException("No se pudo generar la miniatura.")
-
-        signal?.throwIfCanceled()
 
         val thumbnailDir = File(
             requireNotNull(context).cacheDir,
@@ -422,7 +395,37 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         ).apply { mkdirs() }
         val safeId = documentId.replace(Regex("[^A-Za-z0-9._-]"), "_").take(120)
         val thumbnailFile = File(thumbnailDir, "$safeId-$targetPx.png")
-        if (!thumbnailFile.exists()) {
+
+        if (!thumbnailFile.isFile) {
+            val bitmap = when {
+                appRef != null -> {
+                    val iconPx = targetPx.coerceAtMost(256)
+                    installedAppsRepository.loadInstalledAppIcon(appRef.packageName)
+                        ?.toBitmap(width = iconPx, height = iconPx)
+                }
+
+                documentId.startsWith(DEVICE_FILE_PREFIX) -> {
+                    val file = resolveDeviceFile(documentId)
+                        ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
+                    if (!supportsThumbnail(file.mimeType)) {
+                        throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
+                    }
+                    thumbnailLoader.loadDevice(file, targetPx)
+                }
+
+                else -> {
+                    val item = store.findItem(documentId)
+                        ?: throw FileNotFoundException("Documento no encontrado.")
+                    if (!supportsThumbnail(item.mimeType)) {
+                        throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
+                    }
+                    val source = store.payloadFile(documentId)
+                        ?: throw FileNotFoundException("Documento no encontrado.")
+                    thumbnailLoader.loadFile(source, contentTypeFor(item.mimeType), targetPx)
+                }
+            } ?: throw FileNotFoundException("No se pudo generar la miniatura.")
+
+            signal?.throwIfCanceled()
             thumbnailFile.outputStream().buffered().use { output ->
                 if (!bitmap.compress(Bitmap.CompressFormat.PNG, 90, output)) {
                     throw FileNotFoundException("No se pudo guardar la miniatura.")
@@ -588,6 +591,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                     InstalledAppDocumentIds.directory(app.packageName),
                     app.label,
                     prefersGrid = false,
+                    supportsThumbnail = true,
                 )
             }
 
@@ -629,6 +633,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                     InstalledAppDocumentIds.directory(app.packageName),
                     app.label,
                     prefersGrid = false,
+                    supportsThumbnail = true,
                 )
             }
 
@@ -664,7 +669,12 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         put(row, columns, DocumentsContract.Document.COLUMN_DISPLAY_NAME, displayName)
         put(row, columns, DocumentsContract.Document.COLUMN_MIME_TYPE, INSTALLED_APK_MIME_TYPE)
         put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, 0L)
-        put(row, columns, DocumentsContract.Document.COLUMN_FLAGS, 0)
+        put(
+            row,
+            columns,
+            DocumentsContract.Document.COLUMN_FLAGS,
+            DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL,
+        )
         put(row, columns, DocumentsContract.Document.COLUMN_SIZE, byteSize)
     }
 
@@ -687,6 +697,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         documentId: String,
         displayName: String,
         prefersGrid: Boolean,
+        supportsThumbnail: Boolean = false,
     ) {
         val row = cursor.newRow()
         put(row, columns, DocumentsContract.Document.COLUMN_DOCUMENT_ID, documentId)
@@ -697,8 +708,11 @@ class OclAxDocumentsProvider : DocumentsProvider() {
             DocumentsContract.Document.COLUMN_MIME_TYPE,
             DocumentsContract.Document.MIME_TYPE_DIR,
         )
-        val flags = DocumentsContract.Document.FLAG_DIR_PREFERS_LAST_MODIFIED or
+        var flags = DocumentsContract.Document.FLAG_DIR_PREFERS_LAST_MODIFIED or
             if (prefersGrid) DocumentsContract.Document.FLAG_DIR_PREFERS_GRID else 0
+        if (supportsThumbnail) {
+            flags = flags or DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL
+        }
         put(row, columns, DocumentsContract.Document.COLUMN_FLAGS, flags)
         put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, System.currentTimeMillis())
         put(row, columns, DocumentsContract.Document.COLUMN_SIZE, 0L)

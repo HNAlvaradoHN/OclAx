@@ -719,3 +719,34 @@ Reglas:
 - la UI sigue siendo de Android Files; OclAx solo controla documentos, categorías, MIME, nombres y miniaturas.
 
 **Motivo:** cumplir el contrato de producto también en la ruta SAF real mostrada físicamente por el usuario, sin fingir que ACTION_GET_CONTENT y ACTION_OPEN_DOCUMENT son la misma superficie.
+
+---
+
+## DEC-037 — Selección múltiple segura e iconos puntuales de aplicaciones
+
+**Selección múltiple**
+
+La primera selección múltiple de OclAx se limita a operaciones seguras sobre las **copias privadas de OclAx**:
+- compartir (máximo 100 elementos por Intent);
+- fijar/desfijar;
+- eliminar copias.
+
+No se implementan en lote:
+- renombrado, porque requiere definir una estrategia de nombres/colisiones;
+- mover originales, porque necesita destino y modifica archivos reales;
+- borrado masivo de Mi dispositivo, por mayor riesgo de pérdida de datos.
+
+La selección se activa explícitamente con **Seleccionar**. Mientras está activa, la búsqueda se deshabilita para que el conjunto visible no cambie silenciosamente. Atrás cancela primero la selección.
+
+**Iconos de aplicaciones en Android Files**
+
+Después de ERR-021, no se vuelve a cargar el inventario completo de iconos desde DocumentsProvider.
+
+Regla:
+- la lista SAF usa metadata ligera;
+- si Android Files solicita thumbnail para una app concreta, OclAx resuelve únicamente el icono de ese package;
+- el thumbnail se guarda en cache privada y se reutiliza;
+- un fallo de icono no debe impedir listar/abrir la aplicación;
+- las apps con splits conservan representación de carpeta con base + splits; OclAx ofrece thumbnail de app para esa carpeta, pero Android Files decide si lo muestra.
+
+**Motivo:** mejorar UX sin reintroducir el trabajo N+1/reentrante que precedió ERR-021 y sin ampliar operaciones destructivas.

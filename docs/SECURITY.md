@@ -222,3 +222,19 @@ PICKER-004 cambia rendimiento, no permisos ni alcance de datos:
 - los APK se abren en solo lectura;
 - no se accede a datos privados de las aplicaciones;
 - quitar thumbnails reduce trabajo repetido del provider y no amplía exposición.
+
+## Selección múltiple y thumbnails de aplicaciones
+
+PRODUCT-005 mantiene mínimo privilegio:
+
+- compartir varios elementos usa únicamente URIs de FileProvider con grant temporal de lectura;
+- eliminar en lote se limita a copias privadas de OclAx;
+- el borrado masivo no llama al borrado de originales ni a MediaStore;
+- no se añade borrado masivo de **Mi dispositivo**;
+- Fijar/Desfijar solo cambia metadata privada de OclAx;
+- MIME mixto se comparte como `*/*`, sin reinterpretar contenido;
+- ACTION_SEND_MULTIPLE queda limitado a 100 elementos para acotar extras/ClipData y evitar transacciones IPC excesivas;
+- los iconos de aplicaciones se resuelven por package concreto solo cuando DocumentsProvider recibe una solicitud de thumbnail;
+- el thumbnail queda en `cacheDir` y no contiene datos privados de la aplicación;
+- un fallo al obtener icono debe degradar presentación, no bloquear acceso al APK;
+- no se añaden permisos, red ni dependencias.

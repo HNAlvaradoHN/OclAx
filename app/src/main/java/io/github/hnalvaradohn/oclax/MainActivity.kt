@@ -57,6 +57,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
@@ -83,6 +84,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -93,6 +96,8 @@ import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.data.ViewModePreferences
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
+import io.github.hnalvaradohn.oclax.model.bulkPinTarget
+import io.github.hnalvaradohn.oclax.model.bulkShareMimeType
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.model.supportsClipboardCopy
 import io.github.hnalvaradohn.oclax.platform.ContentOpener
@@ -111,6 +116,8 @@ import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
 import java.util.concurrent.Executors
+
+private const val MAX_BULK_SELECTION = 100
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -181,6 +188,9 @@ class MainActivity : ComponentActivity() {
                         }
                         refresh()
                     },
+                    onShareMany = ::shareItems,
+                    onSetPinnedMany = ::setItemsPinned,
+                    onDeleteMany = ::deleteItems,
                     onOpen = ::openItem,
                     onShare = ::shareItem,
                     onCopy = ::copyItem,
@@ -553,6 +563,94 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun shareItems(selectedItems: List<StoredItem>) {
+        if (selectedItems.isEmpty()) return
+        if (selectedItems.size > MAX_BULK_SELECTION) {
+            Toast.makeText(
+                this,
+                "Podés compartir hasta $MAX_BULK_SELECTION elementos a la vez.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+        if (selectedItems.size == 1) {
+            shareItem(selectedItems.first())
+            return
+        }
+
+        try {
+            val uris = ArrayList(
+                selectedItems.map { item ->
+                    FileProvider.getUriForFile(
+                        this,
+                        packageName + ".fileprovider",
+                        store.payloadFile(item),
+                    )
+                },
+            )
+            val sendIntent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                type = bulkShareMimeType(selectedItems.map { it.mimeType })
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+
+            val clip = ClipData.newUri(
+                contentResolver,
+                selectedItems.first().displayName,
+                uris.first(),
+            )
+            uris.drop(1).forEach { uri ->
+                clip.addItem(ClipData.Item(uri))
+            }
+            sendIntent.clipData = clip
+
+            startActivity(Intent.createChooser(sendIntent, "Compartir desde OclAx"))
+        } catch (error: Exception) {
+            Toast.makeText(
+                this,
+                "No se pudieron compartir los elementos: " +
+                    (error.message ?: "error desconocido"),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
+
+    private fun setItemsPinned(selectedItems: List<StoredItem>, pinned: Boolean) {
+        if (selectedItems.isEmpty()) return
+        deviceExecutor.execute {
+            val updated = selectedItems.count { item ->
+                store.setPinned(item.id, pinned) != null
+            }
+            runOnUiThread {
+                refresh()
+                Toast.makeText(
+                    this,
+                    if (pinned) {
+                        "Se fijaron $updated de ${selectedItems.size} elementos."
+                    } else {
+                        "Se desfijaron $updated de ${selectedItems.size} elementos."
+                    },
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        }
+    }
+
+    private fun deleteItems(selectedItems: List<StoredItem>) {
+        if (selectedItems.isEmpty()) return
+        deviceExecutor.execute {
+            val deleted = selectedItems.count { item -> store.deleteItem(item.id) }
+            runOnUiThread {
+                refresh()
+                Toast.makeText(
+                    this,
+                    "Se eliminaron $deleted de ${selectedItems.size} copias de OclAx.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        }
+    }
+
     private fun copyItem(item: StoredItem) {
         val type = contentTypeFor(item.mimeType)
         if (!type.supportsClipboardCopy()) return
@@ -633,6 +731,9 @@ private fun OclAxHome(
     onRetentionChange: (Int) -> Unit,
     onPinToggle: (StoredItem) -> Unit,
     onDelete: (StoredItem) -> Unit,
+    onShareMany: (List<StoredItem>) -> Unit,
+    onSetPinnedMany: (List<StoredItem>, Boolean) -> Unit,
+    onDeleteMany: (List<StoredItem>) -> Unit,
     onOpen: (StoredItem) -> Unit,
     onShare: (StoredItem) -> Unit,
     onCopy: (StoredItem) -> Unit,
@@ -657,6 +758,9 @@ private fun OclAxHome(
     var pendingDelete by remember { mutableStateOf<StoredItem?>(null) }
     var pendingRename by remember { mutableStateOf<StoredItem?>(null) }
     var renameText by remember { mutableStateOf("") }
+    var selecting by remember { mutableStateOf(false) }
+    var selectedItemIds by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var showBulkDeleteConfirmation by remember { mutableStateOf(false) }
     var showExitConfirmation by remember { mutableStateOf(false) }
     var exitArmed by remember { mutableStateOf(false) }
 
@@ -675,6 +779,18 @@ private fun OclAxHome(
     val categoryOverview = remember(allItems) {
         contentFilterOverviewItems(allItems)
     }
+    val selectedItems = remember(allItems, selectedItemIds) {
+        allItems.filter { it.id in selectedItemIds }
+    }
+    val bulkPinValue = bulkPinTarget(selectedItems.map { it.pinned })
+
+    LaunchedEffect(allItems) {
+        val validIds = allItems.mapTo(mutableSetOf()) { it.id }
+        selectedItemIds = selectedItemIds.intersect(validIds)
+        if (selectedItemIds.isEmpty() && selecting && allItems.isEmpty()) {
+            selecting = false
+        }
+    }
 
     LaunchedEffect(sourceMode, query, filter) {
         if (sourceMode != SourceMode.OCLAX || query.isNotBlank() || filter != null) {
@@ -684,6 +800,12 @@ private fun OclAxHome(
     }
 
     BackHandler {
+        if (selecting) {
+            selecting = false
+            selectedItemIds = emptySet()
+            return@BackHandler
+        }
+
         when (
             homeBackAction(
                 sourceIsOclAx = sourceMode == SourceMode.OCLAX,
@@ -801,6 +923,36 @@ private fun OclAxHome(
         )
     }
 
+    if (showBulkDeleteConfirmation) {
+        AlertDialog(
+            onDismissRequest = { showBulkDeleteConfirmation = false },
+            title = { Text("¿Eliminar ${selectedItems.size} elementos de OclAx?") },
+            text = {
+                Text(
+                    "Solo se eliminarán las copias internas de OclAx. " +
+                        "Los archivos originales del dispositivo no se tocarán.",
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showBulkDeleteConfirmation = false
+                        onDeleteMany(selectedItems)
+                        selecting = false
+                        selectedItemIds = emptySet()
+                    },
+                ) {
+                    Text("Eliminar copias", color = MaterialTheme.colorScheme.error)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBulkDeleteConfirmation = false }) {
+                    Text("Cancelar")
+                }
+            },
+        )
+    }
+
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -825,6 +977,8 @@ private fun OclAxHome(
                     sourceMode = selected
                     query = ""
                     filter = null
+                    selecting = false
+                    selectedItemIds = emptySet()
                 },
             )
             Spacer(Modifier.height(12.dp))
@@ -860,6 +1014,7 @@ private fun OclAxHome(
                             value = query,
                             onValueChange = { query = it },
                             modifier = Modifier.fillMaxWidth(),
+                            enabled = !selecting,
                             singleLine = true,
                             label = { Text("Buscar en OclAx") },
                         )
@@ -884,29 +1039,80 @@ private fun OclAxHome(
                         }
                     } else {
                         item(key = "oclax-content-header") {
-                            Row(
-                                modifier = Modifier.fillMaxWidth(),
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                TextButton(
-                                    onClick = {
-                                        filter = null
-                                        query = ""
+                            if (selecting) {
+                                BulkSelectionBar(
+                                    selectedCount = selectedItems.size,
+                                    allVisibleSelected = visibleItems.isNotEmpty() &&
+                                        visibleItems.all { it.id in selectedItemIds },
+                                    canAct = selectedItems.isNotEmpty(),
+                                    pinValue = bulkPinValue,
+                                    onToggleAll = {
+                                        val visibleIds = visibleItems
+                                            .take(MAX_BULK_SELECTION)
+                                            .mapTo(mutableSetOf()) { it.id }
+                                        selectedItemIds = if (
+                                            visibleIds.isNotEmpty() &&
+                                            visibleIds.all { it in selectedItemIds }
+                                        ) {
+                                            selectedItemIds - visibleIds
+                                        } else {
+                                            visibleIds
+                                        }
                                     },
-                                ) {
-                                    Icon(
-                                        imageVector = Icons.Filled.ArrowBack,
-                                        contentDescription = null,
-                                        modifier = Modifier.size(18.dp),
-                                    )
-                                    Text("Categorías")
-                                }
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    filter?.label ?: "Resultados",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
+                                    onShare = {
+                                        onShareMany(selectedItems)
+                                        selecting = false
+                                        selectedItemIds = emptySet()
+                                    },
+                                    onPin = {
+                                        onSetPinnedMany(selectedItems, bulkPinValue)
+                                        selecting = false
+                                        selectedItemIds = emptySet()
+                                    },
+                                    onDelete = {
+                                        showBulkDeleteConfirmation = true
+                                    },
+                                    onCancel = {
+                                        selecting = false
+                                        selectedItemIds = emptySet()
+                                    },
                                 )
+                            } else {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    TextButton(
+                                        onClick = {
+                                            filter = null
+                                            query = ""
+                                        },
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Filled.ArrowBack,
+                                            contentDescription = null,
+                                            modifier = Modifier.size(18.dp),
+                                        )
+                                        Text("Categorías")
+                                    }
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        filter?.label ?: "Resultados",
+                                        modifier = Modifier.weight(1f),
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.SemiBold,
+                                    )
+                                    if (visibleItems.isNotEmpty()) {
+                                        TextButton(
+                                            onClick = {
+                                                selecting = true
+                                                selectedItemIds = emptySet()
+                                            },
+                                        ) {
+                                            Text("Seleccionar")
+                                        }
+                                    }
+                                }
                             }
                         }
 
@@ -925,6 +1131,17 @@ private fun OclAxHome(
                             items(visibleItems, key = { it.id }) { item ->
                                 ItemCard(
                                     item = item,
+                                    selectionMode = selecting,
+                                    selected = item.id in selectedItemIds,
+                                    onToggleSelection = {
+                                        selectedItemIds = if (item.id in selectedItemIds) {
+                                            selectedItemIds - item.id
+                                        } else if (selectedItemIds.size < MAX_BULK_SELECTION) {
+                                            selectedItemIds + item.id
+                                        } else {
+                                            selectedItemIds
+                                        }
+                                    },
                                     onPinToggle = onPinToggle,
                                     onDeleteRequest = { pendingDelete = item },
                                     onOpen = onOpen,
@@ -1083,8 +1300,76 @@ private fun RetentionControl(
 }
 
 @Composable
+private fun BulkSelectionBar(
+    selectedCount: Int,
+    allVisibleSelected: Boolean,
+    canAct: Boolean,
+    pinValue: Boolean,
+    onToggleAll: () -> Unit,
+    onShare: () -> Unit,
+    onPin: () -> Unit,
+    onDelete: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "$selectedCount seleccionados",
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            TextButton(onClick = onToggleAll) {
+                Text(if (allVisibleSelected) "Ninguno" else "Todos")
+            }
+            TextButton(onClick = onCancel) {
+                Text("Cancelar")
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            CompactActionButton(
+                icon = Icons.Outlined.Share,
+                description = "Compartir seleccionados",
+                enabled = canAct,
+                onClick = onShare,
+            )
+            CompactActionButton(
+                icon = if (pinValue) Icons.Outlined.StarBorder else Icons.Filled.Star,
+                description = if (pinValue) {
+                    "Fijar seleccionados"
+                } else {
+                    "Desfijar seleccionados"
+                },
+                enabled = canAct,
+                onClick = onPin,
+            )
+            CompactActionButton(
+                icon = Icons.Outlined.Delete,
+                description = "Eliminar seleccionados",
+                tint = MaterialTheme.colorScheme.error,
+                enabled = canAct,
+                onClick = onDelete,
+            )
+        }
+    }
+}
+
+@Composable
 private fun ItemCard(
     item: StoredItem,
+    selectionMode: Boolean,
+    selected: Boolean,
+    onToggleSelection: () -> Unit,
     onPinToggle: (StoredItem) -> Unit,
     onDeleteRequest: () -> Unit,
     onOpen: (StoredItem) -> Unit,
@@ -1098,17 +1383,34 @@ private fun ItemCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onOpen(item) },
+            .clickable {
+                if (selectionMode) onToggleSelection() else onOpen(item)
+            },
         colors = CardDefaults.cardColors(
             containerColor = MaterialTheme.colorScheme.surfaceVariant,
         ),
         border = BorderStroke(
-            1.dp,
-            if (item.pinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+            if (selected) 2.dp else 1.dp,
+            when {
+                selected -> MaterialTheme.colorScheme.primary
+                item.pinned -> MaterialTheme.colorScheme.primary
+                else -> MaterialTheme.colorScheme.outlineVariant
+            },
         ),
     ) {
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
+                if (selectionMode) {
+                    Checkbox(
+                        checked = selected,
+                        onCheckedChange = { onToggleSelection() },
+                        modifier = Modifier.semantics {
+                            contentDescription = "Seleccionar ${item.displayName}"
+                        },
+                    )
+                    Spacer(Modifier.width(4.dp))
+                }
+
                 StoredItemVisual(
                     item = item,
                     type = type,
@@ -1147,50 +1449,52 @@ private fun ItemCard(
                 }
             }
 
-            Spacer(Modifier.height(4.dp))
-            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            if (!selectionMode) {
+                Spacer(Modifier.height(4.dp))
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                CompactActionButton(
-                    icon = Icons.Outlined.Edit,
-                    description = "Renombrar ${item.displayName}",
-                    onClick = onRenameRequest,
-                )
-
-                CompactActionButton(
-                    icon = Icons.Outlined.Share,
-                    description = "Compartir ${item.displayName}",
-                    onClick = { onShare(item) },
-                )
-
-                if (type.supportsClipboardCopy()) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
                     CompactActionButton(
-                        icon = Icons.Outlined.ContentCopy,
-                        description = "Copiar ${item.displayName}",
-                        onClick = { onCopy(item) },
+                        icon = Icons.Outlined.Edit,
+                        description = "Renombrar ${item.displayName}",
+                        onClick = onRenameRequest,
+                    )
+
+                    CompactActionButton(
+                        icon = Icons.Outlined.Share,
+                        description = "Compartir ${item.displayName}",
+                        onClick = { onShare(item) },
+                    )
+
+                    if (type.supportsClipboardCopy()) {
+                        CompactActionButton(
+                            icon = Icons.Outlined.ContentCopy,
+                            description = "Copiar ${item.displayName}",
+                            onClick = { onCopy(item) },
+                        )
+                    }
+
+                    CompactActionButton(
+                        icon = if (item.pinned) Icons.Filled.Star else Icons.Outlined.StarBorder,
+                        description = if (item.pinned) {
+                            "Desfijar ${item.displayName}"
+                        } else {
+                            "Fijar ${item.displayName}"
+                        },
+                        onClick = { onPinToggle(item) },
+                    )
+
+                    CompactActionButton(
+                        icon = Icons.Outlined.Delete,
+                        description = "Eliminar ${item.displayName}",
+                        tint = MaterialTheme.colorScheme.error,
+                        onClick = onDeleteRequest,
                     )
                 }
-
-                CompactActionButton(
-                    icon = if (item.pinned) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                    description = if (item.pinned) {
-                        "Desfijar ${item.displayName}"
-                    } else {
-                        "Fijar ${item.displayName}"
-                    },
-                    onClick = { onPinToggle(item) },
-                )
-
-                CompactActionButton(
-                    icon = Icons.Outlined.Delete,
-                    description = "Eliminar ${item.displayName}",
-                    tint = MaterialTheme.colorScheme.error,
-                    onClick = onDeleteRequest,
-                )
             }
         }
     }
