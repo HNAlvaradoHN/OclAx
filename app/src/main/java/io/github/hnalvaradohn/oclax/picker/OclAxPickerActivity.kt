@@ -22,6 +22,9 @@ import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.platform.DeviceContentRepository
 import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
+import io.github.hnalvaradohn.oclax.platform.InstalledAppExporter
+import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
+import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import java.util.concurrent.Executors
@@ -37,13 +40,17 @@ class OclAxPickerActivity : ComponentActivity() {
     private val store by lazy { ItemStore(applicationContext) }
     private val deviceContentRepository by lazy { DeviceContentRepository(applicationContext) }
     private val thumbnailLoader by lazy { ThumbnailLoader(applicationContext) }
+    private val installedAppsRepository by lazy { InstalledAppsRepository(applicationContext) }
+    private val installedAppExporter by lazy { InstalledAppExporter(applicationContext) }
     private val executor = Executors.newSingleThreadExecutor()
 
     private var oclaxItems by mutableStateOf<List<StoredItem>>(emptyList())
     private var deviceFiles by mutableStateOf<List<DeviceFileInfo>>(emptyList())
+    private var installedApps by mutableStateOf<List<InstalledAppInfo>>(emptyList())
     private var hasBroadFileAccess by mutableStateOf(false)
     private var loading by mutableStateOf(false)
     private var selected by mutableStateOf<List<PickerSelection>>(emptyList())
+    private var exportingAppPackage by mutableStateOf<String?>(null)
 
     private var requestedMimeTypes: List<String> = listOf("*/*")
     private var allowMultiple: Boolean = false
@@ -65,11 +72,13 @@ class OclAxPickerActivity : ComponentActivity() {
                 PickerScreen(
                     oclaxItems = oclaxItems,
                     deviceFiles = deviceFiles,
+                    installedApps = installedApps,
                     requestedMimeTypes = requestedMimeTypes,
                     hasBroadFileAccess = hasBroadFileAccess,
                     loading = loading,
                     allowMultiple = allowMultiple,
                     selected = selected,
+                    exportingAppPackage = exportingAppPackage,
                     onCancel = {
                         setResult(Activity.RESULT_CANCELED)
                         finish()
@@ -77,6 +86,7 @@ class OclAxPickerActivity : ComponentActivity() {
                     onRequestBroadAccess = ::requestBroadFileAccess,
                     onSelectOclAxItem = ::selectOclAxItem,
                     onSelectDeviceFile = ::selectDeviceFile,
+                    onSelectInstalledApp = ::selectInstalledApp,
                     onLoadOclAxThumbnail = ::loadOclAxThumbnail,
                     onLoadDeviceThumbnail = thumbnailLoader::loadDevice,
                     onConfirmSelection = { finishWithSelections(selected) },
@@ -112,6 +122,8 @@ class OclAxPickerActivity : ComponentActivity() {
 
         executor.execute {
             val localItems = runCatching { store.listItems() }.getOrDefault(emptyList())
+            val apps = runCatching { installedAppsRepository.listInstalledApps() }
+                .getOrDefault(emptyList())
             val files = if (deviceContentRepository.hasBroadFileAccess()) {
                 runCatching { deviceContentRepository.listFiles() }.getOrDefault(emptyList())
             } else {
@@ -122,6 +134,7 @@ class OclAxPickerActivity : ComponentActivity() {
             runOnUiThread {
                 oclaxItems = localItems
                 deviceFiles = files
+                installedApps = apps
                 hasBroadFileAccess = deviceContentRepository.hasBroadFileAccess()
                 loading = false
             }
@@ -212,6 +225,72 @@ class OclAxPickerActivity : ComponentActivity() {
                 mimeType = file.mimeType,
             ),
         )
+    }
+
+    private fun selectInstalledApp(app: InstalledAppInfo) {
+        val baseKey = "installed-app:" + app.packageName
+        if (allowMultiple && selected.any { it.key == baseKey || it.key.startsWith("$baseKey:") }) {
+            selected = selected.filterNot { it.key == baseKey || it.key.startsWith("$baseKey:") }
+            return
+        }
+        if (exportingAppPackage != null) return
+
+        exportingAppPackage = app.packageName
+        executor.execute {
+            val result = runCatching { installedAppExporter.prepare(app) }
+            if (isDestroyed) return@execute
+
+            runOnUiThread {
+                exportingAppPackage = null
+                result.onSuccess { exported ->
+                    if (!allowMultiple && exported.apkCount != 1) {
+                        Toast.makeText(
+                            this,
+                            "Esta aplicación usa varios APK. La app receptora debe permitir varios archivos.",
+                            Toast.LENGTH_LONG,
+                        ).show()
+                        return@onSuccess
+                    }
+
+                    val appSelections = exported.uris.mapIndexed { index, uri ->
+                        PickerSelection(
+                            key = if (index == 0) baseKey else "$baseKey:$index",
+                            uri = uri,
+                            displayName = if (exported.apkCount == 1) {
+                                exported.label + ".apk"
+                            } else if (index == 0) {
+                                exported.label + " · base.apk"
+                            } else {
+                                exported.label + " · split-$index.apk"
+                            },
+                            mimeType = INSTALLED_APP_MIME_TYPE,
+                        )
+                    }
+
+                    if (!allowMultiple) {
+                        finishWithSelections(appSelections)
+                        return@onSuccess
+                    }
+
+                    if (selected.size + appSelections.size > MAX_SELECTIONS) {
+                        Toast.makeText(
+                            this,
+                            "La aplicación supera el límite de $MAX_SELECTIONS archivos seleccionados.",
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                        return@onSuccess
+                    }
+                    selected = selected + appSelections
+                }.onFailure { error ->
+                    Toast.makeText(
+                        this,
+                        "No se pudo preparar la aplicación: " +
+                            (error.message ?: "error desconocido"),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
+        }
     }
 
     private fun select(selection: PickerSelection) {
