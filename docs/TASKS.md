@@ -2,6 +2,37 @@
 
 ## Prioridad actual
 
+### PICKER-003 — Aplicaciones instaladas dentro de Android Files/SAF
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Evidencia física:
+- run 317 muestra **OclAx → Mi dispositivo** dentro de Android Files;
+- se ven archivos/categorías reales, pero no **Aplicaciones**.
+
+Causa verificada:
+- esa ruta usa `OclAxDocumentsProvider`, no el picker propio;
+- DocumentsProvider no exponía PackageManager/InstalledAppsRepository.
+
+Implementado en `fix/documents-provider-installed-apps`:
+- categoría **Aplicaciones**;
+- app de APK único como documento virtual de solo lectura;
+- icono real como miniatura;
+- app con splits como carpeta que contiene base + splits;
+- búsqueda por nombre/package;
+- IDs virtuales validados;
+- no se requiere MANAGE_EXTERNAL_STORAGE para Aplicaciones.
+
+Pendiente:
+- CI verde;
+- instalar nueva APK;
+- verificar **Archivos → OclAx → Mi dispositivo → Aplicaciones**;
+- seleccionar una app de APK único;
+- entrar en una app con splits y comprobar sus componentes;
+- confirmar que la app receptora puede leer el APK seleccionado.
+
+---
+
 ### PICKER-002 — Mostrar aplicaciones instaladas al adjuntar desde otra app
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta
