@@ -6,7 +6,7 @@
 **Aplicación:** funcional en main; renovación local fusionada con CI verde. Validación física en progreso.  
 **Repositorio:** público.  
 **Protocol version:** 6.  
-**Autorización actual:** retirar LAN, renovar el producto local, añadir limpieza inteligente de capturas, renombrado real y acceso combinado desde selectores.
+**Autorización actual:** cerrar el hallazgo físico de aplicaciones ausentes en Android Files/DocumentsProvider.
 
 ## Dirección vigente
 
@@ -115,6 +115,30 @@ Corrección implementada en fix/picker-installed-apps:
 - exportación mediante InstalledAppExporter;
 - base + splits solo cuando el caller permite múltiples archivos.
 
+## Evidencia física adicional — run 317
+
+VERIFICADO por captura del dispositivo:
+- la pantalla mostrada es Android Files con breadcrumb **OclAx → Mi dispositivo**;
+- aparecen categorías/archivos reales del dispositivo;
+- **Aplicaciones** no aparece.
+
+Corrección de diagnóstico:
+- PR #84 corrigió `OclAxPickerActivity` (`ACTION_GET_CONTENT`);
+- la captura corresponde a `OclAxDocumentsProvider` (`ACTION_OPEN_DOCUMENT`/SAF);
+- por tanto PR #84 no podía modificar esa pantalla concreta.
+
+Causa raíz:
+- `OclAxDocumentsProvider` solo exponía categorías de archivos MediaStore y archivos reales;
+- no consultaba `InstalledAppsRepository` ni creaba documentos virtuales para paquetes instalados.
+
+Implementado en `fix/documents-provider-installed-apps`:
+- categoría **Aplicaciones** en Mi dispositivo;
+- APK único como documento virtual seleccionable con icono;
+- apps con splits como carpeta base + splits;
+- búsqueda por nombre/package;
+- acceso de solo lectura a código APK instalado;
+- IDs virtuales validados para no aceptar rutas arbitrarias.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
@@ -123,7 +147,7 @@ Corrección implementada en fix/picker-installed-apps:
 - validar expiración real de captura reciente y supervivencia de captura >60 s;
 - validar Fijados;
 - validar renombrado OclAx↔original y renombrado desde Mi dispositivo;
-- validar **Archivos → OclAx** mostrando contenido real del dispositivo;
+- validar **Archivos → OclAx → Mi dispositivo → Aplicaciones** y selección de APK instalado;
 - confirmar que el picker propio sigue devolviendo archivos correctamente;
 - auditar APK/Manifest final para comprobar ausencia total de runtime/permisos LAN.
 

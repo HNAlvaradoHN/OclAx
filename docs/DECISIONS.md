@@ -700,3 +700,22 @@ Reglas:
 - la categoría solo aparece cuando el MIME solicitado es compatible con application/vnd.android.package-archive.
 
 **Motivo:** Mi dispositivo dentro del picker debe conservar la capacidad de elegir aplicaciones instaladas que ya existe en la aplicación principal, sin confundirlas con APK sueltos ni romper el contrato MIME del caller.
+
+---
+
+## DEC-036 — Aplicaciones instaladas también se exponen por DocumentsProvider
+
+**Contexto:** la prueba física de run 317 abrió la ruta Android **Archivos → OclAx → Mi dispositivo**. Esa ruta usa `ACTION_OPEN_DOCUMENT`/SAF y `OclAxDocumentsProvider`, no `OclAxPickerActivity`. Por eso la corrección de DEC-035 no podía aparecer en esa pantalla.
+
+**Decisión:** `OclAxDocumentsProvider` debe incluir una categoría **Aplicaciones** dentro de **Mi dispositivo**.
+
+Reglas:
+- una app con un solo APK se expone como documento virtual `Nombre.apk`, de solo lectura, con icono de la aplicación como miniatura;
+- una app instalada con base + splits se expone como carpeta con sus APK componentes, porque SAF no puede representar de forma segura un paquete multi-APK como un único archivo APK;
+- abrir un documento de aplicación entrega directamente un file descriptor de solo lectura al APK instalado; no se expone `dataDir` ni ningún dato privado;
+- **Aplicaciones** puede mostrarse aunque el acceso amplio a archivos esté revocado, porque depende de PackageManager/QUERY_ALL_PACKAGES y no de MANAGE_EXTERNAL_STORAGE;
+- **APK** sigue significando archivos `.apk` existentes en almacenamiento; **Aplicaciones** significa software instalado;
+- búsqueda del DocumentsProvider incluye nombre y package de aplicaciones;
+- la UI sigue siendo de Android Files; OclAx solo controla documentos, categorías, MIME, nombres y miniaturas.
+
+**Motivo:** cumplir el contrato de producto también en la ruta SAF real mostrada físicamente por el usuario, sin fingir que ACTION_GET_CONTENT y ACTION_OPEN_DOCUMENT son la misma superficie.
