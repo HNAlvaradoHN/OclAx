@@ -40,13 +40,24 @@ Valida la nueva excepción de capturas:
 Valida clasificación por MIME y elegibilidad de Copiar.
 
 ### PickerCategoryTest / PickerMimeMatcherTest
-Validan categorías, MIME exacto/wildcard y restricciones del caller.
+Validan categorías, MIME exacto/wildcard, restricciones del caller y que **Aplicaciones** solo aparezca cuando el MIME solicitado acepta APK.
 
 ### BackNavigationPolicyTest
 Valida jerarquía de Atrás y salida.
 
 ### CategoryAccentTest
 Valida paleta semántica/fallback.
+
+## Validación física nueva — run 314
+
+VERIFICADO:
+- UI principal sin LAN/Motor/Mis dispositivos;
+- screenshot reciente reconocida como elegible para limpiar el original;
+- screenshot elegible fijada muestra que el original queda protegido;
+- el flujo de selección muestra el resto del contenido real del dispositivo.
+
+HALLAZGO confirmado:
+- el picker externo no mostraba aplicaciones instaladas; se corrige en PICKER-002.
 
 ## Validación física ya confirmada
 
@@ -211,3 +222,21 @@ Una tarea pasa a DONE solo cuando:
 
 Mientras falte prueba real:
 `IMPLEMENTED_PENDING_VALIDATION`.
+
+### PICKER-002 — Aplicaciones instaladas
+
+Validación automática:
+1. PickerCategory.APPLICATIONS no se mezcla con archivos APK;
+2. installedAppsCompatible() acepta */*, application/* y MIME APK;
+3. rechaza image/* y application/pdf;
+4. tests/lint/build verdes.
+
+Validación física:
+1. abrir una app que permita adjuntar archivo con MIME compatible;
+2. elegir **OclAx → Mi dispositivo**;
+3. confirmar tarjeta **Aplicaciones**;
+4. entrar y ver iconos/nombres reales;
+5. elegir una app con APK único y confirmar retorno al caller;
+6. buscar por nombre/package;
+7. con una app que use splits: caller sin múltiple debe recibir aviso; caller con múltiple debe recibir base + splits;
+8. comprobar que no se exportan datos privados de la aplicación.
