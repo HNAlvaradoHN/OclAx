@@ -48,6 +48,29 @@ ERR-020 permitió que **Aplicaciones** apareciera en Android Files. La prueba de
 **Validación pendiente:** CI y repetir exactamente `Archivos → OclAx → Mi dispositivo → Aplicaciones` en el mismo dispositivo.
 
 ---
+### ERR-021 — Android Files no puede cargar Aplicaciones
+**Estado:** CORRECCIÓN_IMPLEMENTADA_PENDIENTE_CI_FÍSICA
+
+**Evidencia física:** run 319 muestra OclAx → Mi dispositivo → Aplicaciones, pero Android Files presenta “No se puede cargar el contenido en este momento”.
+
+**VERIFICADO en código:**
+- la consulta cargaba iconos de todas las apps aunque SAF solo necesita metadata;
+- por cada app hacía otra consulta para descubrir base/splits;
+- cada APK virtual anunciaba thumbnail, lo que podía repetir el trabajo.
+
+**HIPÓTESIS TÉCNICA:** esa ruta demasiado pesada hace fallar o agotar el tiempo de Android Files en este dispositivo. Sin logcat no se declara como causa runtime confirmada.
+
+**Corrección defensiva:**
+- metadata ligera específica para DocumentsProvider, sin Drawable;
+- una sola enumeración para listar apps y sus APK;
+- lookup puntual por package para documentos individuales;
+- APK virtuales sin thumbnails;
+- IDs validados y apertura de solo lectura se conservan.
+
+**Validación pendiente:** CI y repetir la misma ruta física.
+
+---
+
 ## Funcionalidad retirada
 
 ### ERR-016 / ERR-017 / ERR-018 / ERR-019 — bloque LAN
