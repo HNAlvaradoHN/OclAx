@@ -201,3 +201,14 @@ PICKER-002 reutiliza InstalledAppExporter:
 - respeta el MIME pedido por el caller;
 - una instalación split no se degrada silenciosamente a solo base.apk;
 - no añade permisos nuevos.
+
+## Aplicaciones instaladas por DocumentsProvider
+
+PICKER-003 expone solo código de instalación:
+- `sourceDir` y `splitSourceDirs` obtenidos de PackageManager;
+- file descriptors de solo lectura;
+- IDs virtuales validados; un documentId no se convierte en una ruta arbitraria;
+- icono/nombre/package como metadata visible;
+- nunca `dataDir`, preferencias, DB, cuentas, sesiones o caché privada;
+- sin permisos nuevos;
+- apps con splits se mantienen separadas en sus APK componentes; no se inventa un APK monolítico.
