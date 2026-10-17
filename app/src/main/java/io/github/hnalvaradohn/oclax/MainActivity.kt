@@ -45,12 +45,12 @@ import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Image as ImageIcon
 import androidx.compose.material.icons.outlined.InsertDriveFile
 import androidx.compose.material.icons.outlined.Movie
 import androidx.compose.material.icons.outlined.PictureAsPdf
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material.icons.outlined.SendToMobile
 import androidx.compose.material.icons.outlined.StarBorder
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -90,8 +90,6 @@ import androidx.core.content.FileProvider
 import androidx.core.graphics.drawable.toBitmap
 import io.github.hnalvaradohn.oclax.data.ContentViewMode
 import io.github.hnalvaradohn.oclax.data.ItemStore
-import io.github.hnalvaradohn.oclax.data.PairedDevice
-import io.github.hnalvaradohn.oclax.data.PairedDeviceStore
 import io.github.hnalvaradohn.oclax.data.ViewModePreferences
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
@@ -105,14 +103,10 @@ import io.github.hnalvaradohn.oclax.platform.InstalledAppExporter
 import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
-import io.github.hnalvaradohn.oclax.platform.transfer.IncomingTransferOffer
-import io.github.hnalvaradohn.oclax.platform.transfer.TransferRuntimeController
-import io.github.hnalvaradohn.oclax.transfer.FileTransferCoordinator
 import io.github.hnalvaradohn.oclax.ui.CategoryOverviewGrid
 import io.github.hnalvaradohn.oclax.ui.CategoryOverviewItem
 import io.github.hnalvaradohn.oclax.ui.theme.OclAxTheme
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
@@ -121,43 +115,22 @@ import java.util.concurrent.Executors
 class MainActivity : ComponentActivity() {
     companion object {
         private const val MAX_CLIPBOARD_TEXT_BYTES = 2L * 1024L * 1024L
-        private const val LAN_HEALTH_MISSES_BEFORE_ISOLATION = 2
     }
 
     private val store by lazy { ItemStore(applicationContext) }
-    private val pairedDeviceStore by lazy { PairedDeviceStore(applicationContext) }
     private val installedAppsRepository by lazy { InstalledAppsRepository(applicationContext) }
     private val installedAppExporter by lazy { InstalledAppExporter(applicationContext) }
     private val deviceContentRepository by lazy { DeviceContentRepository(applicationContext) }
     private val thumbnailLoader by lazy { ThumbnailLoader(applicationContext) }
     private val viewModePreferences by lazy { ViewModePreferences(applicationContext) }
     private val contentOpener by lazy { ContentOpener(this) }
-    private val transferRuntimeController by lazy { TransferRuntimeController(applicationContext) }
-    private val fileTransferCoordinator by lazy {
-        FileTransferCoordinator(store, transferRuntimeController)
-    }
     private val deviceExecutor = Executors.newSingleThreadExecutor()
-    private val transferExecutor = Executors.newSingleThreadExecutor()
-    private val fileTransferExecutor = Executors.newFixedThreadPool(2)
     private var items by mutableStateOf<List<StoredItem>>(emptyList())
     private var installedApps by mutableStateOf<List<InstalledAppInfo>>(emptyList())
     private var deviceFiles by mutableStateOf<List<DeviceFileInfo>>(emptyList())
     private var hasBroadFileAccess by mutableStateOf(false)
     private var deviceLoading by mutableStateOf(false)
     private var retentionHours by mutableIntStateOf(24)
-    private var pairedDevices by mutableStateOf<List<PairedDevice>>(emptyList())
-    private var transferDeviceId by mutableStateOf<String?>(null)
-    private var transferRuntimeStatus by mutableStateOf("Motor de envío sin probar.")
-    private var transferRuntimeBusy by mutableStateOf(false)
-    private var lanBusyDeviceId by mutableStateOf<String?>(null)
-    private var activeLanDeviceId by mutableStateOf<String?>(null)
-    private var lanStatusByDevice by mutableStateOf<Map<String, String>>(emptyMap())
-    private var fileTransferBusy by mutableStateOf(false)
-    private var itemTransferStatusById by mutableStateOf<Map<String, String>>(emptyMap())
-    private var pendingIncomingTransfers by mutableStateOf<List<IncomingTransferOffer>>(emptyList())
-    private var incomingTransferStatusById by mutableStateOf<Map<String, String>>(emptyMap())
-    private var incomingRefreshBusy = false
-    private var lanConnectionMisses = 0
     private var pendingSystemDeleteName: String? = null
 
     private val deviceDeleteLauncher = registerForActivityResult(
@@ -211,6 +184,7 @@ class MainActivity : ComponentActivity() {
                     onOpen = ::openItem,
                     onShare = ::shareItem,
                     onCopy = ::copyItem,
+                    onRename = ::renameItem,
                     onLoadItemThumbnail = { item, targetPx ->
                         runCatching {
                             thumbnailLoader.loadFile(
@@ -225,35 +199,13 @@ class MainActivity : ComponentActivity() {
                     onShareDeviceFile = ::shareDeviceFile,
                     onCopyDeviceFile = ::copyDeviceFile,
                     onDeleteDeviceFile = ::deleteDeviceFile,
+                    onRenameDeviceFile = ::renameDeviceFile,
                     onOpenApp = ::openInstalledApp,
                     onShareApp = ::shareInstalledApp,
                     onLoadDeviceThumbnail = thumbnailLoader::loadDevice,
                     onLoadDeviceViewMode = viewModePreferences::getDeviceMode,
                     onSaveDeviceViewMode = viewModePreferences::setDeviceMode,
-                    transferRuntimeStatus = transferRuntimeStatus,
-                    transferRuntimeBusy = transferRuntimeBusy,
-                    transferDeviceId = transferDeviceId,
-                    pairedDevices = pairedDevices,
-                    lanBusyDeviceId = lanBusyDeviceId,
-                    activeLanDeviceId = activeLanDeviceId,
-                    lanStatusByDevice = lanStatusByDevice,
-                    fileTransferBusy = fileTransferBusy,
-                    itemTransferStatusById = itemTransferStatusById,
-                    pendingIncomingTransfers = pendingIncomingTransfers,
-                    incomingTransferStatusById = incomingTransferStatusById,
-                    onProbeTransferRuntime = ::probeTransferRuntime,
-                    onStopTransferRuntime = ::stopTransferRuntime,
-                    onShareTransferDeviceId = ::shareTransferDeviceId,
-                    onAddPairedDevice = ::addPairedDevice,
-                    onSetAllowWithoutAccept = ::setAllowWithoutAccept,
-                    onRemovePairedDevice = ::removePairedDevice,
-                    onTestLan = ::testLanConnection,
-                    onDisconnectLan = ::disconnectLan,
-                    onSendItem = ::sendItemToActiveDevice,
-                    onRefreshIncomingTransfers = ::refreshIncomingTransfers,
-                    onAcceptIncomingTransfer = ::acceptIncomingTransfer,
-                    onRejectIncomingTransfer = ::rejectIncomingTransfer,
-                    onExitApp = ::exitApp,
+                    onExitApp = { finish() },
                 )
             }
         }
@@ -264,506 +216,56 @@ class MainActivity : ComponentActivity() {
         refresh()
     }
 
-    private fun exitApp() {
-        if (
-            transferDeviceId != null ||
-            activeLanDeviceId != null ||
-            transferRuntimeBusy ||
-            lanBusyDeviceId != null
-        ) {
-            runCatching { transferRuntimeController.stop() }
-        }
-        finish()
-    }
-
     override fun onDestroy() {
         deviceExecutor.shutdownNow()
-        transferExecutor.shutdownNow()
-        fileTransferExecutor.shutdownNow()
         super.onDestroy()
-    }
-
-    private fun probeTransferRuntime() {
-        if (transferRuntimeBusy) return
-        if (activeLanDeviceId != null) {
-            Toast.makeText(
-                this,
-                "Desconectá la prueba LAN antes de volver a probar el motor.",
-                Toast.LENGTH_SHORT,
-            ).show()
-            return
-        }
-
-        transferRuntimeBusy = true
-        transferRuntimeStatus = "Iniciando motor de envío…"
-
-        val started = runCatching {
-            transferRuntimeController.start()
-        }
-        if (started.isFailure) {
-            transferRuntimeBusy = false
-            transferRuntimeStatus = "No se pudo iniciar el motor."
-            Toast.makeText(
-                this,
-                "No se pudo iniciar el motor de envío.",
-                Toast.LENGTH_SHORT,
-            ).show()
-            return
-        }
-
-        transferExecutor.execute {
-            val result = runCatching {
-                transferRuntimeController.probe()
-            }
-            runOnUiThread {
-                transferRuntimeBusy = false
-                result.onSuccess { probe ->
-                    transferDeviceId = probe.deviceId
-                    val shortId = probe.deviceId.take(7)
-                    val isolation = if (probe.nonLoopbackAddressesChecked > 0) {
-                        "loopback verificado"
-                    } else {
-                        "loopback configurado"
-                    }
-                    transferRuntimeStatus = "Listo · ID $shortId… · $isolation."
-                }.onFailure { error ->
-                    transferRuntimeStatus =
-                        "Prueba falló: " + (error.message ?: "error desconocido")
-                }
-            }
-        }
-    }
-
-    private fun stopTransferRuntime() {
-        if (transferRuntimeBusy) return
-
-        transferRuntimeBusy = true
-        transferRuntimeStatus = "Deteniendo motor de envío…"
-        val requested = runCatching {
-            transferRuntimeController.stop()
-        }
-        if (requested.isFailure) {
-            transferRuntimeBusy = false
-            transferRuntimeStatus = "No se pudo solicitar la detención."
-            return
-        }
-
-        transferExecutor.execute {
-            val stopped = runCatching {
-                transferRuntimeController.awaitStopped()
-            }.getOrDefault(false)
-
-            runOnUiThread {
-                transferRuntimeBusy = false
-                activeLanDeviceId = null
-                lanBusyDeviceId = null
-                lanConnectionMisses = 0
-                lanStatusByDevice = emptyMap()
-                pendingIncomingTransfers = emptyList()
-                transferRuntimeStatus = if (stopped) {
-                    "Motor de envío detenido correctamente."
-                } else {
-                    "Android aún reporta el motor activo."
-                }
-            }
-        }
-    }
-
-    private fun testLanConnection(device: PairedDevice) {
-        if (transferRuntimeBusy || lanBusyDeviceId != null) return
-
-        val active = activeLanDeviceId
-        if (active != null && active != device.deviceId) {
-            Toast.makeText(
-                this,
-                "Desconectá el otro dispositivo antes de probar uno diferente.",
-                Toast.LENGTH_SHORT,
-            ).show()
-            return
-        }
-        if (active == device.deviceId) return
-
-        transferRuntimeBusy = true
-        lanBusyDeviceId = device.deviceId
-        transferRuntimeStatus = "Buscando dispositivo por LAN…"
-        lanStatusByDevice = lanStatusByDevice + (
-            device.deviceId to "Buscando por LAN… Abrí OclAx en ambos teléfonos."
-            )
-
-        transferExecutor.execute {
-            val result = runCatching {
-                transferRuntimeController.connectLan(
-                    rawDeviceId = device.deviceId,
-                    name = device.name,
-                )
-            }
-
-            runOnUiThread {
-                transferRuntimeBusy = false
-                lanBusyDeviceId = null
-                result.onSuccess {
-                    activeLanDeviceId = device.deviceId
-                    lanConnectionMisses = 0
-                    lanStatusByDevice = lanStatusByDevice + (
-                        device.deviceId to "Conectado por LAN."
-                        )
-                    transferRuntimeStatus = "Motor activo · conexión LAN verificada."
-                    refreshIncomingTransfers()
-                }.onFailure { error ->
-                    if (activeLanDeviceId == device.deviceId) {
-                        activeLanDeviceId = null
-                    }
-                    lanStatusByDevice = lanStatusByDevice + (
-                        device.deviceId to
-                            ("No se conectó por LAN: " + (error.message ?: "error desconocido"))
-                        )
-                    transferRuntimeStatus = "LAN no conectó · motor volvió a modo aislado."
-                }
-            }
-        }
-    }
-
-    private fun disconnectLan(device: PairedDevice) {
-        if (fileTransferBusy) {
-            Toast.makeText(
-                this,
-                "Esperá a que termine la transferencia antes de desconectar LAN.",
-                Toast.LENGTH_SHORT,
-            ).show()
-            return
-        }
-        if (transferRuntimeBusy || lanBusyDeviceId != null) return
-        if (activeLanDeviceId != device.deviceId) return
-
-        transferRuntimeBusy = true
-        lanBusyDeviceId = device.deviceId
-        lanStatusByDevice = lanStatusByDevice + (
-            device.deviceId to "Desconectando LAN…"
-            )
-
-        transferExecutor.execute {
-            val result = runCatching {
-                transferRuntimeController.disconnectLan(device.deviceId)
-            }
-
-            runOnUiThread {
-                transferRuntimeBusy = false
-                lanBusyDeviceId = null
-                activeLanDeviceId = null
-                lanConnectionMisses = 0
-                pendingIncomingTransfers = emptyList()
-                lanStatusByDevice = lanStatusByDevice + (
-                    device.deviceId to if (result.isSuccess) {
-                        "Desconectado · motor aislado."
-                    } else {
-                        "Se cerró la prueba LAN; revisá el motor antes de reintentar."
-                    }
-                    )
-                transferRuntimeStatus = if (result.isSuccess) {
-                    "Motor aislado."
-                } else {
-                    "Motor detenido por seguridad."
-                }
-            }
-        }
-    }
-
-    private fun sendItemToActiveDevice(item: StoredItem) {
-        val deviceId = activeLanDeviceId
-        if (deviceId == null) {
-            Toast.makeText(
-                this,
-                "Conectá primero un dispositivo por LAN.",
-                Toast.LENGTH_SHORT,
-            ).show()
-            return
-        }
-        if (fileTransferBusy) return
-
-        fileTransferBusy = true
-        itemTransferStatusById = itemTransferStatusById + (
-            item.id to "Preparando envío…"
-            )
-
-        fileTransferExecutor.execute {
-            val result = runCatching {
-                fileTransferCoordinator.send(
-                    item = item,
-                    deviceId = deviceId,
-                    onProgress = { progress ->
-                        runOnUiThread {
-                            itemTransferStatusById = itemTransferStatusById + (
-                                item.id to progress.message
-                                )
-                        }
-                    },
-                )
-            }
-
-            runOnUiThread {
-                fileTransferBusy = false
-                result.onSuccess {
-                    itemTransferStatusById = itemTransferStatusById + (
-                        item.id to "Enviado y recibido."
-                        )
-                    Toast.makeText(
-                        this,
-                        "Transferencia completada.",
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                }.onFailure { error ->
-                    itemTransferStatusById = itemTransferStatusById + (
-                        item.id to
-                            ("No se pudo enviar: " + (error.message ?: "error desconocido"))
-                        )
-                }
-            }
-        }
-    }
-
-    private fun refreshIncomingTransfers() {
-        val deviceId = activeLanDeviceId ?: return
-        if (fileTransferBusy || incomingRefreshBusy) return
-        incomingRefreshBusy = true
-        fileTransferExecutor.execute {
-            val connected = transferRuntimeController.isLanConnected(deviceId)
-            if (!connected) {
-                runOnUiThread {
-                    incomingRefreshBusy = false
-                    if (activeLanDeviceId != deviceId) return@runOnUiThread
-                    lanConnectionMisses += 1
-                    if (lanConnectionMisses >= LAN_HEALTH_MISSES_BEFORE_ISOLATION) {
-                        handleLostLanConnection(deviceId)
-                    }
-                }
-                return@execute
-            }
-
-            val result = runCatching {
-                fileTransferCoordinator.pending(deviceId)
-            }
-            runOnUiThread {
-                incomingRefreshBusy = false
-                if (activeLanDeviceId == deviceId) {
-                    lanConnectionMisses = 0
-                }
-                result.onSuccess { offers ->
-                    pendingIncomingTransfers = offers
-                    val trusted = pairedDevices
-                        .firstOrNull { it.deviceId == deviceId }
-                        ?.allowWithoutAccept == true
-                    if (trusted && offers.isNotEmpty() && !fileTransferBusy) {
-                        acceptIncomingTransfer(offers.first())
-                    }
-                }.onFailure { error ->
-                    incomingTransferStatusById = incomingTransferStatusById + (
-                        deviceId to
-                            ("No se pudieron revisar solicitudes: " +
-                                (error.message ?: "error desconocido"))
-                        )
-                }
-            }
-        }
-    }
-
-    private fun handleLostLanConnection(deviceId: String) {
-        if (activeLanDeviceId != deviceId || transferRuntimeBusy || fileTransferBusy) return
-
-        transferRuntimeBusy = true
-        lanBusyDeviceId = deviceId
-        lanStatusByDevice = lanStatusByDevice + (
-            deviceId to "Conexión LAN perdida · restaurando aislamiento…"
-            )
-        transferRuntimeStatus = "Conexión LAN perdida · verificando motor…"
-
-        transferExecutor.execute {
-            val recovered = transferRuntimeController.isLanConnected(deviceId)
-            if (recovered) {
-                runOnUiThread {
-                    transferRuntimeBusy = false
-                    lanBusyDeviceId = null
-                    lanConnectionMisses = 0
-                    lanStatusByDevice = lanStatusByDevice + (
-                        deviceId to "Conectado por LAN."
-                        )
-                    transferRuntimeStatus = "Motor activo · conexión LAN verificada."
-                }
-                return@execute
-            }
-
-            val isolated = runCatching {
-                transferRuntimeController.disconnectLan(deviceId)
-            }.isSuccess
-
-            runOnUiThread {
-                transferRuntimeBusy = false
-                lanBusyDeviceId = null
-                lanConnectionMisses = 0
-                if (activeLanDeviceId == deviceId) {
-                    activeLanDeviceId = null
-                }
-                pendingIncomingTransfers = emptyList()
-                lanStatusByDevice = lanStatusByDevice + (
-                    deviceId to if (isolated) {
-                        "Desconectado · motor aislado."
-                    } else {
-                        "Conexión perdida · motor detenido por seguridad."
-                    }
-                    )
-                transferRuntimeStatus = if (isolated) {
-                    "Conexión LAN perdida · motor aislado."
-                } else {
-                    "Conexión LAN perdida · motor detenido por seguridad."
-                }
-            }
-        }
-    }
-
-    private fun acceptIncomingTransfer(offer: IncomingTransferOffer) {
-        if (fileTransferBusy) return
-        if (activeLanDeviceId != offer.senderDeviceId) {
-            Toast.makeText(
-                this,
-                "Esa solicitud ya no pertenece a la conexión LAN activa.",
-                Toast.LENGTH_SHORT,
-            ).show()
-            return
-        }
-
-        fileTransferBusy = true
-        incomingTransferStatusById = incomingTransferStatusById + (
-            offer.folderId to "Preparando recepción…"
-            )
-
-        fileTransferExecutor.execute {
-            val result = runCatching {
-                fileTransferCoordinator.receive(
-                    offer = offer,
-                    onProgress = { progress ->
-                        runOnUiThread {
-                            incomingTransferStatusById = incomingTransferStatusById + (
-                                offer.folderId to progress.message
-                                )
-                        }
-                    },
-                )
-            }
-
-            runOnUiThread {
-                fileTransferBusy = false
-                result.onSuccess { received ->
-                    incomingTransferStatusById = incomingTransferStatusById + (
-                        offer.folderId to "Recibido en OclAx."
-                        )
-                    pendingIncomingTransfers =
-                        pendingIncomingTransfers.filterNot { it.folderId == offer.folderId }
-                    refresh()
-                    Toast.makeText(
-                        this,
-                        "Recibido: " + received.displayName,
-                        Toast.LENGTH_SHORT,
-                    ).show()
-                    refreshIncomingTransfers()
-                }.onFailure { error ->
-                    incomingTransferStatusById = incomingTransferStatusById + (
-                        offer.folderId to
-                            ("No se pudo recibir: " + (error.message ?: "error desconocido"))
-                        )
-                    refresh()
-                }
-            }
-        }
-    }
-
-    private fun rejectIncomingTransfer(offer: IncomingTransferOffer) {
-        if (fileTransferBusy) return
-        fileTransferExecutor.execute {
-            val result = runCatching {
-                fileTransferCoordinator.reject(offer)
-            }
-            runOnUiThread {
-                result.onSuccess {
-                    pendingIncomingTransfers =
-                        pendingIncomingTransfers.filterNot { it.folderId == offer.folderId }
-                    incomingTransferStatusById = incomingTransferStatusById - offer.folderId
-                }.onFailure { error ->
-                    incomingTransferStatusById = incomingTransferStatusById + (
-                        offer.folderId to
-                            ("No se pudo rechazar: " + (error.message ?: "error desconocido"))
-                        )
-                }
-            }
-        }
     }
 
     private fun refresh() {
         retentionHours = store.retentionHours()
         items = store.listItems()
-        pairedDevices = pairedDeviceStore.list()
         hasBroadFileAccess = deviceContentRepository.hasBroadFileAccess()
         refreshDeviceContent()
     }
 
-    private fun addPairedDevice(name: String, rawDeviceId: String): String? {
-        val normalized = PairedDeviceStore.normalizeDeviceId(rawDeviceId)
-            ?: return "El ID del dispositivo no tiene un formato válido."
-
-        if (transferDeviceId != null && normalized == transferDeviceId) {
-            return "Ese ID pertenece a este mismo dispositivo."
-        }
-
-        return pairedDeviceStore.add(name, normalized)
-            .fold(
-                onSuccess = {
-                    pairedDevices = pairedDeviceStore.list()
-                    null
-                },
-                onFailure = { error ->
-                    error.message ?: "No se pudo guardar el dispositivo."
-                },
-            )
-    }
-
-    private fun setAllowWithoutAccept(deviceId: String, allowed: Boolean) {
-        if (pairedDeviceStore.setAllowWithoutAccept(deviceId, allowed)) {
-            pairedDevices = pairedDeviceStore.list()
-        }
-    }
-
-    private fun removePairedDevice(deviceId: String) {
-        if (activeLanDeviceId == deviceId || lanBusyDeviceId == deviceId) {
-            Toast.makeText(
-                this,
-                "Desconectá la prueba LAN antes de quitar ese dispositivo.",
-                Toast.LENGTH_SHORT,
-            ).show()
-            return
-        }
-
-        if (pairedDeviceStore.remove(deviceId)) {
-            pairedDevices = pairedDeviceStore.list()
-            lanStatusByDevice = lanStatusByDevice - deviceId
-        }
-    }
-
-    private fun shareTransferDeviceId() {
-        val deviceId = transferDeviceId ?: return
-
-        runCatching {
-            val intent = Intent(Intent.ACTION_SEND).apply {
-                type = "text/plain"
-                putExtra(
-                    Intent.EXTRA_TEXT,
-                    "OclAx · ID de dispositivo\n$deviceId",
-                )
+    private fun renameItem(item: StoredItem, newName: String) {
+        deviceExecutor.execute {
+            val result = runCatching { store.renameItem(item.id, newName) }
+            runOnUiThread {
+                result.onSuccess { renamed ->
+                    val message = when (renamed.originalRenamed) {
+                        true -> "Se renombró en OclAx y en el dispositivo."
+                        false -> "Se renombró en OclAx; el origen no permite renombrado."
+                        null -> "Se renombró en OclAx."
+                    }
+                    Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+                }.onFailure { error ->
+                    Toast.makeText(
+                        this,
+                        "No se pudo renombrar: " + (error.message ?: "error desconocido"),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+                refresh()
             }
-            startActivity(Intent.createChooser(intent, "Compartir ID de OclAx"))
-        }.onFailure {
-            Toast.makeText(
-                this,
-                "No se pudo compartir el ID del dispositivo.",
-                Toast.LENGTH_SHORT,
-            ).show()
+        }
+    }
+
+    private fun renameDeviceFile(file: DeviceFileInfo, newName: String) {
+        deviceExecutor.execute {
+            val result = runCatching { deviceContentRepository.rename(file, newName) }
+            runOnUiThread {
+                result.onSuccess {
+                    Toast.makeText(this, "Archivo original renombrado.", Toast.LENGTH_SHORT).show()
+                }.onFailure { error ->
+                    Toast.makeText(
+                        this,
+                        "No se pudo renombrar: " + (error.message ?: "error desconocido"),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+                refresh()
+            }
         }
     }
 
@@ -1134,46 +636,27 @@ private fun OclAxHome(
     onOpen: (StoredItem) -> Unit,
     onShare: (StoredItem) -> Unit,
     onCopy: (StoredItem) -> Unit,
+    onRename: (StoredItem, String) -> Unit,
     onLoadItemThumbnail: (StoredItem, Int) -> Bitmap?,
     onRequestBroadAccess: () -> Unit,
     onOpenDeviceFile: (DeviceFileInfo) -> Unit,
     onShareDeviceFile: (DeviceFileInfo) -> Unit,
     onCopyDeviceFile: (DeviceFileInfo) -> Unit,
     onDeleteDeviceFile: (DeviceFileInfo) -> Unit,
+    onRenameDeviceFile: (DeviceFileInfo, String) -> Unit,
     onOpenApp: (InstalledAppInfo) -> Unit,
     onShareApp: (InstalledAppInfo) -> Unit,
     onLoadDeviceThumbnail: (DeviceFileInfo, Int) -> Bitmap?,
     onLoadDeviceViewMode: (String, ContentViewMode) -> ContentViewMode,
     onSaveDeviceViewMode: (String, ContentViewMode) -> Unit,
-    transferRuntimeStatus: String,
-    transferRuntimeBusy: Boolean,
-    transferDeviceId: String?,
-    pairedDevices: List<PairedDevice>,
-    lanBusyDeviceId: String?,
-    activeLanDeviceId: String?,
-    lanStatusByDevice: Map<String, String>,
-    fileTransferBusy: Boolean,
-    itemTransferStatusById: Map<String, String>,
-    pendingIncomingTransfers: List<IncomingTransferOffer>,
-    incomingTransferStatusById: Map<String, String>,
-    onProbeTransferRuntime: () -> Unit,
-    onStopTransferRuntime: () -> Unit,
-    onShareTransferDeviceId: () -> Unit,
-    onAddPairedDevice: (String, String) -> String?,
-    onSetAllowWithoutAccept: (String, Boolean) -> Unit,
-    onRemovePairedDevice: (String) -> Unit,
-    onTestLan: (PairedDevice) -> Unit,
-    onDisconnectLan: (PairedDevice) -> Unit,
-    onSendItem: (StoredItem) -> Unit,
-    onRefreshIncomingTransfers: () -> Unit,
-    onAcceptIncomingTransfer: (IncomingTransferOffer) -> Unit,
-    onRejectIncomingTransfer: (IncomingTransferOffer) -> Unit,
     onExitApp: () -> Unit,
 ) {
     var sourceMode by remember { mutableStateOf(SourceMode.OCLAX) }
     var query by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf<ContentFilter?>(null) }
     var pendingDelete by remember { mutableStateOf<StoredItem?>(null) }
+    var pendingRename by remember { mutableStateOf<StoredItem?>(null) }
+    var renameText by remember { mutableStateOf("") }
     var showExitConfirmation by remember { mutableStateOf(false) }
     var exitArmed by remember { mutableStateOf(false) }
 
@@ -1222,15 +705,6 @@ private fun OclAxHome(
                 showExitConfirmation = true
             }
             HomeBackAction.EXIT_APP -> onExitApp()
-        }
-    }
-
-    LaunchedEffect(activeLanDeviceId) {
-        if (activeLanDeviceId != null) {
-            while (true) {
-                onRefreshIncomingTransfers()
-                delay(2_000L)
-            }
         }
     }
 
@@ -1286,6 +760,47 @@ private fun OclAxHome(
         )
     }
 
+    pendingRename?.let { item ->
+        AlertDialog(
+            onDismissRequest = { pendingRename = null },
+            title = { Text("Renombrar") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        if (item.sourceUri != null) {
+                            "OclAx intentará aplicar el mismo nombre al archivo original."
+                        } else {
+                            "Este elemento no conserva un original enlazado."
+                        },
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = renameText,
+                        onValueChange = { renameText = it },
+                        singleLine = true,
+                        label = { Text("Nombre") },
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val target = pendingRename ?: return@TextButton
+                        pendingRename = null
+                        onRename(target, renameText)
+                    },
+                ) {
+                    Text("Renombrar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingRename = null }) {
+                    Text("Cancelar")
+                }
+            },
+        )
+    }
+
     Surface(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
@@ -1325,6 +840,7 @@ private fun OclAxHome(
                     onShareFile = onShareDeviceFile,
                     onCopyFile = onCopyDeviceFile,
                     onDeleteFile = onDeleteDeviceFile,
+                    onRenameFile = onRenameDeviceFile,
                     onOpenApp = onOpenApp,
                     onShareApp = onShareApp,
                     onLoadThumbnail = onLoadDeviceThumbnail,
@@ -1339,34 +855,6 @@ private fun OclAxHome(
                     verticalArrangement = Arrangement.spacedBy(10.dp),
                     contentPadding = PaddingValues(bottom = 18.dp),
                 ) {
-                    if (BuildConfig.DEBUG) {
-                        item(key = "transfer-devices") {
-                            TransferDevicesSection(
-                                status = transferRuntimeStatus,
-                                busy = transferRuntimeBusy,
-                                ownDeviceId = transferDeviceId,
-                                devices = pairedDevices,
-                                lanBusyDeviceId = lanBusyDeviceId,
-                                activeLanDeviceId = activeLanDeviceId,
-                                lanStatusByDevice = lanStatusByDevice,
-                                fileTransferBusy = fileTransferBusy,
-                                pendingIncomingTransfers = pendingIncomingTransfers,
-                                incomingTransferStatusById = incomingTransferStatusById,
-                                onProbe = onProbeTransferRuntime,
-                                onStop = onStopTransferRuntime,
-                                onShareOwnId = onShareTransferDeviceId,
-                                onAddDevice = onAddPairedDevice,
-                                onSetAllowWithoutAccept = onSetAllowWithoutAccept,
-                                onRemoveDevice = onRemovePairedDevice,
-                                onTestLan = onTestLan,
-                                onDisconnectLan = onDisconnectLan,
-                                onRefreshIncoming = onRefreshIncomingTransfers,
-                                onAcceptIncoming = onAcceptIncomingTransfer,
-                                onRejectIncoming = onRejectIncomingTransfer,
-                            )
-                        }
-                    }
-
                     item(key = "oclax-search") {
                         OutlinedTextField(
                             value = query,
@@ -1442,9 +930,10 @@ private fun OclAxHome(
                                     onOpen = onOpen,
                                     onShare = onShare,
                                     onCopy = onCopy,
-                                    onSend = onSendItem,
-                                    sendEnabled = activeLanDeviceId != null && !fileTransferBusy,
-                                    transferStatus = itemTransferStatusById[item.id],
+                                    onRenameRequest = {
+                                        pendingRename = item
+                                        renameText = item.displayName
+                                    },
                                     onLoadThumbnail = onLoadItemThumbnail,
                                 )
                             }
@@ -1586,7 +1075,8 @@ private fun RetentionControl(
             }
         }
         Text(
-            "Solo borra copias de OclAx; nunca el archivo original.",
+            "Las copias de OclAx caducan según este tiempo. Si una captura recién creada " +
+                "se compartió dentro de 60 s, OclAx también intentará borrar su original.",
             style = MaterialTheme.typography.labelSmall,
         )
     }
@@ -1600,9 +1090,7 @@ private fun ItemCard(
     onOpen: (StoredItem) -> Unit,
     onShare: (StoredItem) -> Unit,
     onCopy: (StoredItem) -> Unit,
-    onSend: (StoredItem) -> Unit,
-    sendEnabled: Boolean,
-    transferStatus: String?,
+    onRenameRequest: () -> Unit,
     onLoadThumbnail: (StoredItem, Int) -> Bitmap?,
 ) {
     val type = contentTypeFor(item.mimeType)
@@ -1645,9 +1133,13 @@ private fun ItemCard(
                             .format(Date(item.createdAt)),
                         style = MaterialTheme.typography.labelSmall,
                     )
-                    transferStatus?.let { status ->
+                    if (item.deleteSourceOnExpiry) {
                         Text(
-                            status,
+                            if (item.pinned) {
+                                "Captura reciente · original protegido mientras esté fijada"
+                            } else {
+                                "Captura reciente · original se limpiará al vencer"
+                            },
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
                         )
@@ -1664,10 +1156,9 @@ private fun ItemCard(
                 verticalAlignment = Alignment.CenterVertically,
             ) {
                 CompactActionButton(
-                    icon = Icons.Outlined.SendToMobile,
-                    description = "Enviar ${item.displayName} a dispositivo",
-                    enabled = sendEnabled,
-                    onClick = { onSend(item) },
+                    icon = Icons.Outlined.Edit,
+                    description = "Renombrar ${item.displayName}",
+                    onClick = onRenameRequest,
                 )
 
                 CompactActionButton(

@@ -8,11 +8,13 @@ object RetentionPolicy {
 
     fun normalizeHours(value: Int): Int = value.takeIf { it in allowedHours } ?: DEFAULT_HOURS
 
-    fun shouldExpire(item: StoredItem, nowMillis: Long, retentionHours: Int): Boolean {
-        if (item.pinned) return false
+    fun expirationAt(item: StoredItem, retentionHours: Int): Long? {
+        if (item.pinned) return null
         val hours = normalizeHours(retentionHours)
-        if (hours == 0) return false
-        val maxAgeMillis = hours * 60L * 60L * 1000L
-        return item.createdAt <= nowMillis - maxAgeMillis
+        if (hours == 0) return null
+        return item.createdAt + hours * 60L * 60L * 1000L
     }
+
+    fun shouldExpire(item: StoredItem, nowMillis: Long, retentionHours: Int): Boolean =
+        expirationAt(item, retentionHours)?.let { it <= nowMillis } ?: false
 }

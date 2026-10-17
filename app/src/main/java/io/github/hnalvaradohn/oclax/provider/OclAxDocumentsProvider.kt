@@ -14,6 +14,8 @@ import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
+import io.github.hnalvaradohn.oclax.platform.DeviceContentRepository
+import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
 import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
 import java.io.File
 import java.io.FileNotFoundException
@@ -22,7 +24,10 @@ class OclAxDocumentsProvider : DocumentsProvider() {
     companion object {
         private const val ROOT_ID = "oclax"
         private const val ROOT_DOCUMENT_ID = "root"
-        private const val CATEGORY_PREFIX = "category:"
+        private const val DEVICE_ROOT_DOCUMENT_ID = "device:root"
+        private const val OCLAX_CATEGORY_PREFIX = "oclax-category:"
+        private const val DEVICE_CATEGORY_PREFIX = "device-category:"
+        private const val DEVICE_FILE_PREFIX = "device-file:"
 
         private val ROOT_PROJECTION = arrayOf(
             DocumentsContract.Root.COLUMN_ROOT_ID,
@@ -59,37 +64,44 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         OTHER("other", "Otros"),
         ;
 
-        val documentId: String
-            get() = CATEGORY_PREFIX + id
-
-        fun matches(item: StoredItem): Boolean {
-            if (this == PINNED) return item.pinned
-
+        fun matches(mimeType: String, pinned: Boolean = false): Boolean {
+            if (this == PINNED) return pinned
             return when (this) {
-                IMAGES -> contentTypeFor(item.mimeType) == ContentType.IMAGE
-                DOCUMENTS -> contentTypeFor(item.mimeType) == ContentType.DOCUMENT
-                PDF -> contentTypeFor(item.mimeType) == ContentType.PDF
-                APK -> contentTypeFor(item.mimeType) == ContentType.APP
-                TEXT -> contentTypeFor(item.mimeType) == ContentType.TEXT
-                VIDEO -> contentTypeFor(item.mimeType) == ContentType.VIDEO
-                AUDIO -> contentTypeFor(item.mimeType) == ContentType.AUDIO
-                OTHER -> contentTypeFor(item.mimeType) == ContentType.OTHER
-                PINNED -> item.pinned
+                IMAGES -> contentTypeFor(mimeType) == ContentType.IMAGE
+                DOCUMENTS -> contentTypeFor(mimeType) == ContentType.DOCUMENT
+                PDF -> contentTypeFor(mimeType) == ContentType.PDF
+                APK -> contentTypeFor(mimeType) == ContentType.APP
+                TEXT -> contentTypeFor(mimeType) == ContentType.TEXT
+                VIDEO -> contentTypeFor(mimeType) == ContentType.VIDEO
+                AUDIO -> contentTypeFor(mimeType) == ContentType.AUDIO
+                OTHER -> contentTypeFor(mimeType) == ContentType.OTHER
+                PINNED -> pinned
             }
         }
 
+        val oclaxDocumentId: String
+            get() = OCLAX_CATEGORY_PREFIX + id
+
+        val deviceDocumentId: String
+            get() = DEVICE_CATEGORY_PREFIX + id
+
         companion object {
-            fun fromDocumentId(documentId: String): Category? =
-                entries.firstOrNull { it.documentId == documentId }
+            fun fromOclAxDocumentId(documentId: String): Category? =
+                entries.firstOrNull { it.oclaxDocumentId == documentId }
+
+            fun fromDeviceDocumentId(documentId: String): Category? =
+                entries.firstOrNull { it != PINNED && it.deviceDocumentId == documentId }
         }
     }
 
     private lateinit var store: ItemStore
+    private lateinit var deviceRepository: DeviceContentRepository
     private lateinit var thumbnailLoader: ThumbnailLoader
 
     override fun onCreate(): Boolean {
         val providerContext = context ?: return false
         store = ItemStore(providerContext)
+        deviceRepository = DeviceContentRepository(providerContext)
         thumbnailLoader = ThumbnailLoader(providerContext)
         return true
     }
@@ -124,11 +136,27 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         val cursor = MatrixCursor(columns)
 
         when {
-            documentId == ROOT_DOCUMENT_ID -> addRootDocument(cursor, columns)
-            Category.fromDocumentId(documentId) != null ->
-                addCategory(cursor, columns, requireNotNull(Category.fromDocumentId(documentId)))
+            documentId == ROOT_DOCUMENT_ID ->
+                addDirectory(cursor, columns, ROOT_DOCUMENT_ID, "OclAx", prefersGrid = true)
+            documentId == DEVICE_ROOT_DOCUMENT_ID ->
+                addDirectory(cursor, columns, DEVICE_ROOT_DOCUMENT_ID, "Mi dispositivo", prefersGrid = true)
+            Category.fromOclAxDocumentId(documentId) != null -> {
+                val category = requireNotNull(Category.fromOclAxDocumentId(documentId))
+                addDirectory(cursor, columns, documentId, category.label, category.prefersGrid)
+            }
+            Category.fromDeviceDocumentId(documentId) != null -> {
+                val category = requireNotNull(Category.fromDeviceDocumentId(documentId))
+                addDirectory(cursor, columns, documentId, category.label, category.prefersGrid)
+            }
+            documentId.startsWith(DEVICE_FILE_PREFIX) ->
+                addDeviceFile(
+                    cursor,
+                    columns,
+                    resolveDeviceFile(documentId)
+                        ?: throw FileNotFoundException("Archivo del dispositivo no encontrado."),
+                )
             else ->
-                addItem(
+                addOclAxItem(
                     cursor,
                     columns,
                     store.findItem(documentId)
@@ -147,25 +175,80 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         val columns = projection ?: DOCUMENT_PROJECTION
         val cursor = MatrixCursor(columns)
 
-        if (parentDocumentId == ROOT_DOCUMENT_ID) {
-            Category.entries.forEach { addCategory(cursor, columns, it) }
-            store.listItems().forEach { addItem(cursor, columns, it) }
-            return cursor
+        when {
+            parentDocumentId == ROOT_DOCUMENT_ID -> {
+                if (deviceRepository.hasBroadFileAccess()) {
+                    addDirectory(
+                        cursor,
+                        columns,
+                        DEVICE_ROOT_DOCUMENT_ID,
+                        "Mi dispositivo",
+                        prefersGrid = true,
+                    )
+                }
+                Category.entries.forEach { category ->
+                    addDirectory(
+                        cursor,
+                        columns,
+                        category.oclaxDocumentId,
+                        category.label,
+                        category.prefersGrid,
+                    )
+                }
+                store.listItems().forEach { addOclAxItem(cursor, columns, it) }
+                if (deviceRepository.hasBroadFileAccess()) {
+                    deviceRepository.listFiles()
+                        .take(100)
+                        .forEach { addDeviceFile(cursor, columns, it) }
+                }
+            }
+
+            parentDocumentId == DEVICE_ROOT_DOCUMENT_ID -> {
+                ensureDeviceAccess()
+                Category.entries
+                    .filterNot { it == Category.PINNED }
+                    .forEach { category ->
+                        addDirectory(
+                            cursor,
+                            columns,
+                            category.deviceDocumentId,
+                            category.label,
+                            category.prefersGrid,
+                        )
+                    }
+                deviceRepository.listFiles().forEach { addDeviceFile(cursor, columns, it) }
+            }
+
+            Category.fromOclAxDocumentId(parentDocumentId) != null -> {
+                val category = requireNotNull(Category.fromOclAxDocumentId(parentDocumentId))
+                store.listItems()
+                    .filter { category.matches(it.mimeType, it.pinned) }
+                    .forEach { addOclAxItem(cursor, columns, it) }
+            }
+
+            Category.fromDeviceDocumentId(parentDocumentId) != null -> {
+                ensureDeviceAccess()
+                val category = requireNotNull(Category.fromDeviceDocumentId(parentDocumentId))
+                deviceRepository.listFiles()
+                    .filter { category.matches(it.mimeType) }
+                    .forEach { addDeviceFile(cursor, columns, it) }
+            }
+
+            else -> throw FileNotFoundException("Carpeta no encontrada.")
         }
-
-        val category = Category.fromDocumentId(parentDocumentId)
-            ?: throw FileNotFoundException("Carpeta no encontrada.")
-
-        store.listItems()
-            .filter(category::matches)
-            .forEach { addItem(cursor, columns, it) }
 
         return cursor
     }
 
     override fun queryRecentDocuments(rootId: String, projection: Array<out String>?): Cursor {
         if (rootId != ROOT_ID) throw FileNotFoundException("Raíz no encontrada.")
-        return itemCursor(projection, store.listItems())
+        val columns = projection ?: DOCUMENT_PROJECTION
+        val cursor = MatrixCursor(columns)
+        store.listItems().forEach { addOclAxItem(cursor, columns, it) }
+        if (deviceRepository.hasBroadFileAccess()) {
+            deviceRepository.listFiles().take(200).forEach { addDeviceFile(cursor, columns, it) }
+        }
+        return cursor
     }
 
     override fun querySearchDocuments(
@@ -174,7 +257,24 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         projection: Array<out String>?,
     ): Cursor {
         if (rootId != ROOT_ID) throw FileNotFoundException("Raíz no encontrada.")
-        return itemCursor(projection, store.search(query))
+        val columns = projection ?: DOCUMENT_PROJECTION
+        val cursor = MatrixCursor(columns)
+        val needle = query.trim().lowercase()
+
+        store.search(query).forEach { addOclAxItem(cursor, columns, it) }
+        if (deviceRepository.hasBroadFileAccess()) {
+            deviceRepository.listFiles()
+                .asSequence()
+                .filter { file ->
+                    needle.isEmpty() ||
+                        file.displayName.lowercase().contains(needle) ||
+                        file.mimeType.lowercase().contains(needle) ||
+                        file.relativePath.orEmpty().lowercase().contains(needle)
+                }
+                .take(500)
+                .forEach { addDeviceFile(cursor, columns, it) }
+        }
+        return cursor
     }
 
     override fun openDocument(
@@ -183,8 +283,15 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         signal: CancellationSignal?,
     ): ParcelFileDescriptor {
         if (mode != "r") throw FileNotFoundException("OclAx expone documentos en modo lectura.")
-        if (documentId == ROOT_DOCUMENT_ID || Category.fromDocumentId(documentId) != null) {
+        if (isDirectoryDocument(documentId)) {
             throw FileNotFoundException("No se puede abrir una carpeta como archivo.")
+        }
+
+        if (documentId.startsWith(DEVICE_FILE_PREFIX)) {
+            val file = resolveDeviceFile(documentId)
+                ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
+            return requireNotNull(context).contentResolver.openFileDescriptor(file.uri, "r", signal)
+                ?: throw FileNotFoundException("Android no pudo abrir el archivo.")
         }
 
         val file = store.payloadFile(documentId)
@@ -197,28 +304,30 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         sizeHint: Point,
         signal: CancellationSignal?,
     ): AssetFileDescriptor {
-        if (documentId == ROOT_DOCUMENT_ID || Category.fromDocumentId(documentId) != null) {
+        if (isDirectoryDocument(documentId)) {
             throw FileNotFoundException("Una carpeta no tiene miniatura.")
         }
 
         signal?.throwIfCanceled()
-
-        val item = store.findItem(documentId)
-            ?: throw FileNotFoundException("Documento no encontrado.")
-        val type = contentTypeFor(item.mimeType)
-        if (
-            type != ContentType.IMAGE &&
-            type != ContentType.VIDEO &&
-            type != ContentType.PDF
-        ) {
-            throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
-        }
-
-        val source = store.payloadFile(documentId)
-            ?: throw FileNotFoundException("Documento no encontrado.")
         val targetPx = maxOf(sizeHint.x, sizeHint.y).coerceIn(96, 1024)
-        val bitmap = thumbnailLoader.loadFile(source, type, targetPx)
-            ?: throw FileNotFoundException("No se pudo generar la miniatura.")
+
+        val bitmap = if (documentId.startsWith(DEVICE_FILE_PREFIX)) {
+            val file = resolveDeviceFile(documentId)
+                ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
+            if (!supportsThumbnail(file.mimeType)) {
+                throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
+            }
+            thumbnailLoader.loadDevice(file, targetPx)
+        } else {
+            val item = store.findItem(documentId)
+                ?: throw FileNotFoundException("Documento no encontrado.")
+            if (!supportsThumbnail(item.mimeType)) {
+                throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
+            }
+            val source = store.payloadFile(documentId)
+                ?: throw FileNotFoundException("Documento no encontrado.")
+            thumbnailLoader.loadFile(source, contentTypeFor(item.mimeType), targetPx)
+        } ?: throw FileNotFoundException("No se pudo generar la miniatura.")
 
         signal?.throwIfCanceled()
 
@@ -226,10 +335,8 @@ class OclAxDocumentsProvider : DocumentsProvider() {
             requireNotNull(context).cacheDir,
             "oclax/provider_thumbnails",
         ).apply { mkdirs() }
-        val thumbnailFile = File(
-            thumbnailDir,
-            "${item.id}-${item.createdAt}-$targetPx.png",
-        )
+        val safeId = documentId.replace(Regex("[^A-Za-z0-9._-]"), "_").take(120)
+        val thumbnailFile = File(thumbnailDir, "$safeId-$targetPx.png")
         if (!thumbnailFile.exists()) {
             thumbnailFile.outputStream().buffered().use { output ->
                 if (!bitmap.compress(Bitmap.CompressFormat.PNG, 90, output)) {
@@ -247,8 +354,10 @@ class OclAxDocumentsProvider : DocumentsProvider() {
 
     override fun getDocumentType(documentId: String): String =
         when {
-            documentId == ROOT_DOCUMENT_ID -> DocumentsContract.Document.MIME_TYPE_DIR
-            Category.fromDocumentId(documentId) != null -> DocumentsContract.Document.MIME_TYPE_DIR
+            isDirectoryDocument(documentId) -> DocumentsContract.Document.MIME_TYPE_DIR
+            documentId.startsWith(DEVICE_FILE_PREFIX) ->
+                resolveDeviceFile(documentId)?.mimeType
+                    ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
             else ->
                 store.findItem(documentId)?.mimeType
                     ?: throw FileNotFoundException("Documento no encontrado.")
@@ -256,90 +365,123 @@ class OclAxDocumentsProvider : DocumentsProvider() {
 
     override fun isChildDocument(parentDocumentId: String, documentId: String): Boolean {
         if (parentDocumentId == ROOT_DOCUMENT_ID) {
-            return Category.fromDocumentId(documentId) != null || store.findItem(documentId) != null
+            return documentId == DEVICE_ROOT_DOCUMENT_ID ||
+                Category.fromOclAxDocumentId(documentId) != null ||
+                store.findItem(documentId) != null ||
+                (documentId.startsWith(DEVICE_FILE_PREFIX) && resolveDeviceFile(documentId) != null)
         }
 
-        val category = Category.fromDocumentId(parentDocumentId) ?: return false
-        val item = store.findItem(documentId) ?: return false
-        return category.matches(item)
+        if (parentDocumentId == DEVICE_ROOT_DOCUMENT_ID) {
+            return Category.fromDeviceDocumentId(documentId) != null ||
+                (documentId.startsWith(DEVICE_FILE_PREFIX) && resolveDeviceFile(documentId) != null)
+        }
+
+        Category.fromOclAxDocumentId(parentDocumentId)?.let { category ->
+            val item = store.findItem(documentId) ?: return false
+            return category.matches(item.mimeType, item.pinned)
+        }
+
+        Category.fromDeviceDocumentId(parentDocumentId)?.let { category ->
+            val file = resolveDeviceFile(documentId) ?: return false
+            return category.matches(file.mimeType)
+        }
+
+        return false
     }
 
-    private fun itemCursor(projection: Array<out String>?, items: List<StoredItem>): Cursor {
-        val columns = projection ?: DOCUMENT_PROJECTION
-        val cursor = MatrixCursor(columns)
-        items.forEach { addItem(cursor, columns, it) }
-        return cursor
+    private fun resolveDeviceFile(documentId: String): DeviceFileInfo? {
+        if (!deviceRepository.hasBroadFileAccess()) return null
+        val id = documentId.removePrefix(DEVICE_FILE_PREFIX).toLongOrNull() ?: return null
+        return deviceRepository.listFiles().firstOrNull { it.id == id }
     }
 
-    private fun addRootDocument(cursor: MatrixCursor, columns: Array<out String>) {
-        val row = cursor.newRow()
-        put(row, columns, DocumentsContract.Document.COLUMN_DOCUMENT_ID, ROOT_DOCUMENT_ID)
-        put(row, columns, DocumentsContract.Document.COLUMN_DISPLAY_NAME, "Recientes")
-        put(
-            row,
-            columns,
-            DocumentsContract.Document.COLUMN_MIME_TYPE,
-            DocumentsContract.Document.MIME_TYPE_DIR,
-        )
-        put(
-            row,
-            columns,
-            DocumentsContract.Document.COLUMN_FLAGS,
-            DocumentsContract.Document.FLAG_DIR_PREFERS_GRID or
-                DocumentsContract.Document.FLAG_DIR_PREFERS_LAST_MODIFIED,
-        )
-        put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, System.currentTimeMillis())
-        put(row, columns, DocumentsContract.Document.COLUMN_SIZE, 0L)
+    private fun deviceDocumentId(file: DeviceFileInfo): String = DEVICE_FILE_PREFIX + file.id
+
+    private fun ensureDeviceAccess() {
+        if (!deviceRepository.hasBroadFileAccess()) {
+            throw FileNotFoundException("OclAx no tiene acceso a los archivos del dispositivo.")
+        }
     }
 
-    private fun addCategory(
+    private fun isDirectoryDocument(documentId: String): Boolean =
+        documentId == ROOT_DOCUMENT_ID ||
+            documentId == DEVICE_ROOT_DOCUMENT_ID ||
+            Category.fromOclAxDocumentId(documentId) != null ||
+            Category.fromDeviceDocumentId(documentId) != null
+
+    private fun supportsThumbnail(mimeType: String): Boolean =
+        when (contentTypeFor(mimeType)) {
+            ContentType.IMAGE, ContentType.VIDEO, ContentType.PDF -> true
+            else -> false
+        }
+
+    private fun addDirectory(
         cursor: MatrixCursor,
         columns: Array<out String>,
-        category: Category,
+        documentId: String,
+        displayName: String,
+        prefersGrid: Boolean,
     ) {
         val row = cursor.newRow()
-        put(row, columns, DocumentsContract.Document.COLUMN_DOCUMENT_ID, category.documentId)
-        put(row, columns, DocumentsContract.Document.COLUMN_DISPLAY_NAME, category.label)
+        put(row, columns, DocumentsContract.Document.COLUMN_DOCUMENT_ID, documentId)
+        put(row, columns, DocumentsContract.Document.COLUMN_DISPLAY_NAME, displayName)
         put(
             row,
             columns,
             DocumentsContract.Document.COLUMN_MIME_TYPE,
             DocumentsContract.Document.MIME_TYPE_DIR,
         )
-        val directoryFlags = DocumentsContract.Document.FLAG_DIR_PREFERS_LAST_MODIFIED or
-            if (category.prefersGrid) {
-                DocumentsContract.Document.FLAG_DIR_PREFERS_GRID
-            } else {
-                0
-            }
-        put(
-            row,
-            columns,
-            DocumentsContract.Document.COLUMN_FLAGS,
-            directoryFlags,
-        )
+        val flags = DocumentsContract.Document.FLAG_DIR_PREFERS_LAST_MODIFIED or
+            if (prefersGrid) DocumentsContract.Document.FLAG_DIR_PREFERS_GRID else 0
+        put(row, columns, DocumentsContract.Document.COLUMN_FLAGS, flags)
         put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, System.currentTimeMillis())
         put(row, columns, DocumentsContract.Document.COLUMN_SIZE, 0L)
     }
 
-    private fun addItem(cursor: MatrixCursor, columns: Array<out String>, item: StoredItem) {
+    private fun addOclAxItem(
+        cursor: MatrixCursor,
+        columns: Array<out String>,
+        item: StoredItem,
+    ) {
         val row = cursor.newRow()
         put(row, columns, DocumentsContract.Document.COLUMN_DOCUMENT_ID, item.id)
         put(row, columns, DocumentsContract.Document.COLUMN_DISPLAY_NAME, item.displayName)
         put(row, columns, DocumentsContract.Document.COLUMN_MIME_TYPE, item.mimeType)
         put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, item.createdAt)
-        val type = contentTypeFor(item.mimeType)
-        val itemFlags = if (
-            type == ContentType.IMAGE ||
-            type == ContentType.VIDEO ||
-            type == ContentType.PDF
-        ) {
-            DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL
-        } else {
-            0
-        }
-        put(row, columns, DocumentsContract.Document.COLUMN_FLAGS, itemFlags)
+        put(
+            row,
+            columns,
+            DocumentsContract.Document.COLUMN_FLAGS,
+            if (supportsThumbnail(item.mimeType)) {
+                DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL
+            } else {
+                0
+            },
+        )
         put(row, columns, DocumentsContract.Document.COLUMN_SIZE, item.byteSize)
+    }
+
+    private fun addDeviceFile(
+        cursor: MatrixCursor,
+        columns: Array<out String>,
+        file: DeviceFileInfo,
+    ) {
+        val row = cursor.newRow()
+        put(row, columns, DocumentsContract.Document.COLUMN_DOCUMENT_ID, deviceDocumentId(file))
+        put(row, columns, DocumentsContract.Document.COLUMN_DISPLAY_NAME, file.displayName)
+        put(row, columns, DocumentsContract.Document.COLUMN_MIME_TYPE, file.mimeType)
+        put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, file.modifiedAt)
+        put(
+            row,
+            columns,
+            DocumentsContract.Document.COLUMN_FLAGS,
+            if (supportsThumbnail(file.mimeType)) {
+                DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL
+            } else {
+                0
+            },
+        )
+        put(row, columns, DocumentsContract.Document.COLUMN_SIZE, file.byteSize)
     }
 
     private fun put(

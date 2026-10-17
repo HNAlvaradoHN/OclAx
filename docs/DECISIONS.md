@@ -472,7 +472,7 @@ Reglas:
 - **Eliminar del dispositivo** es distinto de **Eliminar de OclAx**.
 - OclAx muestra confirmación explícita indicando que se elimina el original.
 - En Android 11+ y con acceso amplio ya concedido, OclAx intenta eliminar mediante ContentResolver; si Android exige confirmación para un medio, usa `MediaStore.createDeleteRequest` con la URI específica de Imagen/Video/Audio.
-- La autolimpieza de OclAx jamás incluye originales del dispositivo.
+- La autolimpieza general no borra originales. **DEC-033** introduce una única excepción posterior y acotada para capturas de pantalla recién creadas.
 
 ---
 
@@ -623,3 +623,65 @@ Protocolo mínimo:
 **Motivo:** “Conectado por LAN” debe representar un peer OclAx realmente disponible, no un proceso Syncthing huérfano sin superficie de producto capaz de responder. El cierre debe ser fail-closed sin convertir un simple paso a segundo plano en desconexión involuntaria.
 
 **Consecuencia:** retirar la tarea cancela la disponibilidad LAN y puede interrumpir una transferencia activa; el usuario deberá volver a abrir/conectar OclAx para reanudar un nuevo intento.
+
+---
+
+## DEC-032 — Retirar por completo LAN y transferencias entre dispositivos
+
+**Decisión:** OclAx deja de incluir envío OclAx↔OclAx, emparejamiento, LAN y el runtime Syncthing.
+
+Se eliminan del producto activo:
+- panel técnico **Enviar a dispositivo**;
+- Mis dispositivos, Device ID y confianza por peer;
+- discovery/sondeo LAN y transporte de archivos;
+- foreground service de Syncthing;
+- binarios nativos y su pipeline de compilación/caché;
+- permisos de Internet, estado de red, multicast y foreground data-sync que solo existían para ese bloque;
+- tests y código exclusivos del motor retirado.
+
+Las decisiones DEC-022, DEC-029, DEC-030 y DEC-031 quedan como **historial técnico supersedido** y no describen el producto activo.
+
+**Motivo:** el dueño redefinió OclAx como herramienta local de contenido temporal y acceso al dispositivo. Mantener un motor de red sin un objetivo de producto vigente solo añadiría superficie de ataque, tamaño, CI, batería y mantenimiento.
+
+**Consecuencia:** OclAx vuelve a ser local-first sin permiso de Internet. Git conserva el historial; el código activo no conserva implementaciones LAN “por si acaso”.
+
+---
+
+## DEC-033 — Autolimpieza especial de capturas recién creadas
+
+**Decisión:** la autolimpieza puede eliminar el original del dispositivo **solo** para una captura de pantalla que OclAx pueda clasificar de forma segura como recién creada.
+
+Una copia queda marcada para limpiar también el original únicamente cuando:
+1. es una imagen;
+2. el origen verificable pertenece a MediaStore;
+3. nombre o ruta indican una captura de pantalla;
+4. MediaStore aporta DATE_ADDED;
+5. al importarla han pasado como máximo **60 segundos** desde DATE_ADDED.
+
+Si falta cualquiera de esas pruebas, el original se conserva y solo caduca la copia privada de OclAx.
+
+Antes de borrar el original al vencer la retención, OclAx vuelve a resolver la misma URI y comprueba metadatos persistidos como tamaño y fecha de alta. Si no coinciden o Android rechaza el borrado, no intenta adivinar otro archivo.
+
+**Fijados:** un elemento fijado no expira; por tanto su original tampoco se elimina automáticamente mientras permanezca fijado.
+
+**Planificación:** OclAx programa la próxima expiración con APIs de alarma del sistema sin solicitar privilegio de alarma exacta y conserva además la limpieza oportunista al volver a acceder a la bandeja. Android puede diferir una alarma bajo ahorro de energía; nunca se amplían permisos para forzar exactitud.
+
+**Motivo:** evitar acumulación de capturas creadas solo para compartirlas, sin convertir la retención en un borrador general de galería.
+
+---
+
+## DEC-034 — Renombrado real y acceso combinado desde selectores
+
+**Decisión de renombrado:**
+- desde **Mi dispositivo**, Renombrar modifica el archivo original mediante MediaStore;
+- desde una copia OclAx que conserve una URI MediaStore enlazada, Renombrar aplica el mismo nombre a la copia y al original;
+- si una copia histórica/no-MediaStore no permite modificar el origen, OclAx no finge que lo hizo y lo comunica.
+
+**Decisión de selección:**
+- OclAxPickerActivity sigue siendo la experiencia visual propia para ACTION_GET_CONTENT, con las superficies **OclAx / Mi dispositivo**;
+- OclAxDocumentsProvider pasa a exponer también archivos reales de **Mi dispositivo** cuando el acceso amplio está concedido;
+- la raíz del provider muestra archivos reales además de categorías para evitar una experiencia compuesta únicamente por carpetas;
+- el selector **Archivos** pertenece a Android: OclAx puede controlar documentos, jerarquía, MIME y miniaturas, pero no puede sustituir su interfaz por la UI Compose de la aplicación.
+
+**Motivo:** poder buscar contenido temporal y real desde el mismo punto, y que renombrar sea una operación útil sobre el archivo que realmente posee el usuario cuando OclAx tiene una referencia segura.
+
