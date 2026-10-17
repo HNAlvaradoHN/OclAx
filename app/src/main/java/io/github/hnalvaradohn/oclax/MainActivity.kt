@@ -117,10 +117,11 @@ import java.text.DateFormat
 import java.util.Date
 import java.util.concurrent.Executors
 
+private const val MAX_BULK_SELECTION = 100
+
 class MainActivity : ComponentActivity() {
     companion object {
         private const val MAX_CLIPBOARD_TEXT_BYTES = 2L * 1024L * 1024L
-        private const val MAX_BULK_SHARE_ITEMS = 100
     }
 
     private val store by lazy { ItemStore(applicationContext) }
@@ -564,10 +565,10 @@ class MainActivity : ComponentActivity() {
 
     private fun shareItems(selectedItems: List<StoredItem>) {
         if (selectedItems.isEmpty()) return
-        if (selectedItems.size > MAX_BULK_SHARE_ITEMS) {
+        if (selectedItems.size > MAX_BULK_SELECTION) {
             Toast.makeText(
                 this,
-                "Podés compartir hasta $MAX_BULK_SHARE_ITEMS elementos a la vez.",
+                "Podés compartir hasta $MAX_BULK_SELECTION elementos a la vez.",
                 Toast.LENGTH_SHORT,
             ).show()
             return
@@ -1046,14 +1047,16 @@ private fun OclAxHome(
                                     canAct = selectedItems.isNotEmpty(),
                                     pinValue = bulkPinValue,
                                     onToggleAll = {
-                                        val visibleIds = visibleItems.mapTo(mutableSetOf()) { it.id }
+                                        val visibleIds = visibleItems
+                                            .take(MAX_BULK_SELECTION)
+                                            .mapTo(mutableSetOf()) { it.id }
                                         selectedItemIds = if (
                                             visibleIds.isNotEmpty() &&
                                             visibleIds.all { it in selectedItemIds }
                                         ) {
                                             selectedItemIds - visibleIds
                                         } else {
-                                            selectedItemIds + visibleIds
+                                            visibleIds
                                         }
                                     },
                                     onShare = {
@@ -1133,8 +1136,10 @@ private fun OclAxHome(
                                     onToggleSelection = {
                                         selectedItemIds = if (item.id in selectedItemIds) {
                                             selectedItemIds - item.id
-                                        } else {
+                                        } else if (selectedItemIds.size < MAX_BULK_SELECTION) {
                                             selectedItemIds + item.id
+                                        } else {
+                                            selectedItemIds
                                         }
                                     },
                                     onPinToggle = onPinToggle,
