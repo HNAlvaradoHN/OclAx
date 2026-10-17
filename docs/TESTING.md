@@ -240,3 +240,22 @@ Validación física:
 6. buscar por nombre/package;
 7. con una app que use splits: caller sin múltiple debe recibir aviso; caller con múltiple debe recibir base + splits;
 8. comprobar que no se exportan datos privados de la aplicación.
+
+### PICKER-003 — Android Files / DocumentsProvider / Aplicaciones
+
+Validación automática:
+1. IDs de documento de apps instaladas hacen round-trip para APK único, carpeta y parte;
+2. IDs malformados/rutas son rechazados;
+3. provider compila con categoría Aplicaciones y MIME APK;
+4. tests, lint y assembleDebug verdes.
+
+Validación física:
+1. desde una app externa elegir **Archivos** (no Elegir con OclAx);
+2. entrar a **OclAx → Mi dispositivo**;
+3. confirmar categoría **Aplicaciones**;
+4. entrar y comprobar nombres/iconos;
+5. app de APK único: seleccionar `Nombre.apk` y confirmar retorno al caller;
+6. app con splits: abrir su carpeta y comprobar `base.apk` + splits;
+7. búsqueda por nombre de app/package;
+8. revocar acceso amplio a archivos y comprobar que **Aplicaciones** sigue disponible;
+9. confirmar que nunca aparece dataDir ni contenido privado de la app.
