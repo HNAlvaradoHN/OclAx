@@ -30,6 +30,7 @@ import androidx.compose.material.icons.outlined.Code
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Delete
 import androidx.compose.material.icons.outlined.Description
+import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.GridView
 import androidx.compose.material.icons.outlined.Image as ImageIcon
 import androidx.compose.material.icons.outlined.InsertDriveFile
@@ -102,6 +103,7 @@ fun DeviceBrowser(
     onShareFile: (DeviceFileInfo) -> Unit,
     onCopyFile: (DeviceFileInfo) -> Unit,
     onDeleteFile: (DeviceFileInfo) -> Unit,
+    onRenameFile: (DeviceFileInfo, String) -> Unit,
     onOpenApp: (InstalledAppInfo) -> Unit,
     onShareApp: (InstalledAppInfo) -> Unit,
     onLoadThumbnail: (DeviceFileInfo, Int) -> Bitmap?,
@@ -111,6 +113,8 @@ fun DeviceBrowser(
     var query by remember { mutableStateOf("") }
     var filter by remember { mutableStateOf<DeviceFilter?>(null) }
     var pendingDelete by remember { mutableStateOf<DeviceFileInfo?>(null) }
+    var pendingRename by remember { mutableStateOf<DeviceFileInfo?>(null) }
+    var renameText by remember { mutableStateOf("") }
     var viewMode by remember { mutableStateOf(ContentViewMode.LIST) }
 
     BackHandler(enabled = filter != null || query.isNotBlank()) {
@@ -140,6 +144,43 @@ fun DeviceBrowser(
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) {
+                    Text("Cancelar")
+                }
+            },
+        )
+    }
+
+    pendingRename?.let { file ->
+        AlertDialog(
+            onDismissRequest = { pendingRename = null },
+            title = { Text("Renombrar archivo original") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        "El cambio se aplicará al archivo real del dispositivo.",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                    OutlinedTextField(
+                        value = renameText,
+                        onValueChange = { renameText = it },
+                        singleLine = true,
+                        label = { Text("Nombre") },
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        val target = pendingRename ?: return@TextButton
+                        pendingRename = null
+                        onRenameFile(target, renameText)
+                    },
+                ) {
+                    Text("Renombrar")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingRename = null }) {
                     Text("Cancelar")
                 }
             },
@@ -248,6 +289,10 @@ fun DeviceBrowser(
                             onOpen = onOpenFile,
                             onShare = onShareFile,
                             onCopy = onCopyFile,
+                            onRenameRequest = {
+                                pendingRename = file
+                                renameText = file.displayName
+                            },
                             onDeleteRequest = { pendingDelete = file },
                             onLoadThumbnail = onLoadThumbnail,
                         )
@@ -355,6 +400,10 @@ fun DeviceBrowser(
                             onOpen = onOpenFile,
                             onShare = onShareFile,
                             onCopy = onCopyFile,
+                            onRenameRequest = {
+                                pendingRename = file
+                                renameText = file.displayName
+                            },
                             onDeleteRequest = { pendingDelete = file },
                             onLoadThumbnail = onLoadThumbnail,
                         )
@@ -372,6 +421,10 @@ fun DeviceBrowser(
                             onOpen = onOpenFile,
                             onShare = onShareFile,
                             onCopy = onCopyFile,
+                            onRenameRequest = {
+                                pendingRename = file
+                                renameText = file.displayName
+                            },
                             onDeleteRequest = { pendingDelete = file },
                             onLoadThumbnail = onLoadThumbnail,
                         )
@@ -555,6 +608,7 @@ private fun DeviceFileListCard(
     onOpen: (DeviceFileInfo) -> Unit,
     onShare: (DeviceFileInfo) -> Unit,
     onCopy: (DeviceFileInfo) -> Unit,
+    onRenameRequest: () -> Unit,
     onDeleteRequest: () -> Unit,
     onLoadThumbnail: (DeviceFileInfo, Int) -> Bitmap?,
 ) {
@@ -601,7 +655,7 @@ private fun DeviceFileListCard(
                     )
                 }
             }
-            DeviceFileActions(file, onShare, onCopy, onDeleteRequest)
+            DeviceFileActions(file, onShare, onCopy, onRenameRequest, onDeleteRequest)
         }
     }
 }
@@ -612,6 +666,7 @@ private fun DeviceFileGridCard(
     onOpen: (DeviceFileInfo) -> Unit,
     onShare: (DeviceFileInfo) -> Unit,
     onCopy: (DeviceFileInfo) -> Unit,
+    onRenameRequest: () -> Unit,
     onDeleteRequest: () -> Unit,
     onLoadThumbnail: (DeviceFileInfo, Int) -> Bitmap?,
 ) {
@@ -653,7 +708,7 @@ private fun DeviceFileGridCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End,
             ) {
-                DeviceFileActions(file, onShare, onCopy, onDeleteRequest)
+                DeviceFileActions(file, onShare, onCopy, onRenameRequest, onDeleteRequest)
             }
         }
     }
@@ -664,6 +719,7 @@ private fun DeviceFileActions(
     file: DeviceFileInfo,
     onShare: (DeviceFileInfo) -> Unit,
     onCopy: (DeviceFileInfo) -> Unit,
+    onRenameRequest: () -> Unit,
     onDeleteRequest: () -> Unit,
 ) {
     IconButton(
@@ -689,6 +745,17 @@ private fun DeviceFileActions(
                 modifier = Modifier.size(18.dp),
             )
         }
+    }
+    IconButton(
+        onClick = onRenameRequest,
+        modifier = Modifier.size(40.dp),
+    ) {
+        Icon(
+            imageVector = Icons.Outlined.Edit,
+            contentDescription = "Renombrar ${file.displayName}",
+            tint = MaterialTheme.colorScheme.primary,
+            modifier = Modifier.size(18.dp),
+        )
     }
     IconButton(
         onClick = onDeleteRequest,
