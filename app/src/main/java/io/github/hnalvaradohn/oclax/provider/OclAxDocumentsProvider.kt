@@ -389,42 +389,42 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         signal?.throwIfCanceled()
         val targetPx = maxOf(sizeHint.x, sizeHint.y).coerceIn(96, 1024)
 
-        val bitmap = when {
-            appRef != null -> {
-                installedAppsRepository.loadInstalledAppIcon(appRef.packageName)
-                    ?.toBitmap(width = targetPx, height = targetPx)
-            }
-
-            documentId.startsWith(DEVICE_FILE_PREFIX) -> {
-                val file = resolveDeviceFile(documentId)
-                    ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
-                if (!supportsThumbnail(file.mimeType)) {
-                    throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
-                }
-                thumbnailLoader.loadDevice(file, targetPx)
-            }
-
-            else -> {
-                val item = store.findItem(documentId)
-                    ?: throw FileNotFoundException("Documento no encontrado.")
-                if (!supportsThumbnail(item.mimeType)) {
-                    throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
-                }
-                val source = store.payloadFile(documentId)
-                    ?: throw FileNotFoundException("Documento no encontrado.")
-                thumbnailLoader.loadFile(source, contentTypeFor(item.mimeType), targetPx)
-            }
-        } ?: throw FileNotFoundException("No se pudo generar la miniatura.")
-
-        signal?.throwIfCanceled()
-
         val thumbnailDir = File(
             requireNotNull(context).cacheDir,
             "oclax/provider_thumbnails",
         ).apply { mkdirs() }
         val safeId = documentId.replace(Regex("[^A-Za-z0-9._-]"), "_").take(120)
         val thumbnailFile = File(thumbnailDir, "$safeId-$targetPx.png")
-        if (!thumbnailFile.exists()) {
+
+        if (!thumbnailFile.isFile) {
+            val bitmap = when {
+                appRef != null -> {
+                    installedAppsRepository.loadInstalledAppIcon(appRef.packageName)
+                        ?.toBitmap(width = targetPx, height = targetPx)
+                }
+
+                documentId.startsWith(DEVICE_FILE_PREFIX) -> {
+                    val file = resolveDeviceFile(documentId)
+                        ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
+                    if (!supportsThumbnail(file.mimeType)) {
+                        throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
+                    }
+                    thumbnailLoader.loadDevice(file, targetPx)
+                }
+
+                else -> {
+                    val item = store.findItem(documentId)
+                        ?: throw FileNotFoundException("Documento no encontrado.")
+                    if (!supportsThumbnail(item.mimeType)) {
+                        throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
+                    }
+                    val source = store.payloadFile(documentId)
+                        ?: throw FileNotFoundException("Documento no encontrado.")
+                    thumbnailLoader.loadFile(source, contentTypeFor(item.mimeType), targetPx)
+                }
+            } ?: throw FileNotFoundException("No se pudo generar la miniatura.")
+
+            signal?.throwIfCanceled()
             thumbnailFile.outputStream().buffered().use { output ->
                 if (!bitmap.compress(Bitmap.CompressFormat.PNG, 90, output)) {
                     throw FileNotFoundException("No se pudo guardar la miniatura.")
