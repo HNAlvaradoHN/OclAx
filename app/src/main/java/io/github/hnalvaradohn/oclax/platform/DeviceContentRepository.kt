@@ -1,6 +1,7 @@
 package io.github.hnalvaradohn.oclax.platform
 
 import android.content.ContentUris
+import android.content.ContentValues
 import android.content.Context
 import android.content.IntentSender
 import android.app.RecoverableSecurityException
@@ -11,6 +12,7 @@ import android.provider.MediaStore
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import android.webkit.MimeTypeMap
+import io.github.hnalvaradohn.oclax.data.SafeNames
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 
@@ -142,6 +144,30 @@ class DeviceContentRepository(context: Context) {
         }
 
         return result
+    }
+
+    fun rename(file: DeviceFileInfo, rawName: String): DeviceFileInfo {
+        if (!hasBroadFileAccess()) {
+            throw IllegalStateException("OclAx no tiene acceso a los archivos del dispositivo.")
+        }
+
+        val safeName = SafeNames.sanitize(rawName, file.displayName)
+        if (safeName.isBlank()) {
+            throw IllegalArgumentException("El nombre no es válido.")
+        }
+
+        val values = ContentValues().apply {
+            put(MediaStore.MediaColumns.DISPLAY_NAME, safeName)
+        }
+        val updated = resolver.update(file.uri, values, null, null)
+        if (updated <= 0) {
+            throw IllegalStateException("Android no permitió renombrar el archivo original.")
+        }
+
+        return file.copy(
+            displayName = safeName,
+            modifiedAt = System.currentTimeMillis(),
+        )
     }
 
     fun requestDelete(file: DeviceFileInfo): DeviceDeleteResult {
