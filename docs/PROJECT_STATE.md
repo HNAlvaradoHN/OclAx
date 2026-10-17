@@ -139,6 +139,26 @@ Implementado en `fix/documents-provider-installed-apps`:
 - acceso de solo lectura a código APK instalado;
 - IDs virtuales validados para no aceptar rutas arbitrarias.
 
+## Evidencia física adicional — run 319
+
+VERIFICADO:
+- la categoría **Aplicaciones** ya aparece dentro de Android Files;
+- al entrar, Android muestra **No se puede cargar el contenido en este momento**.
+
+Diagnóstico de código:
+- el provider usaba la ruta pesada de UI y cargaba iconos para cada paquete;
+- además resolvía base/splits con una segunda consulta por app;
+- los APK virtuales anunciaban thumbnails y podían disparar trabajo repetido.
+
+Estado de causa: **HIPÓTESIS TÉCNICA**, sin logcat físico.
+
+Corrección implementada en `fix/files-applications-load`:
+- metadata ligera sin Drawable;
+- listado SAF obtiene source APK paths en la misma enumeración;
+- lookup puntual por package;
+- sin thumbnails para APK virtuales;
+- pantalla principal y picker propio conservan sus iconos.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
@@ -147,7 +167,7 @@ Implementado en `fix/documents-provider-installed-apps`:
 - validar expiración real de captura reciente y supervivencia de captura >60 s;
 - validar Fijados;
 - validar renombrado OclAx↔original y renombrado desde Mi dispositivo;
-- validar **Archivos → OclAx → Mi dispositivo → Aplicaciones** y selección de APK instalado;
+- validar que **Archivos → OclAx → Mi dispositivo → Aplicaciones** cargue sin error y permita seleccionar APK instalado;
 - confirmar que el picker propio sigue devolviendo archivos correctamente;
 - auditar APK/Manifest final para comprobar ausencia total de runtime/permisos LAN.
 
