@@ -66,7 +66,6 @@ class ItemStore(private val context: Context) {
         val normalized = RetentionPolicy.normalizeHours(hours)
         preferences.edit().putInt(PREF_RETENTION_HOURS, normalized).apply()
         cleanupExpired()
-        RetentionScheduler.schedule(context)
     }
 
     @Synchronized
@@ -436,7 +435,6 @@ class ItemStore(private val context: Context) {
         if (uri.authority == MediaStore.AUTHORITY) {
             val projection = buildList {
                 add(MediaStore.MediaColumns.DATE_ADDED)
-                add(MediaStore.MediaColumns.DATE_MODIFIED)
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     add(MediaStore.MediaColumns.RELATIVE_PATH)
                 }
