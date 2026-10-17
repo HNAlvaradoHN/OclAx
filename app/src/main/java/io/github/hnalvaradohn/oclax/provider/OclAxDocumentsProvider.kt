@@ -10,12 +10,15 @@ import android.os.ParcelFileDescriptor
 import android.os.StatFs
 import android.provider.DocumentsContract
 import android.provider.DocumentsProvider
+import androidx.core.graphics.drawable.toBitmap
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.platform.DeviceContentRepository
 import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
+import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
+import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
 import java.io.File
 import java.io.FileNotFoundException
@@ -54,6 +57,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         val prefersGrid: Boolean = false,
     ) {
         PINNED("pinned", "Fijados"),
+        APPLICATIONS("applications", "Aplicaciones", prefersGrid = true),
         IMAGES("images", "Imágenes", prefersGrid = true),
         DOCUMENTS("documents", "Documentos"),
         PDF("pdf", "PDF"),
@@ -66,6 +70,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
 
         fun matches(mimeType: String, pinned: Boolean = false): Boolean {
             if (this == PINNED) return pinned
+            if (this == APPLICATIONS) return false
             return when (this) {
                 IMAGES -> contentTypeFor(mimeType) == ContentType.IMAGE
                 DOCUMENTS -> contentTypeFor(mimeType) == ContentType.DOCUMENT
@@ -76,6 +81,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                 AUDIO -> contentTypeFor(mimeType) == ContentType.AUDIO
                 OTHER -> contentTypeFor(mimeType) == ContentType.OTHER
                 PINNED -> pinned
+                APPLICATIONS -> false
             }
         }
 
@@ -87,21 +93,27 @@ class OclAxDocumentsProvider : DocumentsProvider() {
 
         companion object {
             fun fromOclAxDocumentId(documentId: String): Category? =
-                entries.firstOrNull { it.oclaxDocumentId == documentId }
+                entries.firstOrNull {
+                    it != APPLICATIONS && it.oclaxDocumentId == documentId
+                }
 
             fun fromDeviceDocumentId(documentId: String): Category? =
-                entries.firstOrNull { it != PINNED && it.deviceDocumentId == documentId }
+                entries.firstOrNull {
+                    it != PINNED && it.deviceDocumentId == documentId
+                }
         }
     }
 
     private lateinit var store: ItemStore
     private lateinit var deviceRepository: DeviceContentRepository
+    private lateinit var installedAppsRepository: InstalledAppsRepository
     private lateinit var thumbnailLoader: ThumbnailLoader
 
     override fun onCreate(): Boolean {
         val providerContext = context ?: return false
         store = ItemStore(providerContext)
         deviceRepository = DeviceContentRepository(providerContext)
+        installedAppsRepository = InstalledAppsRepository(providerContext)
         thumbnailLoader = ThumbnailLoader(providerContext)
         return true
     }
@@ -138,16 +150,33 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         when {
             documentId == ROOT_DOCUMENT_ID ->
                 addDirectory(cursor, columns, ROOT_DOCUMENT_ID, "OclAx", prefersGrid = true)
+
             documentId == DEVICE_ROOT_DOCUMENT_ID ->
-                addDirectory(cursor, columns, DEVICE_ROOT_DOCUMENT_ID, "Mi dispositivo", prefersGrid = true)
+                addDirectory(
+                    cursor,
+                    columns,
+                    DEVICE_ROOT_DOCUMENT_ID,
+                    "Mi dispositivo",
+                    prefersGrid = true,
+                )
+
             Category.fromOclAxDocumentId(documentId) != null -> {
                 val category = requireNotNull(Category.fromOclAxDocumentId(documentId))
                 addDirectory(cursor, columns, documentId, category.label, category.prefersGrid)
             }
+
             Category.fromDeviceDocumentId(documentId) != null -> {
                 val category = requireNotNull(Category.fromDeviceDocumentId(documentId))
                 addDirectory(cursor, columns, documentId, category.label, category.prefersGrid)
             }
+
+            InstalledAppDocumentIds.parse(documentId) != null ->
+                addInstalledAppDocument(
+                    cursor,
+                    columns,
+                    requireNotNull(InstalledAppDocumentIds.parse(documentId)),
+                )
+
             documentId.startsWith(DEVICE_FILE_PREFIX) ->
                 addDeviceFile(
                     cursor,
@@ -155,6 +184,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                     resolveDeviceFile(documentId)
                         ?: throw FileNotFoundException("Archivo del dispositivo no encontrado."),
                 )
+
             else ->
                 addOclAxItem(
                     cursor,
@@ -177,24 +207,24 @@ class OclAxDocumentsProvider : DocumentsProvider() {
 
         when {
             parentDocumentId == ROOT_DOCUMENT_ID -> {
-                if (deviceRepository.hasBroadFileAccess()) {
-                    addDirectory(
-                        cursor,
-                        columns,
-                        DEVICE_ROOT_DOCUMENT_ID,
-                        "Mi dispositivo",
-                        prefersGrid = true,
-                    )
-                }
-                Category.entries.forEach { category ->
-                    addDirectory(
-                        cursor,
-                        columns,
-                        category.oclaxDocumentId,
-                        category.label,
-                        category.prefersGrid,
-                    )
-                }
+                addDirectory(
+                    cursor,
+                    columns,
+                    DEVICE_ROOT_DOCUMENT_ID,
+                    "Mi dispositivo",
+                    prefersGrid = true,
+                )
+                Category.entries
+                    .filterNot { it == Category.APPLICATIONS }
+                    .forEach { category ->
+                        addDirectory(
+                            cursor,
+                            columns,
+                            category.oclaxDocumentId,
+                            category.label,
+                            category.prefersGrid,
+                        )
+                    }
                 store.listItems().forEach { addOclAxItem(cursor, columns, it) }
                 if (deviceRepository.hasBroadFileAccess()) {
                     deviceRepository.listFiles()
@@ -204,19 +234,30 @@ class OclAxDocumentsProvider : DocumentsProvider() {
             }
 
             parentDocumentId == DEVICE_ROOT_DOCUMENT_ID -> {
-                ensureDeviceAccess()
-                Category.entries
-                    .filterNot { it == Category.PINNED }
-                    .forEach { category ->
-                        addDirectory(
-                            cursor,
-                            columns,
-                            category.deviceDocumentId,
-                            category.label,
-                            category.prefersGrid,
-                        )
-                    }
-                deviceRepository.listFiles().forEach { addDeviceFile(cursor, columns, it) }
+                addDirectory(
+                    cursor,
+                    columns,
+                    Category.APPLICATIONS.deviceDocumentId,
+                    Category.APPLICATIONS.label,
+                    Category.APPLICATIONS.prefersGrid,
+                )
+
+                if (deviceRepository.hasBroadFileAccess()) {
+                    Category.entries
+                        .filterNot {
+                            it == Category.PINNED || it == Category.APPLICATIONS
+                        }
+                        .forEach { category ->
+                            addDirectory(
+                                cursor,
+                                columns,
+                                category.deviceDocumentId,
+                                category.label,
+                                category.prefersGrid,
+                            )
+                        }
+                    deviceRepository.listFiles().forEach { addDeviceFile(cursor, columns, it) }
+                }
             }
 
             Category.fromOclAxDocumentId(parentDocumentId) != null -> {
@@ -226,12 +267,30 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                     .forEach { addOclAxItem(cursor, columns, it) }
             }
 
+            Category.fromDeviceDocumentId(parentDocumentId) == Category.APPLICATIONS -> {
+                installedAppsRepository.listInstalledApps()
+                    .forEach { app -> addInstalledAppEntry(cursor, columns, app) }
+            }
+
             Category.fromDeviceDocumentId(parentDocumentId) != null -> {
                 ensureDeviceAccess()
                 val category = requireNotNull(Category.fromDeviceDocumentId(parentDocumentId))
                 deviceRepository.listFiles()
                     .filter { category.matches(it.mimeType) }
                     .forEach { addDeviceFile(cursor, columns, it) }
+            }
+
+            InstalledAppDocumentIds.parse(parentDocumentId) is InstalledAppDocumentRef.Directory -> {
+                val ref = requireNotNull(
+                    InstalledAppDocumentIds.parse(parentDocumentId)
+                        as? InstalledAppDocumentRef.Directory,
+                )
+                val app = resolveInstalledApp(ref.packageName)
+                    ?: throw FileNotFoundException("Aplicación instalada no encontrada.")
+                installedAppSourceFiles(app.packageName)
+                    .forEachIndexed { index, file ->
+                        addInstalledAppPart(cursor, columns, app, file, index)
+                    }
             }
 
             else -> throw FileNotFoundException("Carpeta no encontrada.")
@@ -262,6 +321,17 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         val needle = query.trim().lowercase()
 
         store.search(query).forEach { addOclAxItem(cursor, columns, it) }
+
+        installedAppsRepository.listInstalledApps()
+            .asSequence()
+            .filter { app ->
+                needle.isEmpty() ||
+                    app.label.lowercase().contains(needle) ||
+                    app.packageName.lowercase().contains(needle)
+            }
+            .take(200)
+            .forEach { addInstalledAppEntry(cursor, columns, it) }
+
         if (deviceRepository.hasBroadFileAccess()) {
             deviceRepository.listFiles()
                 .asSequence()
@@ -285,6 +355,13 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         if (mode != "r") throw FileNotFoundException("OclAx expone documentos en modo lectura.")
         if (isDirectoryDocument(documentId)) {
             throw FileNotFoundException("No se puede abrir una carpeta como archivo.")
+        }
+
+        InstalledAppDocumentIds.parse(documentId)?.let { ref ->
+            val source = resolveInstalledAppSource(ref)
+                ?: throw FileNotFoundException("APK instalado no encontrado.")
+            signal?.throwIfCanceled()
+            return ParcelFileDescriptor.open(source, ParcelFileDescriptor.MODE_READ_ONLY)
         }
 
         if (documentId.startsWith(DEVICE_FILE_PREFIX)) {
@@ -311,22 +388,35 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         signal?.throwIfCanceled()
         val targetPx = maxOf(sizeHint.x, sizeHint.y).coerceIn(96, 1024)
 
-        val bitmap = if (documentId.startsWith(DEVICE_FILE_PREFIX)) {
-            val file = resolveDeviceFile(documentId)
-                ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
-            if (!supportsThumbnail(file.mimeType)) {
-                throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
+        val appRef = InstalledAppDocumentIds.parse(documentId)
+        val bitmap = when {
+            appRef != null -> {
+                val app = resolveInstalledApp(appRef.packageName)
+                    ?: throw FileNotFoundException("Aplicación instalada no encontrada.")
+                runCatching {
+                    app.icon.toBitmap(width = targetPx, height = targetPx)
+                }.getOrNull()
             }
-            thumbnailLoader.loadDevice(file, targetPx)
-        } else {
-            val item = store.findItem(documentId)
-                ?: throw FileNotFoundException("Documento no encontrado.")
-            if (!supportsThumbnail(item.mimeType)) {
-                throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
+
+            documentId.startsWith(DEVICE_FILE_PREFIX) -> {
+                val file = resolveDeviceFile(documentId)
+                    ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
+                if (!supportsThumbnail(file.mimeType)) {
+                    throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
+                }
+                thumbnailLoader.loadDevice(file, targetPx)
             }
-            val source = store.payloadFile(documentId)
-                ?: throw FileNotFoundException("Documento no encontrado.")
-            thumbnailLoader.loadFile(source, contentTypeFor(item.mimeType), targetPx)
+
+            else -> {
+                val item = store.findItem(documentId)
+                    ?: throw FileNotFoundException("Documento no encontrado.")
+                if (!supportsThumbnail(item.mimeType)) {
+                    throw FileNotFoundException("Este tipo de archivo no ofrece miniatura.")
+                }
+                val source = store.payloadFile(documentId)
+                    ?: throw FileNotFoundException("Documento no encontrado.")
+                thumbnailLoader.loadFile(source, contentTypeFor(item.mimeType), targetPx)
+            }
         } ?: throw FileNotFoundException("No se pudo generar la miniatura.")
 
         signal?.throwIfCanceled()
@@ -355,9 +445,14 @@ class OclAxDocumentsProvider : DocumentsProvider() {
     override fun getDocumentType(documentId: String): String =
         when {
             isDirectoryDocument(documentId) -> DocumentsContract.Document.MIME_TYPE_DIR
+
+            InstalledAppDocumentIds.parse(documentId) != null ->
+                INSTALLED_APK_MIME_TYPE
+
             documentId.startsWith(DEVICE_FILE_PREFIX) ->
                 resolveDeviceFile(documentId)?.mimeType
                     ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
+
             else ->
                 store.findItem(documentId)?.mimeType
                     ?: throw FileNotFoundException("Documento no encontrado.")
@@ -382,8 +477,25 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         }
 
         Category.fromDeviceDocumentId(parentDocumentId)?.let { category ->
+            if (category == Category.APPLICATIONS) {
+                val ref = InstalledAppDocumentIds.parse(documentId) ?: return false
+                if (ref is InstalledAppDocumentRef.Part) return false
+                val app = resolveInstalledApp(ref.packageName) ?: return false
+                return installedAppEntryRef(app) == ref
+            }
+
             val file = resolveDeviceFile(documentId) ?: return false
             return category.matches(file.mimeType)
+        }
+
+        val parentAppRef = InstalledAppDocumentIds.parse(parentDocumentId)
+            as? InstalledAppDocumentRef.Directory
+        if (parentAppRef != null) {
+            val childRef = InstalledAppDocumentIds.parse(documentId)
+                as? InstalledAppDocumentRef.Part
+                ?: return false
+            return childRef.packageName == parentAppRef.packageName &&
+                resolveInstalledAppSource(childRef) != null
         }
 
         return false
@@ -397,6 +509,46 @@ class OclAxDocumentsProvider : DocumentsProvider() {
 
     private fun deviceDocumentId(file: DeviceFileInfo): String = DEVICE_FILE_PREFIX + file.id
 
+    private fun resolveInstalledApp(packageName: String): InstalledAppInfo? =
+        installedAppsRepository.listInstalledApps()
+            .firstOrNull { it.packageName == packageName }
+
+    @Suppress("DEPRECATION")
+    private fun installedAppSourceFiles(packageName: String): List<File> =
+        runCatching {
+            val info = requireNotNull(context).packageManager.getApplicationInfo(packageName, 0)
+            buildList {
+                add(info.sourceDir)
+                info.splitSourceDirs?.let(::addAll)
+            }
+                .map(::File)
+                .filter { it.isFile }
+        }.getOrDefault(emptyList())
+
+    private fun installedAppEntryRef(app: InstalledAppInfo): InstalledAppDocumentRef? {
+        val parts = installedAppSourceFiles(app.packageName)
+        return when (parts.size) {
+            0 -> null
+            1 -> InstalledAppDocumentRef.Single(app.packageName)
+            else -> InstalledAppDocumentRef.Directory(app.packageName)
+        }
+    }
+
+    private fun resolveInstalledAppSource(ref: InstalledAppDocumentRef): File? {
+        val app = resolveInstalledApp(ref.packageName) ?: return null
+        val files = installedAppSourceFiles(app.packageName)
+        return when (ref) {
+            is InstalledAppDocumentRef.Single ->
+                files.singleOrNull()
+
+            is InstalledAppDocumentRef.Part ->
+                files.getOrNull(ref.index)
+
+            is InstalledAppDocumentRef.Directory ->
+                null
+        }
+    }
+
     private fun ensureDeviceAccess() {
         if (!deviceRepository.hasBroadFileAccess()) {
             throw FileNotFoundException("OclAx no tiene acceso a los archivos del dispositivo.")
@@ -407,13 +559,143 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         documentId == ROOT_DOCUMENT_ID ||
             documentId == DEVICE_ROOT_DOCUMENT_ID ||
             Category.fromOclAxDocumentId(documentId) != null ||
-            Category.fromDeviceDocumentId(documentId) != null
+            Category.fromDeviceDocumentId(documentId) != null ||
+            InstalledAppDocumentIds.parse(documentId) is InstalledAppDocumentRef.Directory
 
     private fun supportsThumbnail(mimeType: String): Boolean =
         when (contentTypeFor(mimeType)) {
             ContentType.IMAGE, ContentType.VIDEO, ContentType.PDF -> true
             else -> false
         }
+
+    private fun addInstalledAppDocument(
+        cursor: MatrixCursor,
+        columns: Array<out String>,
+        ref: InstalledAppDocumentRef,
+    ) {
+        val app = resolveInstalledApp(ref.packageName)
+            ?: throw FileNotFoundException("Aplicación instalada no encontrada.")
+
+        when (ref) {
+            is InstalledAppDocumentRef.Single -> {
+                val source = resolveInstalledAppSource(ref)
+                    ?: throw FileNotFoundException("APK instalado no encontrado.")
+                addInstalledAppFile(
+                    cursor = cursor,
+                    columns = columns,
+                    documentId = InstalledAppDocumentIds.single(app.packageName),
+                    displayName = installedAppDisplayName(app),
+                    byteSize = source.length(),
+                )
+            }
+
+            is InstalledAppDocumentRef.Directory -> {
+                if (installedAppSourceFiles(app.packageName).size <= 1) {
+                    throw FileNotFoundException("La aplicación ya no usa varios APK.")
+                }
+                addDirectory(
+                    cursor,
+                    columns,
+                    InstalledAppDocumentIds.directory(app.packageName),
+                    app.label,
+                    prefersGrid = false,
+                )
+            }
+
+            is InstalledAppDocumentRef.Part -> {
+                val source = resolveInstalledAppSource(ref)
+                    ?: throw FileNotFoundException("Parte APK no encontrada.")
+                addInstalledAppFile(
+                    cursor = cursor,
+                    columns = columns,
+                    documentId = InstalledAppDocumentIds.part(app.packageName, ref.index),
+                    displayName = installedAppPartDisplayName(source, ref.index),
+                    byteSize = source.length(),
+                )
+            }
+        }
+    }
+
+    private fun addInstalledAppEntry(
+        cursor: MatrixCursor,
+        columns: Array<out String>,
+        app: InstalledAppInfo,
+    ) {
+        when (val ref = installedAppEntryRef(app)) {
+            is InstalledAppDocumentRef.Single -> {
+                val source = resolveInstalledAppSource(ref) ?: return
+                addInstalledAppFile(
+                    cursor = cursor,
+                    columns = columns,
+                    documentId = InstalledAppDocumentIds.single(app.packageName),
+                    displayName = installedAppDisplayName(app),
+                    byteSize = source.length(),
+                )
+            }
+
+            is InstalledAppDocumentRef.Directory -> {
+                addDirectory(
+                    cursor,
+                    columns,
+                    InstalledAppDocumentIds.directory(app.packageName),
+                    app.label,
+                    prefersGrid = false,
+                )
+            }
+
+            else -> Unit
+        }
+    }
+
+    private fun addInstalledAppPart(
+        cursor: MatrixCursor,
+        columns: Array<out String>,
+        app: InstalledAppInfo,
+        source: File,
+        index: Int,
+    ) {
+        addInstalledAppFile(
+            cursor = cursor,
+            columns = columns,
+            documentId = InstalledAppDocumentIds.part(app.packageName, index),
+            displayName = installedAppPartDisplayName(source, index),
+            byteSize = source.length(),
+        )
+    }
+
+    private fun addInstalledAppFile(
+        cursor: MatrixCursor,
+        columns: Array<out String>,
+        documentId: String,
+        displayName: String,
+        byteSize: Long,
+    ) {
+        val row = cursor.newRow()
+        put(row, columns, DocumentsContract.Document.COLUMN_DOCUMENT_ID, documentId)
+        put(row, columns, DocumentsContract.Document.COLUMN_DISPLAY_NAME, displayName)
+        put(row, columns, DocumentsContract.Document.COLUMN_MIME_TYPE, INSTALLED_APK_MIME_TYPE)
+        put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, 0L)
+        put(
+            row,
+            columns,
+            DocumentsContract.Document.COLUMN_FLAGS,
+            DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL,
+        )
+        put(row, columns, DocumentsContract.Document.COLUMN_SIZE, byteSize)
+    }
+
+    private fun installedAppDisplayName(app: InstalledAppInfo): String {
+        val clean = app.label.replace('/', '_').replace('\\', '_').trim()
+        return (clean.ifBlank { app.packageName }) + ".apk"
+    }
+
+    private fun installedAppPartDisplayName(source: File, index: Int): String {
+        val name = source.name
+            .replace('/', '_')
+            .replace('\\', '_')
+            .takeIf { it.endsWith(".apk", ignoreCase = true) }
+        return name ?: if (index == 0) "base.apk" else "split-$index.apk"
+    }
 
     private fun addDirectory(
         cursor: MatrixCursor,
