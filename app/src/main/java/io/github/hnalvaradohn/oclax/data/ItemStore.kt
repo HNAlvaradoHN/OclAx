@@ -1,18 +1,25 @@
 package io.github.hnalvaradohn.oclax.data
 
 import android.content.ContentResolver
+import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
+import android.os.Build
 import android.os.StatFs
+import android.provider.MediaStore
 import android.provider.OpenableColumns
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import org.json.JSONObject
 import java.io.File
 import java.io.FileOutputStream
-import java.io.FileInputStream
 import java.io.IOException
 import java.util.UUID
+
+data class ItemRenameResult(
+    val item: StoredItem,
+    val originalRenamed: Boolean?,
+)
 
 class ItemStore(private val context: Context) {
     companion object {
@@ -59,6 +66,7 @@ class ItemStore(private val context: Context) {
         val normalized = RetentionPolicy.normalizeHours(hours)
         preferences.edit().putInt(PREF_RETENTION_HOURS, normalized).apply()
         cleanupExpired()
+        RetentionScheduler.schedule(context)
     }
 
     @Synchronized
@@ -68,7 +76,72 @@ class ItemStore(private val context: Context) {
         val current = readItem(directory) ?: return null
         val updated = current.copy(pinned = pinned)
         writeMeta(directory, updated)
+        RetentionScheduler.schedule(context)
         return updated
+    }
+
+    @Synchronized
+    fun renameItem(id: String, rawName: String): ItemRenameResult {
+        if (!isSafeId(id)) throw IOException("Identificador inválido.")
+        val directory = File(itemsDir, id)
+        val current = readItem(directory) ?: throw IOException("El archivo ya no existe en OclAx.")
+        val safeName = SafeNames.sanitize(rawName, current.displayName)
+        if (safeName.isBlank()) throw IOException("El nombre no es válido.")
+
+        var sourceRenamed: Boolean? = null
+        var sourceUri: Uri? = null
+        var oldSourceName: String? = null
+        var updatedSourceName = current.sourceDisplayName
+
+        current.sourceUri?.let { rawUri ->
+            sourceRenamed = false
+            val uri = runCatching { Uri.parse(rawUri) }.getOrNull()
+            if (uri?.authority == MediaStore.AUTHORITY) {
+                sourceUri = uri
+                oldSourceName = current.sourceDisplayName
+                val values = ContentValues().apply {
+                    put(MediaStore.MediaColumns.DISPLAY_NAME, safeName)
+                }
+                val changed = runCatching {
+                    context.contentResolver.update(uri, values, null, null)
+                }.getOrElse { error ->
+                    throw IOException("Android no permitió renombrar el archivo original.", error)
+                }
+                if (changed <= 0) {
+                    throw IOException("Android no permitió renombrar el archivo original.")
+                }
+                sourceRenamed = true
+                updatedSourceName = safeName
+            }
+        }
+
+        val updated = current.copy(
+            displayName = safeName,
+            sourceDisplayName = updatedSourceName,
+        )
+
+        try {
+            writeMeta(directory, updated)
+        } catch (error: Exception) {
+            if (sourceRenamed == true && sourceUri != null && !oldSourceName.isNullOrBlank()) {
+                runCatching {
+                    context.contentResolver.update(
+                        sourceUri,
+                        ContentValues().apply {
+                            put(MediaStore.MediaColumns.DISPLAY_NAME, oldSourceName)
+                        },
+                        null,
+                        null,
+                    )
+                }
+            }
+            throw error
+        }
+
+        return ItemRenameResult(
+            item = updated,
+            originalRenamed = sourceRenamed,
+        )
     }
 
     @Synchronized
@@ -82,7 +155,9 @@ class ItemStore(private val context: Context) {
         val canonicalDirectory = directory.canonicalFile
         if (canonicalDirectory.parentFile != canonicalRoot) return false
 
-        return canonicalDirectory.deleteRecursively()
+        val deleted = canonicalDirectory.deleteRecursively()
+        if (deleted) RetentionScheduler.schedule(context)
+        return deleted
     }
 
     @Synchronized
@@ -91,11 +166,25 @@ class ItemStore(private val context: Context) {
         var deleted = 0
         rawItems().forEach { item ->
             if (RetentionPolicy.shouldExpire(item, nowMillis, retention)) {
+                if (item.deleteSourceOnExpiry) {
+                    runCatching { deleteOriginalIfStillSame(item) }
+                }
                 val directory = File(itemsDir, item.id)
                 if (directory.parentFile == itemsDir && directory.deleteRecursively()) deleted++
             }
         }
+        RetentionScheduler.schedule(context)
         return deleted
+    }
+
+    @Synchronized
+    fun nextExpirationAt(nowMillis: Long = System.currentTimeMillis()): Long? {
+        val retention = retentionHours()
+        return rawItems()
+            .asSequence()
+            .mapNotNull { RetentionPolicy.expirationAt(it, retention) }
+            .filter { it > nowMillis }
+            .minOrNull()
     }
 
     @Synchronized
@@ -112,7 +201,10 @@ class ItemStore(private val context: Context) {
         val bytes = text.toByteArray(Charsets.UTF_8)
         ensureFreeSpace(bytes.size.toLong())
 
-        return writeNewItem(displayName, "text/plain") { destination ->
+        return writeNewItem(
+            displayName = displayName,
+            mimeType = "text/plain",
+        ) { destination ->
             destination.outputStream().use { it.write(bytes) }
             bytes.size.toLong()
         }
@@ -125,6 +217,7 @@ class ItemStore(private val context: Context) {
         }
 
         val resolver = context.contentResolver
+        val importedAt = System.currentTimeMillis()
         val metadata = readSourceMetadata(resolver, uri)
         val mimeType = normalizeMimeType(resolver.getType(uri) ?: fallbackMimeType)
         val displayName = SafeNames.sanitize(metadata.displayName, fallbackNameFor(mimeType))
@@ -134,7 +227,25 @@ class ItemStore(private val context: Context) {
             ensureFreeSpace(it)
         }
 
-        return writeNewItem(displayName, mimeType) { destination ->
+        val deleteSourceOnExpiry = shouldDeleteScreenshotSourceOnExpiry(
+            mimeType = mimeType,
+            sourceIsMediaStore = uri.authority == MediaStore.AUTHORITY,
+            displayName = metadata.displayName,
+            relativePath = metadata.relativePath,
+            sourceAddedAt = metadata.addedAt,
+            importedAt = importedAt,
+        )
+
+        return writeNewItem(
+            displayName = displayName,
+            mimeType = mimeType,
+            createdAt = importedAt,
+            sourceUri = uri.toString(),
+            sourceDisplayName = metadata.displayName,
+            sourceByteSize = metadata.byteSize,
+            sourceAddedAt = metadata.addedAt,
+            deleteSourceOnExpiry = deleteSourceOnExpiry,
+        ) { destination ->
             resolver.openInputStream(uri).use { input ->
                 if (input == null) throw IOException("No se pudo abrir el archivo compartido.")
                 FileOutputStream(destination).use { output ->
@@ -154,63 +265,6 @@ class ItemStore(private val context: Context) {
                         output.write(buffer, 0, read)
                     }
                     output.flush()
-                    total
-                }
-            }
-        }
-    }
-
-    @Synchronized
-    fun importTransferFile(
-        source: File,
-        displayName: String,
-        mimeType: String,
-        expectedBytes: Long,
-    ): StoredItem {
-        if (expectedBytes !in 1..MAX_ITEM_BYTES) {
-            throw IOException("El archivo recibido supera el límite seguro de OclAx.")
-        }
-
-        val incomingRoot = File(context.filesDir, "oclax/transfers/incoming").canonicalFile
-        val canonicalSource = source.canonicalFile
-        if (!canonicalSource.path.startsWith(incomingRoot.path + File.separator)) {
-            throw IOException("La fuente recibida no pertenece al almacenamiento temporal de OclAx.")
-        }
-        if (!canonicalSource.isFile || canonicalSource.length() != expectedBytes) {
-            throw IOException("El archivo recibido está incompleto.")
-        }
-
-        val safeMimeType = normalizeMimeType(mimeType)
-        val safeDisplayName = SafeNames.sanitize(
-            displayName,
-            fallbackNameFor(safeMimeType),
-        )
-        ensureFreeSpace(expectedBytes)
-
-        return writeNewItem(safeDisplayName, safeMimeType) { destination ->
-            FileInputStream(canonicalSource).use { input ->
-                FileOutputStream(destination).use { output ->
-                    val buffer = ByteArray(64 * 1024)
-                    var total = 0L
-                    var sinceSpaceCheck = 0L
-                    while (true) {
-                        val read = input.read(buffer)
-                        if (read < 0) break
-                        total += read
-                        sinceSpaceCheck += read
-                        if (total > MAX_ITEM_BYTES || total > expectedBytes) {
-                            throw IOException("El archivo recibido cambió durante la importación.")
-                        }
-                        if (sinceSpaceCheck >= STORAGE_RECHECK_BYTES) {
-                            ensureFreeSpace(1L)
-                            sinceSpaceCheck = 0L
-                        }
-                        output.write(buffer, 0, read)
-                    }
-                    output.flush()
-                    if (total != expectedBytes) {
-                        throw IOException("El archivo recibido cambió durante la importación.")
-                    }
                     total
                 }
             }
@@ -241,6 +295,12 @@ class ItemStore(private val context: Context) {
     private fun writeNewItem(
         displayName: String,
         mimeType: String,
+        createdAt: Long = System.currentTimeMillis(),
+        sourceUri: String? = null,
+        sourceDisplayName: String? = null,
+        sourceByteSize: Long? = null,
+        sourceAddedAt: Long? = null,
+        deleteSourceOnExpiry: Boolean = false,
         writer: (File) -> Long,
     ): StoredItem {
         val id = UUID.randomUUID().toString()
@@ -260,11 +320,17 @@ class ItemStore(private val context: Context) {
                 mimeType = mimeType,
                 payloadName = payloadName,
                 byteSize = actualBytes,
-                createdAt = System.currentTimeMillis(),
+                createdAt = createdAt,
                 pinned = false,
+                sourceUri = sourceUri,
+                sourceDisplayName = sourceDisplayName,
+                sourceByteSize = sourceByteSize,
+                sourceAddedAt = sourceAddedAt,
+                deleteSourceOnExpiry = deleteSourceOnExpiry,
             )
             writeMeta(tempDir, item)
             if (!tempDir.renameTo(finalDir)) throw IOException("No se pudo confirmar el archivo en OclAx.")
+            RetentionScheduler.schedule(context)
             return item
         } catch (error: Exception) {
             tempDir.deleteRecursively()
@@ -281,6 +347,12 @@ class ItemStore(private val context: Context) {
             .put("byteSize", item.byteSize)
             .put("createdAt", item.createdAt)
             .put("pinned", item.pinned)
+            .put("deleteSourceOnExpiry", item.deleteSourceOnExpiry)
+
+        item.sourceUri?.let { json.put("sourceUri", it) }
+        item.sourceDisplayName?.let { json.put("sourceDisplayName", it) }
+        item.sourceByteSize?.let { json.put("sourceByteSize", it) }
+        item.sourceAddedAt?.let { json.put("sourceAddedAt", it) }
 
         val temp = File(directory, "$META_FILE.tmp")
         temp.writeText(json.toString(), Charsets.UTF_8)
@@ -299,12 +371,36 @@ class ItemStore(private val context: Context) {
             byteSize = json.getLong("byteSize"),
             createdAt = json.getLong("createdAt"),
             pinned = json.optBoolean("pinned", false),
+            sourceUri = json.optString("sourceUri").takeIf { it.isNotBlank() },
+            sourceDisplayName = json.optString("sourceDisplayName").takeIf { it.isNotBlank() },
+            sourceByteSize = json.optLong("sourceByteSize").takeIf { json.has("sourceByteSize") },
+            sourceAddedAt = json.optLong("sourceAddedAt").takeIf { json.has("sourceAddedAt") },
+            deleteSourceOnExpiry = json.optBoolean("deleteSourceOnExpiry", false),
         )
         if (item.id != directory.name || !isSafeId(item.id)) return null
         val payload = File(directory.canonicalFile, item.payloadName).canonicalFile
         item.takeIf { payload.parentFile == directory.canonicalFile && payload.isFile }
     } catch (_: Exception) {
         null
+    }
+
+    private fun deleteOriginalIfStillSame(item: StoredItem): Boolean {
+        val rawUri = item.sourceUri ?: return false
+        val uri = runCatching { Uri.parse(rawUri) }.getOrNull() ?: return false
+        if (uri.authority != MediaStore.AUTHORITY) return false
+
+        val current = readSourceMetadata(context.contentResolver, uri)
+        if (current.displayName == null) return false
+        item.sourceByteSize?.let { expected ->
+            if (current.byteSize != expected) return false
+        }
+        item.sourceAddedAt?.let { expected ->
+            if (current.addedAt != expected) return false
+        }
+
+        return runCatching {
+            context.contentResolver.delete(uri, null, null) > 0
+        }.getOrDefault(false)
     }
 
     private fun ensureFreeSpace(bytesNeeded: Long) {
@@ -317,6 +413,10 @@ class ItemStore(private val context: Context) {
     private fun readSourceMetadata(resolver: ContentResolver, uri: Uri): SourceMetadata {
         var name: String? = null
         var size: Long? = null
+        var addedAt: Long? = null
+        var modifiedAt: Long? = null
+        var relativePath: String? = null
+
         try {
             resolver.query(
                 uri,
@@ -333,7 +433,41 @@ class ItemStore(private val context: Context) {
         } catch (_: Exception) {
             // Optional metadata only.
         }
-        return SourceMetadata(name, size)
+
+        if (uri.authority == MediaStore.AUTHORITY) {
+            val projection = buildList {
+                add(MediaStore.MediaColumns.DATE_ADDED)
+                add(MediaStore.MediaColumns.DATE_MODIFIED)
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    add(MediaStore.MediaColumns.RELATIVE_PATH)
+                }
+            }.toTypedArray()
+
+            try {
+                resolver.query(uri, projection, null, null, null)?.use { cursor ->
+                    if (cursor.moveToFirst()) {
+                        addedAt = cursor.longOrNull(MediaStore.MediaColumns.DATE_ADDED)
+                            ?.takeIf { it > 0L }
+                            ?.times(1000L)
+                        modifiedAt = cursor.longOrNull(MediaStore.MediaColumns.DATE_MODIFIED)
+                            ?.takeIf { it > 0L }
+                            ?.times(1000L)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                            relativePath = cursor.stringOrNull(MediaStore.MediaColumns.RELATIVE_PATH)
+                        }
+                    }
+                }
+            } catch (_: Exception) {
+                // Optional MediaStore metadata only.
+            }
+        }
+
+        return SourceMetadata(
+            displayName = name,
+            byteSize = size,
+            addedAt = addedAt ?: modifiedAt,
+            relativePath = relativePath,
+        )
     }
 
     private fun Cursor.stringOrNull(columnName: String): String? {
@@ -370,5 +504,10 @@ class ItemStore(private val context: Context) {
     private fun isSafeId(value: String): Boolean =
         value.length == 36 && value.all { it.isLetterOrDigit() || it == '-' }
 
-    private data class SourceMetadata(val displayName: String?, val byteSize: Long?)
+    private data class SourceMetadata(
+        val displayName: String?,
+        val byteSize: Long?,
+        val addedAt: Long?,
+        val relativePath: String?,
+    )
 }
