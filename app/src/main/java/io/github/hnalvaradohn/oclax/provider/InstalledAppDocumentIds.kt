@@ -38,11 +38,11 @@ internal object InstalledAppDocumentIds {
         when {
             documentId.startsWith(SINGLE_PREFIX) ->
                 parsePackage(documentId.removePrefix(SINGLE_PREFIX))
-                    ?.let(InstalledAppDocumentRef::Single)
+                    ?.let { InstalledAppDocumentRef.Single(it) }
 
             documentId.startsWith(DIRECTORY_PREFIX) ->
                 parsePackage(documentId.removePrefix(DIRECTORY_PREFIX))
-                    ?.let(InstalledAppDocumentRef::Directory)
+                    ?.let { InstalledAppDocumentRef.Directory(it) }
 
             documentId.startsWith(PART_PREFIX) -> {
                 val remainder = documentId.removePrefix(PART_PREFIX)
