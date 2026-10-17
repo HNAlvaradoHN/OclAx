@@ -120,6 +120,7 @@ import java.util.concurrent.Executors
 class MainActivity : ComponentActivity() {
     companion object {
         private const val MAX_CLIPBOARD_TEXT_BYTES = 2L * 1024L * 1024L
+        private const val MAX_BULK_SHARE_ITEMS = 100
     }
 
     private val store by lazy { ItemStore(applicationContext) }
@@ -563,6 +564,14 @@ class MainActivity : ComponentActivity() {
 
     private fun shareItems(selectedItems: List<StoredItem>) {
         if (selectedItems.isEmpty()) return
+        if (selectedItems.size > MAX_BULK_SHARE_ITEMS) {
+            Toast.makeText(
+                this,
+                "Podés compartir hasta $MAX_BULK_SHARE_ITEMS elementos a la vez.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
         if (selectedItems.size == 1) {
             shareItem(selectedItems.first())
             return
