@@ -399,8 +399,9 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         if (!thumbnailFile.isFile) {
             val bitmap = when {
                 appRef != null -> {
+                    val iconPx = targetPx.coerceAtMost(256)
                     installedAppsRepository.loadInstalledAppIcon(appRef.packageName)
-                        ?.toBitmap(width = targetPx, height = targetPx)
+                        ?.toBitmap(width = iconPx, height = iconPx)
                 }
 
                 documentId.startsWith(DEVICE_FILE_PREFIX) -> {
