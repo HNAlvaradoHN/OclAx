@@ -3,7 +3,7 @@
 ## Estado
 
 **Fase:** refinamiento de la primera vertical Android local.  
-**Aplicación:** funcional; nueva dirección local implementada en `feat/local-content-refresh`, pendiente CI y validación física.  
+**Aplicación:** funcional en main; renovación local fusionada con CI verde. Validación física en progreso.  
 **Repositorio:** público.  
 **Protocol version:** 6.  
 **Autorización actual:** retirar LAN, renovar el producto local, añadir limpieza inteligente de capturas, renombrado real y acceso combinado desde selectores.
@@ -94,6 +94,26 @@ OclAx es una herramienta **local-first** para:
   - limpieza antes de cierre y handoff completo.
 - Por tanto **no se añade una regla duplicada ni se incrementa protocol_version**.
 - Registro administrativo verificado en este chat: `last_confirmed_chat: 5`.
+
+## Evidencia física nueva — 2026-10-17
+
+VERIFICADO con run 314:
+- la UI principal ya no muestra LAN, Motor ni Mis dispositivos;
+- una screenshot recién compartida quedó marcada para limpiar también el original al vencer;
+- una screenshot reciente fijada quedó marcada como protegida mientras siga fijada;
+- el resto del contenido real del dispositivo aparece en el flujo de selección;
+- HALLAZGO: las aplicaciones instaladas no aparecían al elegir contenido desde otra app.
+
+Causa verificada:
+- OclAxPickerActivity cargaba ItemStore y DeviceContentRepository, pero no InstalledAppsRepository;
+- PickerCategory no tenía categoría Aplicaciones.
+
+Corrección implementada en fix/picker-installed-apps:
+- categoría Aplicaciones separada de APK;
+- listado de apps instaladas en Mi dispositivo;
+- filtro por MIME del caller;
+- exportación mediante InstalledAppExporter;
+- base + splits solo cuando el caller permite múltiples archivos.
 
 ## Pendientes reales / bloqueos
 
