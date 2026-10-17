@@ -57,6 +57,5 @@ class RetentionCleanupReceiver : BroadcastReceiver() {
         }
 
         ItemStore(context.applicationContext).cleanupExpired()
-        RetentionScheduler.schedule(context.applicationContext)
     }
 }
