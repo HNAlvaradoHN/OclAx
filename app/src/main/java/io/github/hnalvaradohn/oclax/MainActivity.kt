@@ -606,17 +606,17 @@ class MainActivity : ComponentActivity() {
     private fun setItemsPinned(selectedItems: List<StoredItem>, pinned: Boolean) {
         if (selectedItems.isEmpty()) return
         deviceExecutor.execute {
-            selectedItems.forEach { item ->
-                store.setPinned(item.id, pinned)
+            val updated = selectedItems.count { item ->
+                store.setPinned(item.id, pinned) != null
             }
             runOnUiThread {
                 refresh()
                 Toast.makeText(
                     this,
                     if (pinned) {
-                        "Se fijaron ${selectedItems.size} elementos."
+                        "Se fijaron $updated de ${selectedItems.size} elementos."
                     } else {
-                        "Se desfijaron ${selectedItems.size} elementos."
+                        "Se desfijaron $updated de ${selectedItems.size} elementos."
                     },
                     Toast.LENGTH_SHORT,
                 ).show()
