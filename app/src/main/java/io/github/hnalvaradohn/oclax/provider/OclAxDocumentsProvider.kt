@@ -196,6 +196,11 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                     )
                 }
                 store.listItems().forEach { addOclAxItem(cursor, columns, it) }
+                if (deviceRepository.hasBroadFileAccess()) {
+                    deviceRepository.listFiles()
+                        .take(100)
+                        .forEach { addDeviceFile(cursor, columns, it) }
+                }
             }
 
             parentDocumentId == DEVICE_ROOT_DOCUMENT_ID -> {
@@ -362,7 +367,8 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         if (parentDocumentId == ROOT_DOCUMENT_ID) {
             return documentId == DEVICE_ROOT_DOCUMENT_ID ||
                 Category.fromOclAxDocumentId(documentId) != null ||
-                store.findItem(documentId) != null
+                store.findItem(documentId) != null ||
+                (documentId.startsWith(DEVICE_FILE_PREFIX) && resolveDeviceFile(documentId) != null)
         }
 
         if (parentDocumentId == DEVICE_ROOT_DOCUMENT_ID) {
