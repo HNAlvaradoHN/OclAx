@@ -2,8 +2,30 @@
 
 ## Estado
 
-No hay un error nuevo confirmado en la renovación local. Las funciones nuevas permanecen `IMPLEMENTED_PENDING_VALIDATION` hasta CI y prueba física.
+ERR-020 está confirmado por evidencia física y tiene corrección implementada pendiente de CI/validación.
 
+
+### ERR-020 — Aplicaciones ausentes en Android Files → OclAx → Mi dispositivo
+**Estado:** CORRECCIÓN_IMPLEMENTADA_PENDIENTE_CI_FÍSICA
+
+**Evidencia:** run 317 en dispositivo muestra Android Files con breadcrumb `OclAx → Mi dispositivo`, archivos/categorías reales visibles y ausencia de **Aplicaciones**.
+
+**Causa raíz verificada:**
+- la corrección previa PR #84 actuaba sobre `OclAxPickerActivity` / ACTION_GET_CONTENT;
+- la pantalla física usa `OclAxDocumentsProvider` / ACTION_OPEN_DOCUMENT;
+- DocumentsProvider no consultaba aplicaciones instaladas.
+
+**Corrección:**
+- categoría Aplicaciones en DocumentsProvider;
+- APK único como documento virtual seleccionable;
+- base + splits como carpeta cuando corresponde;
+- miniatura con icono real;
+- búsqueda por label/package;
+- file descriptor de solo lectura y document IDs validados.
+
+**Prevención:** distinguir siempre en pruebas y memoria la ruta `ACTION_GET_CONTENT` del flujo `ACTION_OPEN_DOCUMENT`/SAF.
+
+---
 ## Funcionalidad retirada
 
 ### ERR-016 / ERR-017 / ERR-018 / ERR-019 — bloque LAN
