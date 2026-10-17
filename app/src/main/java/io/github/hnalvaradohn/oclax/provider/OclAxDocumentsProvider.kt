@@ -10,14 +10,13 @@ import android.os.ParcelFileDescriptor
 import android.os.StatFs
 import android.provider.DocumentsContract
 import android.provider.DocumentsProvider
-import androidx.core.graphics.drawable.toBitmap
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.platform.DeviceContentRepository
 import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
-import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
+import io.github.hnalvaradohn.oclax.platform.InstalledAppDocumentInfo
 import io.github.hnalvaradohn.oclax.platform.InstalledAppsRepository
 import io.github.hnalvaradohn.oclax.platform.ThumbnailLoader
 import java.io.File
@@ -268,7 +267,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
             }
 
             Category.fromDeviceDocumentId(parentDocumentId) == Category.APPLICATIONS -> {
-                installedAppsRepository.listInstalledApps()
+                installedAppsRepository.listInstalledAppDocuments()
                     .forEach { app -> addInstalledAppEntry(cursor, columns, app) }
             }
 
@@ -285,9 +284,9 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                     InstalledAppDocumentIds.parse(parentDocumentId)
                         as? InstalledAppDocumentRef.Directory,
                 )
-                val app = resolveInstalledApp(ref.packageName)
+                val app = resolveInstalledAppDocument(ref.packageName)
                     ?: throw FileNotFoundException("Aplicación instalada no encontrada.")
-                installedAppSourceFiles(app.packageName)
+                installedAppSourceFiles(app)
                     .forEachIndexed { index, file ->
                         addInstalledAppPart(cursor, columns, app, file, index)
                     }
@@ -322,7 +321,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
 
         store.search(query).forEach { addOclAxItem(cursor, columns, it) }
 
-        installedAppsRepository.listInstalledApps()
+        installedAppsRepository.listInstalledAppDocuments()
             .asSequence()
             .filter { app ->
                 needle.isEmpty() ||
@@ -389,15 +388,11 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         val targetPx = maxOf(sizeHint.x, sizeHint.y).coerceIn(96, 1024)
 
         val appRef = InstalledAppDocumentIds.parse(documentId)
-        val bitmap = when {
-            appRef != null -> {
-                val app = resolveInstalledApp(appRef.packageName)
-                    ?: throw FileNotFoundException("Aplicación instalada no encontrada.")
-                runCatching {
-                    app.icon.toBitmap(width = targetPx, height = targetPx)
-                }.getOrNull()
-            }
+        if (appRef != null) {
+            throw FileNotFoundException("Los APK instalados usan el icono genérico del sistema.")
+        }
 
+        val bitmap = when {
             documentId.startsWith(DEVICE_FILE_PREFIX) -> {
                 val file = resolveDeviceFile(documentId)
                     ?: throw FileNotFoundException("Archivo del dispositivo no encontrado.")
@@ -480,7 +475,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
             if (category == Category.APPLICATIONS) {
                 val ref = InstalledAppDocumentIds.parse(documentId) ?: return false
                 if (ref is InstalledAppDocumentRef.Part) return false
-                val app = resolveInstalledApp(ref.packageName) ?: return false
+                val app = resolveInstalledAppDocument(ref.packageName) ?: return false
                 return installedAppEntryRef(app) == ref
             }
 
@@ -509,24 +504,18 @@ class OclAxDocumentsProvider : DocumentsProvider() {
 
     private fun deviceDocumentId(file: DeviceFileInfo): String = DEVICE_FILE_PREFIX + file.id
 
-    private fun resolveInstalledApp(packageName: String): InstalledAppInfo? =
-        installedAppsRepository.listInstalledApps()
-            .firstOrNull { it.packageName == packageName }
+    private fun resolveInstalledAppDocument(packageName: String): InstalledAppDocumentInfo? =
+        installedAppsRepository.findInstalledAppDocument(packageName)
 
-    @Suppress("DEPRECATION")
-    private fun installedAppSourceFiles(packageName: String): List<File> =
-        runCatching {
-            val info = requireNotNull(context).packageManager.getApplicationInfo(packageName, 0)
-            buildList {
-                add(info.sourceDir)
-                info.splitSourceDirs?.let(::addAll)
-            }
-                .map(::File)
-                .filter { it.isFile }
-        }.getOrDefault(emptyList())
+    private fun installedAppSourceFiles(app: InstalledAppDocumentInfo): List<File> =
+        app.sourceApkPaths
+            .asSequence()
+            .map(::File)
+            .filter { it.isFile }
+            .toList()
 
-    private fun installedAppEntryRef(app: InstalledAppInfo): InstalledAppDocumentRef? {
-        val parts = installedAppSourceFiles(app.packageName)
+    private fun installedAppEntryRef(app: InstalledAppDocumentInfo): InstalledAppDocumentRef? {
+        val parts = installedAppSourceFiles(app)
         return when (parts.size) {
             0 -> null
             1 -> InstalledAppDocumentRef.Single(app.packageName)
@@ -535,8 +524,8 @@ class OclAxDocumentsProvider : DocumentsProvider() {
     }
 
     private fun resolveInstalledAppSource(ref: InstalledAppDocumentRef): File? {
-        val app = resolveInstalledApp(ref.packageName) ?: return null
-        val files = installedAppSourceFiles(app.packageName)
+        val app = resolveInstalledAppDocument(ref.packageName) ?: return null
+        val files = installedAppSourceFiles(app)
         return when (ref) {
             is InstalledAppDocumentRef.Single ->
                 files.singleOrNull()
@@ -573,7 +562,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         columns: Array<out String>,
         ref: InstalledAppDocumentRef,
     ) {
-        val app = resolveInstalledApp(ref.packageName)
+        val app = resolveInstalledAppDocument(ref.packageName)
             ?: throw FileNotFoundException("Aplicación instalada no encontrada.")
 
         when (ref) {
@@ -590,7 +579,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
             }
 
             is InstalledAppDocumentRef.Directory -> {
-                if (installedAppSourceFiles(app.packageName).size <= 1) {
+                if (installedAppSourceFiles(app).size <= 1) {
                     throw FileNotFoundException("La aplicación ya no usa varios APK.")
                 }
                 addDirectory(
@@ -619,7 +608,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
     private fun addInstalledAppEntry(
         cursor: MatrixCursor,
         columns: Array<out String>,
-        app: InstalledAppInfo,
+        app: InstalledAppDocumentInfo,
     ) {
         when (val ref = installedAppEntryRef(app)) {
             is InstalledAppDocumentRef.Single -> {
@@ -650,7 +639,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
     private fun addInstalledAppPart(
         cursor: MatrixCursor,
         columns: Array<out String>,
-        app: InstalledAppInfo,
+        app: InstalledAppDocumentInfo,
         source: File,
         index: Int,
     ) {
@@ -675,16 +664,11 @@ class OclAxDocumentsProvider : DocumentsProvider() {
         put(row, columns, DocumentsContract.Document.COLUMN_DISPLAY_NAME, displayName)
         put(row, columns, DocumentsContract.Document.COLUMN_MIME_TYPE, INSTALLED_APK_MIME_TYPE)
         put(row, columns, DocumentsContract.Document.COLUMN_LAST_MODIFIED, 0L)
-        put(
-            row,
-            columns,
-            DocumentsContract.Document.COLUMN_FLAGS,
-            DocumentsContract.Document.FLAG_SUPPORTS_THUMBNAIL,
-        )
+        put(row, columns, DocumentsContract.Document.COLUMN_FLAGS, 0)
         put(row, columns, DocumentsContract.Document.COLUMN_SIZE, byteSize)
     }
 
-    private fun installedAppDisplayName(app: InstalledAppInfo): String {
+    private fun installedAppDisplayName(app: InstalledAppDocumentInfo): String {
         val clean = app.label.replace('/', '_').replace('\\', '_').trim()
         return (clean.ifBlank { app.packageName }) + ".apk"
     }

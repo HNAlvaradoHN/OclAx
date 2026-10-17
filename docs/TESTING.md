@@ -259,3 +259,21 @@ Validación física:
 7. búsqueda por nombre de app/package;
 8. revocar acceso amplio a archivos y comprobar que **Aplicaciones** sigue disponible;
 9. confirmar que nunca aparece dataDir ni contenido privado de la app.
+
+### PICKER-004 — Carga estable de Aplicaciones en Android Files
+
+Validación automática:
+1. compilar `InstalledAppDocumentInfo` sin afectar la UI principal/picker;
+2. DocumentsProvider usa `listInstalledAppDocuments()` para la carpeta;
+3. documentos APK virtuales no anuncian thumbnail;
+4. IDs seguros siguen cubiertos por `InstalledAppDocumentIdsTest`;
+5. testDebugUnitTest + lintDebug + assembleDebug verdes.
+
+Validación física:
+1. instalar build sobre run 319;
+2. entrar por `Archivos → OclAx → Mi dispositivo → Aplicaciones`;
+3. la lista debe cargar sin mensaje de error;
+4. recorrer varias apps para confirmar estabilidad;
+5. seleccionar una app de APK único;
+6. abrir una app split y comprobar base + splits;
+7. volver atrás y entrar otra vez para detectar fallos por reconsulta.
