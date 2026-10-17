@@ -2,27 +2,52 @@
 
 ## Prioridad actual
 
-### PICKER-004 — Corregir carga de Aplicaciones en Android Files
+### PRODUCT-005 — Selección múltiple segura + iconos de apps en Android Files
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta
 
-Evidencia física run 319:
-- la categoría Aplicaciones aparece;
-- al abrirla Android Files muestra **No se puede cargar el contenido en este momento**.
+Autorizado por el dueño después de validar run 321.
 
-Implementado:
-- metadata ligera para DocumentsProvider sin cargar Drawables;
-- elimina lookup N+1 de PackageManager durante el listado;
-- lookup puntual por package para documentos individuales;
-- APK virtuales ya no solicitan thumbnails;
-- mantiene solo lectura, IDs seguros y base + splits.
+Implementado en `feat/bulk-actions-app-icons`:
+- modo **Seleccionar** en listas OclAx;
+- selección individual o todos los visibles;
+- compartir varios elementos con ACTION_SEND_MULTIPLE;
+- fijar/desfijar varios;
+- eliminar varias copias OclAx con confirmación;
+- el borrado masivo no toca originales;
+- la búsqueda OclAx se deshabilita mientras hay selección para evitar operar sobre elementos ocultos;
+- DocumentsProvider vuelve a ofrecer thumbnail para aplicaciones instaladas;
+- el icono se obtiene solo para el package solicitado y se cachea;
+- para apps con splits se ofrece thumbnail también en la carpeta virtual, sujeto a cómo Android Files decida representarlo.
+
+Fuera de este alcance:
+- renombrado masivo: necesita una regla de nombres;
+- mover originales: necesita selección de destino y modifica archivos reales;
+- borrado masivo de **Mi dispositivo**: se evita por riesgo de pérdida de datos.
 
 Pendiente:
 - CI verde;
-- nueva APK;
-- repetir la ruta exacta en el mismo dispositivo;
-- seleccionar APK único;
-- abrir carpeta de una app split.
+- selección múltiple física;
+- compartir 2+ elementos;
+- fijar/desfijar varios;
+- borrar varias copias y confirmar que los originales permanecen;
+- verificar si Android Files muestra iconos reales en APK único y/o carpetas split.
+
+---
+
+### PICKER-004 — Corregir carga de Aplicaciones en Android Files
+**Estado:** DONE  
+**Prioridad:** alta
+
+Validado físicamente con run 321:
+- Android Files carga **Aplicaciones** sin error;
+- se muestran las aplicaciones instaladas;
+- una app con splits abre su carpeta;
+- se muestran `base.apk` y su split.
+
+CI:
+- PR #86 verde;
+- main run 321 verde.
 
 ---
 
