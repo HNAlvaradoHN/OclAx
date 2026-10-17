@@ -1,620 +1,213 @@
 # TESTING
 
-## Estado actual
+## CI vigente
 
-Existe una primera base Android con CI.
-
-## CI de la prueba vertical
-
-En cada Pull Request y en `main`:
+Cada PR y cada push a `main` ejecutan:
 
 ```bash
 gradle --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
 ```
 
-El workflow publica un APK debug solo si las validaciones anteriores terminan correctamente.
+Si todo pasa, CI publica `OclAx-debug`.
 
-## Pruebas unitarias actuales
+La renovación local elimina por completo el job nativo de Syncthing; ya no existe build/caché/verificación JNI de transferencia.
 
-`SafeNamesTest` valida:
-- sanitización de nombres externos;
-- prevención básica de nombres/rutas hostiles;
-- extensiones admitidas;
-- nombres internos de payload.
+## Pruebas unitarias vigentes
 
-`RetentionPolicyTest` valida:
-- expiración de elementos no fijados al superar la retención;
-- exclusión de Fijados;
-- opción `nunca`;
-- fallback seguro a 24 horas ante un valor no admitido.
+### SafeNamesTest
+Valida:
+- sanitización de nombres;
+- eliminación de componentes de ruta;
+- fallback;
+- extensión segura;
+- nombre interno de payload.
 
-## Validación física
+### RetentionPolicyTest
+Valida:
+- expiración según retención;
+- Fijados no expiran;
+- `Nunca`;
+- fallback seguro a 24 h.
 
-La automatización NO demuestra compatibilidad entre aplicaciones.
+### SourceRetentionPolicyTest
+Valida la nueva excepción de capturas:
+- screenshot MediaStore dentro de 60 s → elegible para borrar original al vencer;
+- screenshot de más de 60 s → original protegido;
+- imagen normal reciente → original protegido;
+- screenshot de fuente no MediaStore → original protegido.
 
-VERIFICADO en teléfono real:
-- OclAx aparece en el selector de archivos del sistema como una fuente disponible mediante DocumentsProvider;
-- el flujo Compartir → OclAx → Pegar funciona en Qwen;
-- los tipos de archivo probados pueden seleccionarse e insertarse en Qwen desde OclAx;
-- APK queda disponible en OclAx, pero Qwen no lo acepta como adjunto.
+### ContentTypeTest
+Valida clasificación por MIME y elegibilidad de Copiar.
 
-Interpretación:
-- el rechazo de APK es una restricción de la app receptora, no un fallo de DocumentsProvider;
-- OclAx no debe prometer que una app externa aceptará todos los MIME types que Android permite exponer.
+### PickerCategoryTest / PickerMimeMatcherTest
+Validan categorías, MIME exacto/wildcard y restricciones del caller.
 
-Pendiente de probar:
-- búsqueda dentro de la raíz OclAx;
-- comportamiento con archivo grande y poco almacenamiento;
-- WhatsApp, Telegram y navegador;
-- expiración física de copias OclAx y supervivencia del archivo original;
-- Fijados y cambio de retención desde UI;
-- borrado manual con confirmación y comprobación de que el original externo sobrevive;
-- compartir desde una tarjeta hacia otra aplicación;
-- selector compacto de categorías alineado a la izquierda: abrir, seleccionar, cierre automático y cierre al tocar fuera;
-- naranja vivo y contraste en modo claro/oscuro;
-- tarjetas y acciones compactas en distintos tamaños de pantalla;
-- Copiar texto e imagen desde una tarjeta y pegar en aplicaciones compatibles;
-- verificar que PDF, APK, documentos, video, audio y otros no muestren Copiar;
-- comprobar que la categoría Aplicaciones muestra apps lanzables con nombre e icono real, ordenadas alfabéticamente;
-- comprobar que APK y Aplicaciones permanecen separadas;
-- comprobar búsqueda por nombre de aplicación.
+### BackNavigationPolicyTest
+Valida jerarquía de Atrás y salida.
 
-Hasta completar esa validación, APP-001 permanece como:
-`IMPLEMENTED_PENDING_VALIDATION`.
+### CategoryAccentTest
+Valida paleta semántica/fallback.
 
+## Validación física ya confirmada
 
-## Firma estable de pruebas
+VERIFICADO históricamente:
+- OclAx aparece como fuente de archivos;
+- Compartir → OclAx → Pegar funciona;
+- DocumentsProvider devuelve contenido a una app receptora compatible;
+- miniaturas de imagen, portada PDF y vistas de **Mi dispositivo** funcionan;
+- abrir PDF/Word/imagen/video/audio/APK funciona en las rutas probadas;
+- eliminar/cancelar original funciona para imagen y PDF/documento;
+- Apps instaladas se muestran;
+- lista/cuadrícula persiste por categoría;
+- picker propio **Elegir con OclAx** funciona con OclAx y Mi dispositivo;
+- picker devuelve PDF desde OclAx e imagen desde Mi dispositivo;
+- navegación Atrás fue validada;
+- APK de pruebas con firma estable puede actualizar la instalación conservando datos.
 
-VERIFICADO en CI:
-- los cuatro GitHub Actions Secrets se reconocen y se muestran enmascarados;
-- el keystore se reconstruye en el almacenamiento temporal del runner;
-- el build de main con firma persistente terminó verde;
-- se publicó el artefacto APK firmado.
+La validación histórica LAN no es un gate: esa funcionalidad fue retirada por DEC-032.
 
-Pendiente en dispositivo:
-- desinstalar una última vez la instalación antigua firmada con una clave efímera;
-- instalar el primer APK con firma persistente;
-- generar una build posterior y confirmar que Android la instala encima sin conflicto y conserva los datos internos.
+## Plan obligatorio — renovación local
 
-
-## Bloque compacto + Copiar
-
-VERIFICADO en CI:
-- tests unitarios verdes;
-- lint verde;
-- assembleDebug verde;
-- test de elegibilidad confirma que Copiar solo está disponible para Texto/Código e Imágenes;
-- build de main generado con la firma persistente de pruebas.
-
-Pendiente en dispositivo:
-- instalar esta build encima de la instalación estable anterior sin desinstalar;
-- comprobar conservación de copias/preferencias internas;
-- probar cierre del menú al seleccionar y al tocar fuera;
-- copiar texto e imagen y pegar en aplicaciones compatibles.
-
-
-## Validación física — actualización estable y apps
-
-VERIFICADO por el dueño:
-- la APK nueva se instaló encima de la anterior sin conflicto;
-- los datos internos se conservaron.
-
-FALLO observado:
-- la primera implementación de Aplicaciones no mostró las apps esperadas;
-- Archivos → OclAx continuó mostrando una raíz plana de recientes.
-
-Corrección a validar:
-- Apps instaladas mediante LauncherApps;
-- etiquetas Apps instaladas / APK guardados;
-- carpetas virtuales por categoría dentro de DocumentsProvider manteniendo recientes directos.
-
-
-## Abrir contenido desde OclAx
-
-VERIFICADO en teléfono real — 2026-09-24:
-- PDF abre correctamente;
-- Word/OOXML abre correctamente;
-- imagen abre correctamente;
-- video y audio abren correctamente;
-- APK llega correctamente al manejador/instalador del sistema.
-
-Pendiente de cobertura de borde:
-- comprobar resolución cuando existan varias apps compatibles o ninguna;
-- mantener solo lectura sobre la copia OclAx.
-
-
-## Mi dispositivo
-
-VERIFICADO en teléfono real — 2026-09-24:
-- Apps instaladas muestra correctamente las aplicaciones esperadas.
-
-Pendiente de validación física:
-
-- seleccionar Imágenes/Documentos/PDF/APK/Texto-Código/Video/Audio/Otros y comprobar solicitud de acceso amplio;
-- conceder acceso desde Ajustes y volver a OclAx;
-- comprobar que las categorías muestran contenido real del almacenamiento;
-- buscar por nombre/ruta;
-- abrir y compartir archivos reales;
-- copiar texto e imágenes;
-- revocar acceso amplio y confirmar que OclAx conserva su bandeja y que Mi dispositivo vuelve a pedir permiso;
-- confirmar que **Eliminar original** aparece solo como acción explícita y que cancelar conserva el archivo;
-- observar tiempo de carga y fluidez con un dispositivo con muchos archivos.
-
-## Miniaturas, compartir apps y borrar originales
-
-VERIFICADO en teléfono real — 2026-09-24:
-- Mi dispositivo muestra miniaturas reales para imágenes;
-- PDF muestra portada/primera página;
-- borrar una imagen funciona correctamente;
-- borrar un PDF/documento funciona correctamente;
-- cancelar el borrado conserva el archivo;
-- Lista/Cuadrícula se recuerda correctamente.
-
-Pendiente de validación física:
-- Video debe mostrar fotograma/miniatura cuando sea compatible;
-- compartir una app de APK único debe enviar un APK instalable sin datos privados del usuario;
-- compartir una app con splits debe enviar base + todos los splits;
-- recepción/instalación debe seguir siendo una decisión explícita del receptor;
-- autolimpieza debe seguir sin tocar originales.
-
-## Miniaturas dentro de la bandeja OclAx
-
-**Validación física confirmada — 2026-09-23:** las miniaturas de imagen en Recientes/OclAx se muestran correctamente en dispositivo real.
-
-Pendiente de validación física:
-- una imagen recibida/pegada debe mostrar su miniatura real en la tarjeta de OclAx;
-- un video recibido debe mostrar un fotograma cuando pueda decodificarse;
-- un PDF recibido debe mostrar la primera página cuando pueda renderizarse;
-- texto, APK, audio, documentos y otros deben conservar un icono reconocible;
-- si falla la generación de miniatura, la tarjeta debe seguir siendo utilizable con icono de fallback;
-- desplazar una lista con muchas miniaturas no debe bloquear perceptiblemente la UI.
-
-## Spike de transferencia OclAx ↔ OclAx
-
-VERIFICADO previamente en CI aislada:
-- Syncthing core v2.1.5 se compiló para Android arm64/API 26 con NDK r30;
-- el artefacto fue ELF Android y su SHA-256 coincidió con el archivo de verificación;
-- el job usó permisos `contents: read` y no recibió secretos de firma de OclAx.
-
-VERIFICADO en main run 125:
-- job nativo construyó correctamente arm64-v8a, armeabi-v7a, x86_64 y x86;
-- checksums se verificaron antes de empaquetar;
-- tests unitarios, lint y assembleDebug terminaron verdes;
-- el APK contiene los cuatro `libsyncthingnative.so`;
-- la firma estable de pruebas se preparó correctamente en main y el APK se publicó como artefacto.
-
-Implementado para la siguiente validación física:
-- CI principal construye y empaqueta `libsyncthingnative.so` para arm64-v8a, armeabi-v7a, x86_64 y x86 desde el tag+commit pinneado;
-- test unitario verifica argumentos seguros de arranque/generación;
-- test unitario endurece un config inseguro y confirma loopback/no-discovery/no-relay/no-NAT/no-reporting; también comprueba rechazo de DOCTYPE/entidades externas;
-- debug muestra **Enviar a dispositivo · prueba técnica** con Probar motor/Detener;
-- antes de `serve` se endurece el config y el proceso arranca pausado; después el servicio vuelve a verificar opciones privadas por REST;
-- el probe espera health, obtiene Device ID, verifica autenticación, dirección GUI loopback e intenta comprobar interfaces IPv4 no-loopback;
-- detener usa shutdown REST autenticado y fallback acotado.
-
-Antes de conectar UX de envío, todavía debe demostrar físicamente:
-- el runtime Syncthing core pinneado arranca en Android y entrega un Device ID;
-- REST/GUI responde únicamente por loopback y rechaza acceso desde otra máquina de la LAN;
-- la API exige la key privada generada localmente;
-- auto-upgrade, usage reporting y crash reporting permanecen desactivados;
-- start/stop/restart no corrompe configuración/base de datos;
-- dos dispositivos emparejados transfieren un archivo pequeño por LAN;
-- un archivo grande puede mostrar progreso sin cargarse completo en memoria;
-- cancelación/reintento dejan estados consistentes;
-- sin ruta directa, relay funciona como fallback manteniendo contenido cifrado extremo a extremo;
-- contenido recibido aterriza en área privada OclAx y no se abre/instala automáticamente;
-- CI de construcción nativa no recibe secretos de firma de la app.
-
-## Base de emparejamiento
-
-Automático:
-- normalización acepta Device ID compacto o con guiones;
-- formato/longitud/caracteres inválidos se rechazan;
-- la UI no puede agregar un par sin nombre ni ID válido.
-
-Fallo físico observado antes del emparejamiento:
-- en dos teléfonos, **Probar motor** agotó el tiempo antes de devolver Device ID;
-- PR #47 cambió el entorno Android a proceso ya supervisado (`STMONITORED=1`) + temp SQLite privado y pasó CI;
-- la build firmada posterior siguió mostrando exactamente el mismo timeout en dispositivo real;
-- la build diagnóstica posterior identificó la etapa exacta: **preparando la configuración privada**;
-- el mensaje mostró la feature `http://apache.org/xml/features/disallow-doctype-decl`, confirmando que el parser XML de Android abortaba antes de iniciar Syncthing.
-
-Corrección automática validada:
-- las features XML específicas del parser se aplican solo si están soportadas;
-- OclAx rechaza `DOCTYPE` y `ENTITY` antes del parseo y bloquea resolución externa mediante `EntityResolver`;
-- test unitario nuevo simula una feature no soportada y confirma que la preparación no aborta por esa razón;
-- se conservan las pruebas de endurecimiento de red/telemetría y rechazo XXE/DOCTYPE;
-- PR #53 y main run 192 terminaron verdes en runtime nativo, tests, lint, build multi-ABI y verificación del APK;
-- la APK firmada de main run 192 quedó publicada para la siguiente prueba física.
-
-Validación física confirmada — 2026-09-23:
-- en un teléfono con la build de main run 192, **Probar motor** muestra `Listo`, Device ID y `loopback verificado`;
-- con main run 207, el scroll completo de OclAx quedó confirmado físicamente;
-- con main run 207, **Mi dispositivo** muestra fecha y hora de modificación en las tarjetas;
-- la corrección de compatibilidad XML supera físicamente la etapa que antes fallaba;
-- en esa misma pantalla se detectó que el panel técnico largo no permitía desplazar verticalmente todo OclAx; PR #55 + main run 196 quedaron verdes y falta confirmar físicamente el scroll corregido.
-
-Pendiente de validación física:
-- confirmar el mismo arranque correcto en el segundo teléfono;
-- **Compartir ID** abre Sharesheet sin incluir API keys, archivos ni datos personales;
-- en otro teléfono puede pegarse ese ID y guardarlo con un nombre;
-- el propio ID no puede agregarse;
-- un duplicado no puede agregarse dos veces;
-- **Permitir sin aceptar** empieza apagado y persiste al reiniciar;
-- quitar un par no toca contenido OclAx ni originales del dispositivo;
-- agregar/quitar pares no debe generar tráfico de sincronización mientras el motor siga en modo aislado.
-
-## Conexión LAN entre pares
-
-Precondición de plataforma:
-- la Network Security Config debe permitir el REST HTTP únicamente en `127.0.0.1`/`localhost`; no habilitar cleartext global.
-
-Automático:
-- la política LAN permite solo `10.0.0.0/8`, `172.16.0.0/12`, `192.168.0.0/16` y `169.254.0.0/16`;
-- no acepta `0.0.0.0/0`, `::/0` ni `100.64.0.0/10`;
-- el listener de la prueba es TCP IPv4 en el puerto Syncthing esperado;
-- tests del diagnóstico LAN verifican mensajes distintos para peer no descubierto, peer descubierto sin conexión y peer inesperadamente pausado;
-- el diagnóstico usa `/rest/system/discovery` solo al vencer la búsqueda y no presenta las IPs encontradas al usuario.
-- `LanDirectProbeTest` verifica rangos privados permitidos, límites /24, exclusión de self/network/broadcast y máximo de hosts;
-- el fallback solo considera Wi‑Fi/Ethernet, TCP/22000 y un máximo de 254 hosts; no añade sondeo sobre Internet/celular.
-
-Validación automática confirmada:
-- PR #66 y main run 237 verdes en runtime nativo, tests, lint, build, verificación del APK y publicación del artefacto.
-
-Pendiente de validación física con dos teléfonos:
-1. instalar la build de main run 237 en ambos;
-2. ejecutar **Probar motor** y confirmar emparejamiento mutuo;
-3. conectar ambos a la misma Wi‑Fi;
-4. tocar **Probar LAN** en ambos dentro de la misma ventana;
-5. si discovery broadcast vuelve a fallar, el fallback debe intentar TCP/22000 del segmento local sin intervención manual;
-6. ambos deben llegar a **Conectado por LAN** y Syncthing debe reportar `isLocal=true`;
-7. no debe transferirse ningún archivo durante esta prueba;
-8. tocar **Desconectar LAN** y confirmar retorno a modo aislado;
-9. repetir con peer inexistente y confirmar timeout sanitizado sin IP/Device ID;
-10. si el sondeo no encuentra candidatos, confirmar mensaje de posible aislamiento de clientes;
-11. si encuentra un candidato pero no verifica el peer, confirmar mensaje de emparejamiento sin revelar IP;
-12. confirmar que el sondeo no ocurre sobre datos móviles cuando Wi‑Fi/Ethernet no está disponible.
-
-## Revisión obligatoria TRANSFER-003 — post-merge
-
-Revisión aplicada según `docs/REVIEW_ROLES.md` después de detectar que el cambio se había fusionado sin dejar la auditoría explícita registrada.
-
-- **Seguridad — INFORMATIVO.** Evidencia: REST HTTP limitado por Network Security Config a loopback; API key privada; discovery local temporal; peers limitados a redes privadas; cleanup fail-closed. Riesgo: exposición LAN accidental si esos controles regresan. Recomendación: conservar tests/controles actuales. Validación: CI + prueba física de conexión/desconexión.
-- **Privacidad — INFORMATIVO.** Evidencia: Device ID solo se comparte por acción explícita; local discovery se activa únicamente durante búsqueda y se apaga tras conectar; no se transfieren archivos aún. Riesgo: Device ID visible temporalmente en la LAN. Recomendación: mantener consentimiento explícito y ventana corta. Validación: observar que discovery termina tras conectar.
-- **Arquitectura — NO BLOQUEANTE.** Evidencia: la lógica de transporte está en `TransferRuntimeController`/`SyncthingRestClient`, pero `MainActivity` ya acumula estado/orquestación de diagnóstico. Riesgo: el siguiente bloque de envío/progreso puede acoplar UI y dominio. Recomendación: extraer un coordinador/state holder pequeño antes de que TRANSFER-004 crezca; no sobre-modularizar. Validación: UI no debe contener reglas de transporte ni persistencia.
-- **Plataforma Android — NO BLOQUEANTE.** Evidencia: targetSdk actual 36; Android 17/API 37 requerirá permiso runtime de red local para apps que apunten a 37. Riesgo: futuras builds perderían LAN si se sube target sin flujo de permiso. Recomendación: mantener PLATFORM-001 antes de target 37. Validación: probar grant/deny/revoke al migrar.
-- **QA — INFORMATIVO.** Evidencia: ya existe prueba física con dos teléfonos; ambos muestran discovery/listener local sanos pero todavía no conectan entre sí. Riesgo: diferencias reales de Wi‑Fi/broadcast/ROM. Recomendación: no marcar DONE hasta validar el fallback directo, conexión local y desconexión.
-- **Rendimiento — INFORMATIVO.** Evidencia: polling REST sigue limitado a la prueba; el fallback directo tiene deadline global de 6 s y máximo 254 hosts/24 probes paralelos. Riesgo: tráfico breve adicional solo cuando discovery falla. Recomendación: mantener el sondeo acotado y medir únicamente si la prueba física muestra impacto.
-- **Diseño/UX/Accesibilidad — NO BLOQUEANTE.** Evidencia: controles técnicos están limitados a debug y estados tienen texto además de color. Riesgo: exceso de detalles si llegan a UX final. Recomendación: retirar controles técnicos cuando exista Enviar → dispositivo → progreso. Validación: prueba de flujo final.
-- **Calidad/Limpieza — INFORMATIVO.** Evidencia: el bloque viejo de diagnóstico fue reemplazado, no quedó duplicado activo. Recomendación: mantener esta regla al reemplazar el panel técnico.
-- **Release — NO APLICA aún.** Sigue siendo build de validación; release estable requiere además SEC-001/CodeQL, licencias/atribuciones y validación física.
-
-
-
-## Selector propio ACTION_GET_CONTENT
+### LOCAL-001 — retiro de LAN
 
 Validación automática:
-- `PickerMimeMatcherTest` cubre `*/*`, familias como `image/*`, MIME exacto, múltiples tipos, normalización y entradas inválidas fail-closed.
-
-Pendiente de validación física:
-1. abrir desde una app que use `ACTION_GET_CONTENT`;
-2. confirmar que aparece **Elegir con OclAx** como opción;
-3. entrar a **OclAx**, buscar y devolver un archivo compatible;
-4. entrar a **Mi dispositivo**, buscar y devolver un archivo compatible;
-5. confirmar que la app llamadora puede leer el URI devuelto pero no obtiene permiso de escritura;
-6. repetir con `image/*` y confirmar que no se ofrecen PDF/audio/etc.;
-7. repetir con selección múltiple y confirmar que se devuelven todos los elementos elegidos;
-8. cancelar y confirmar que la app llamadora recibe resultado cancelado;
-9. sin acceso amplio, confirmar que OclAx sigue disponible y Mi dispositivo muestra **Conceder acceso**;
-10. confirmar que `ACTION_OPEN_DOCUMENT`/Archivos → OclAx conserva su flujo anterior.
-
-Revisión obligatoria PICKER-001:
-- **Seguridad — INFORMATIVO.** Activity exportada pero restringida por acción y selección explícita; MIME externos y cantidad de selección acotados; FileProvider sigue no exportado y solo concede lectura temporal.
-- **Privacidad — INFORMATIVO.** La app llamadora no recibe el inventario ni el contenido de OclAx automáticamente; solo el URI de lo seleccionado por el usuario.
-- **Arquitectura — INFORMATIVO.** Activity/plataforma, UI Compose y matching MIME quedaron separados; reutilizan ItemStore y DeviceContentRepository.
-- **Plataforma Android — INFORMATIVO.** `ACTION_GET_CONTENT` devuelve `data` para selección simple y `ClipData` para múltiple, con `FLAG_GRANT_READ_URI_PERMISSION`; DocumentsProvider no cambia.
-- **QA — PENDIENTE FÍSICO.** CI cubre build/lint/tests; falta interoperabilidad real con aplicaciones externas.
-- **Diseño/UX/Accesibilidad — ACTUALIZADO TRAS PRUEBA FÍSICA.** La primera UI abrió correctamente, pero su lista plana no mantuvo la organización visual de la app; categorías, densidad y miniaturas pasan a ser parte del fix de PICKER-001.
-- **Calidad/Limpieza — INFORMATIVO.** La nueva UI no se incrusta en MainActivity y no añade dependencias.
-
-
-### Primera validación física del picker — 2026-09-24
-
-VERIFICADO físicamente:
-- una aplicación externa compatible muestra **Elegir con OclAx**;
-- al elegirlo se abre la pantalla propia;
-- **Mi dispositivo** muestra archivos reales del teléfono.
-
-HALLAZGO BLOQUEANTE DE UX:
-- la primera pantalla mezcló todos los tipos en una lista plana y no se veía/ordenaba como la navegación principal de OclAx.
-
-Fix a validar:
-1. selector **OclAx / Mi dispositivo** con la misma densidad que la app;
-2. selector de categorías;
-3. miniaturas para Imagen/Video/PDF;
-4. fecha/hora y ruta en Mi dispositivo;
-5. tarjetas compactas equivalentes a la app;
-6. selección y retorno correctos a la aplicación llamadora;
-7. selección múltiple y Cancelar.
-
-
-## PRODUCT-004 — Tarjetas visuales y búsqueda global
-
-Validación automática/CI requerida:
-- unit tests existentes de clasificación/categorías siguen verdes;
-- lint;
-- assembleDebug;
-- el cambio no añade permisos, dependencias ni acceso a red.
-
-Validación funcional:
-1. OclAx abre mostrando tarjetas de categorías cuando no hay búsqueda;
-2. tocar una tarjeta entra a su contenido y **Categorías** vuelve al resumen;
-3. escribir desde la entrada muestra resultados directos por nombre;
-4. Mi dispositivo busca también apps por nombre/paquete y archivos por nombre/MIME/ruta;
-5. las preferencias Lista/Cuadrícula siguen funcionando dentro de cada categoría de Mi dispositivo;
-6. el picker propio muestra solo tarjetas/resultados compatibles con los MIME solicitados por el caller;
-7. selección simple/múltiple del picker conserva el retorno de URI de solo lectura;
-8. tarjetas pueden desplazarse en pantallas pequeñas;
-9. modo claro/oscuro mantiene contraste y naranja de identidad.
-
-Revisión de Diseño/UX/Accesibilidad:
-- **INFORMATIVO:** jerarquía coherente: marca → origen → búsqueda → categorías → detalle;
-- **INFORMATIVO:** la tarjeta completa es táctil y cada categoría mantiene icono + texto, no depende solo del color;
-- **PENDIENTE FÍSICO:** densidad final, legibilidad, scroll y búsqueda con inventario real.
-
-Revisión de Calidad/Limpieza:
-- **INFORMATIVO:** componente de tarjetas compartido entre las tres superficies;
-- **INFORMATIVO:** se retiran los dropdowns de categoría reemplazados y la regla de categoría inicial del picker que dejó de tener consumidores;
-- **PENDIENTE CI:** confirmar imports/código muerto con lint/build.
-
-### LAN — nueva evidencia física 2026-09-24
-
-VERIFICADO:
-- ya hay dos dispositivos disponibles;
-- el teléfono mostrado tiene un peer guardado;
-- un intento LAN terminó indicando que el otro dispositivo **no apareció en discovery local** y el motor volvió al modo aislado.
-
-NO VERIFICADO:
-- si ambos teléfonos tocaron **Probar LAN** dentro de la misma ventana;
-- si el segundo motor/ID ya quedó validado con la misma build;
-- si la Wi-Fi permite multicast/comunicación directa entre clientes.
-
-Por tanto, este resultado no demuestra todavía un defecto del motor ni de la red; TRANSFER-003 continúa pendiente.
-
-
-### PICKER-001 — revalidación visual main run 229
-
-VERIFICADO físicamente:
-- el dueño confirmó que la versión corregida de **Elegir con OclAx** “ya aparece bien”.
-- ERR-015 queda resuelto para el problema visual reportado; las variantes funcionales restantes siguen en PICKER-001.
-
-
-### Revisión LAN — diagnóstico de salud local
-
-- **Seguridad — INFORMATIVO.** Solo se consulta `/rest/system/status` por loopback autenticado; no se abre ningún puerto adicional ni se habilitan relay/global discovery/NAT.
-- **Privacidad — INFORMATIVO.** Los errores brutos de Syncthing pueden contener direcciones; la UI recibe únicamente estados sanitizados y nunca muestra IP/Device ID.
-- **Arquitectura — INFORMATIVO.** El parsing Android queda junto al cliente REST y la evaluación de salud es una función pura testeable; la UI no contiene reglas de transporte.
-- **Plataforma Android — INFORMATIVO.** No se añaden permisos; el diagnóstico separa un fallo del motor de una posible restricción de broadcast/aislamiento de red.
-- **QA — PENDIENTE FÍSICO.** Tests cubren discovery/listener sano, fallido y loopback no válido como listener LAN; falta repetir con los dos teléfonos reales.
-- **Rendimiento — INFORMATIVO.** Añade una sola consulta REST al timeout, sin aumentar el polling.
-
-
-### Revisión TRANSFER-003 — fallback LAN directo
-
-- **Seguridad — INFORMATIVO.** Sondeo explícito, acotado a Wi‑Fi/Ethernet privado, TCP/22000 y máximo 254 hosts; un puerto abierto no autentica y Syncthing conserva la verificación por Device ID. Cleanup incompleto detiene runtime.
-- **Privacidad — INFORMATIVO.** No se muestran/registran IPs ni se envían resultados fuera del dispositivo; no hay telemetría ni nube.
-- **Arquitectura — INFORMATIVO.** `LanDirectProbe` solo descubre candidatos de transporte; `SyncthingRestClient` configura/valida Syncthing y `TransferRuntimeController` orquesta el fallback. MainActivity no recibe lógica de escaneo.
-- **Plataforma Android — INFORMATIVO.** `ACCESS_NETWORK_STATE` es normal/sin prompt runtime; ConnectivityManager restringe el sondeo a transportes Wi‑Fi/Ethernet. targetSdk 37 sigue cubierto por PLATFORM-001 antes de migrar.
-- **QA — PENDIENTE FÍSICO.** Tests cubren política/rangos/diagnósticos; falta comprobar la ruta real en los dos dispositivos.
-- **Rendimiento — INFORMATIVO.** Máximo 254 destinos, 24 probes paralelos, timeout de conexión 250 ms y deadline global de 6 s; el fallback solo corre después de fallar la ventana inicial de discovery.
-- **Calidad/Limpieza — INFORMATIVO.** No se añade dependencia externa ni protocolo de transferencia alterno.
-
-
-## TRANSFER-004 — canal real de archivos LAN
-
-Validación automática:
-- `OclAxTransferProtocolTest` cubre namespace estricto, label sanitizado/acotado, hints de oferta, porcentaje y timeout escalado/acotado;
-- el receptor valida tamaño global, número de archivos, ausencia de directorios/symlinks, manifest acotado, tamaño exacto de payload y Device ID remitente;
-- lint/build deben confirmar Compose, API Android y REST wiring;
-- APK debe seguir conteniendo los runtimes nativos verificados.
-
-Validación física requerida antes de DONE:
-1. misma build en los dos dispositivos ya emparejados;
-2. conectar ambos por LAN;
-3. con **Permitir sin aceptar** apagado, enviar un archivo pequeño desde OclAx;
-4. confirmar que el receptor detecta la solicitud sin refresco manual, muestra nombre y permite Aceptar/Rechazar;
-5. Aceptar y observar progreso en ambos; confirmar que aparece una nueva copia OclAx utilizable y que el emisor solo finaliza después del ACK;
-6. repetir con Rechazar: no debe quedar una copia recibida ni staging visible;
-7. activar **Permitir sin aceptar** para ese peer y repetir: debe entrar sin toque de Aceptar pero nunca abrirse/ejecutarse/instalarse;
-8. probar falta de espacio/archivo grande y confirmar fallo controlado sin dejar configuración efímera permanente;
-9. al terminar, desconectar LAN en ambos y confirmar retorno a modo aislado.
-
-### Revisión obligatoria TRANSFER-004
-
-- **Seguridad — INFORMATIVO.** Evidencia: conexión requiere Device ID + `isLocal`; namespace/estructura/tamaño acotados; se rechazan symlinks/directorios; ACK posterior a importación. Riesgo residual: un peer deliberadamente confiado puede enviar metadatos/contenido malicioso. Mitigación: sanitización, límites, no autoejecución y almacenamiento privado. Validación: tests + prueba física.
-- **Privacidad — INFORMATIVO.** Evidencia: no hay nube/telemetría; el nombre del archivo solo viaja al peer emparejado como parte de la oferta. Riesgo: el nombre puede contener información sensible. Recomendación: no registrar ofertas y mantenerlas limitadas al peer elegido. Validación: revisar logs/UI.
-- **Arquitectura — INFORMATIVO.** Evidencia: `FileTransferCoordinator` separa ItemStore/transfer de MainActivity y `OclAxTransferChannel` encapsula el protocolo. Riesgo: el polling temporal de UI no debe convertirse en regla de dominio. Recomendación: migrarlo a state holder/service cuando se retire el panel debug si el flujo crece.
-- **Plataforma Android — INFORMATIVO.** Evidencia: staging bajo `filesDir`, runtime existente foreground y sin permisos nuevos. Riesgo futuro API 37 permanece en PLATFORM-001. Validación: Android real + lifecycle.
-- **QA — PENDIENTE FÍSICO.** Caminos aceptar/rechazar/autoaceptar, error de espacio, pérdida LAN y cleanup requieren dos dispositivos.
-- **Rendimiento — INFORMATIVO.** Evidencia: ofertas se consultan cada 2 s solo mientras LAN está activa; copia staging consume I/O/espacio temporal; timeout de envío escala con tamaño y se limita a 2 h. Riesgo: archivos grandes requieren espacio adicional temporal. Validación: probar archivo mayor y observar fluidez/espacio.
-- **Diseño/UX/Accesibilidad — NO BLOQUEANTE.** Evidencia: acción Enviar tiene descripción accesible y estados son texto además de color; recepción aún vive en panel técnico debug. Recomendación: después de validar transporte, sustituirlo por flujo final elegir dispositivo → progreso.
-- **Calidad/Limpieza — INFORMATIVO.** No se añade dependencia externa ni segundo protocolo; se reutiliza Syncthing ya pinneado.
-- **Release — NO APLICA.** Sigue siendo build de validación, no release candidata.
-
-
-## PRODUCT-004 — paleta semántica de categorías
-
-Validación automática:
-- PR #69 fusionado después de CI verde;
-- main run 273 verde en runtime nativo, tests, lint, build, verificación del APK y publicación del artefacto;
-- `CategoryAccentTest` verifica los colores semánticos principales en modo oscuro;
-- verifica aliases compartidos entre superficies (`ALL/RECENT`, `APK/apps`);
-- verifica variantes de modo claro y fallback de categorías desconocidas;
-- revisión de contraste: todos los pares icono/contenedor definidos superan 4.5:1 en las variantes oscuras y claras;
-- lint/build deben confirmar que el componente compartido sigue compilando para OclAx, Mi dispositivo y el picker.
-
-Validación física pendiente:
-1. confirmar en modo oscuro la paleta aprobada en las tarjetas;
-2. confirmar que los iconos siguen siendo claramente legibles y que el color no sustituye nombre/icono;
-3. cambiar a modo claro y verificar contraste;
-4. revisar OclAx, Mi dispositivo y Elegir con OclAx para confirmar consistencia del componente compartido.
-
-
-### Revisión aplicable — paleta semántica
-
-- **Diseño/UX/Accesibilidad — INFORMATIVO.** La categoría conserva icono + nombre y no depende solo del color. Los pares icono/contenedor definidos superan 4.5:1 en oscuro y claro. La identidad naranja global de OclAx no cambia.
-- **QA — PENDIENTE FÍSICO.** El mapeo está cubierto por test unitario; queda confirmar percepción real en el teléfono, incluido modo claro.
-- **Plataforma Android/Compose — INFORMATIVO.** El cambio se limita al componente Compose compartido; no modifica lifecycle, permisos, almacenamiento, intents ni red.
-- **Calidad/Limpieza — INFORMATIVO.** La paleta vive en un único mapeo reutilizado por OclAx, Mi dispositivo y el picker; categorías futuras desconocidas conservan el fallback del tema.
-- **Seguridad/Privacidad — NO APLICA COMO REVISIÓN MATERIAL.** No se añaden datos, telemetría, permisos, persistencia ni superficie de red.
-
-## NAV-001 — Atrás jerárquico
-
-Validación automática:
-- BackNavigationPolicyTest cubre categoría/búsqueda → categorías, Mi dispositivo → OclAx, primer Atrás en inicio → confirmación y segundo Atrás → salida;
-- lint/build deben confirmar integración de BackHandler y DialogProperties.
+1. no existen clases/paquetes de transferencia;
+2. no existe servicio Syncthing en Manifest;
+3. no existen permisos `INTERNET`, `ACCESS_NETWORK_STATE`, multicast ni foreground data-sync;
+4. no existe configuración de red loopback;
+5. Gradle no fuerza empaquetado JNI para Syncthing;
+6. workflow no descarga/compila/empaqueta runtimes;
+7. tests, lint y assembleDebug pasan;
+8. APK se genera sin depender de un artefacto nativo.
 
 Validación física:
-- **VERIFICADO con run 281:** entrar a **PDF** en OclAx y usar el gesto Atrás vuelve al nivel anterior sin cerrar la app.
+- pantalla principal no muestra **Enviar a dispositivo**, Motor ni Mis dispositivos;
+- flujo OclAx/Mi dispositivo sigue funcionando;
+- actualización sobre instalación previa no pierde las copias internas.
 
-Validación física todavía requerida:
-1. repetir con el botón Atrás físico/sistema cuando esté disponible;
-- **VERIFICADO:** desde la raíz de OclAx, la confirmación de salida y la secuencia posterior funcionan correctamente según la prueba física del dueño;
-5. entrar a **Mi dispositivo** → categoría → Atrás: categoría → resumen de Mi dispositivo → OclAx principal;
-6. abrir **Elegir con OclAx** desde otra app: categoría → resumen → OclAx/origen → app llamadora, sin matar la app principal.
+### DATA-002 — capturas recientes
 
-Revisión aplicable:
-- **Plataforma Android — INFORMATIVO.** Usa androidx.activity.compose.BackHandler; no añade permisos ni componentes.
-- **Diseño/UX/Accesibilidad — INFORMATIVO.** La salida deja de ser accidental y conserva confirmación explícita.
-- **QA — PENDIENTE FÍSICO.** El orden de pantallas requiere comprobar gesto predictivo/botón real en dispositivo.
-- **Arquitectura/Calidad — INFORMATIVO.** La decisión de back principal vive en una política JVM-testable y los estados locales se resuelven en su superficie.
+Caso A — captura recién creada:
+1. crear screenshot;
+2. compartirla a OclAx dentro de ≤60 s;
+3. confirmar indicador **Captura reciente · original se limpiará al vencer**;
+4. comprobar que la copia funciona;
+5. dejar vencer la retención;
+6. confirmar desaparición de copia OclAx y original de galería.
 
+Caso B — captura existente:
+1. conservar screenshot durante >60 s;
+2. compartirla después a OclAx;
+3. confirmar que NO aparece el indicador de borrado de original;
+4. dejar vencer;
+5. copia OclAx desaparece;
+6. original permanece en galería.
 
-## Validación física adicional — 2026-09-25
+Caso C — imagen normal reciente:
+- compartir foto normal aunque tenga <60 s;
+- el original debe sobrevivir.
 
-- **Mi dispositivo:** el dueño reporta funcionamiento correcto en las rutas probadas, incluyendo la revisión visual actual.
-- **Compartir app/APK:** confirmado funcional en el dispositivo probado; no se afirma todavía cobertura específica de paquete con splits.
-- **Picker múltiple:** no es una función de producto solicitada por el dueño. La ruta técnica existente solo se conserva como compatibilidad cuando una app externa solicite selección múltiple y no se usa como gate prioritario de UX.
+Caso D — Fijados:
+- compartir screenshot elegible;
+- fijarla antes del vencimiento;
+- después del tiempo de retención deben sobrevivir copia y original;
+- al desfijar, se aplica la retención normal.
 
+Caso E — reinicio:
+- con elemento pendiente, reiniciar el teléfono;
+- confirmar que la expiración vuelve a programarse;
+- aceptar que Android puede diferir una alarma inexacta bajo ahorro energético.
 
-## NAV-001 — cierre físico 2026-09-25
+Caso F — identidad:
+- si la URI original deja de existir o sus metadatos ya no coinciden, OclAx no debe buscar/borrar otro archivo.
 
-**VERIFICADO:** el dueño confirmó el flujo completo de Atrás en el dispositivo probado: PDF vuelve al nivel anterior, la raíz confirma la salida y **Elegir con OclAx** desenrolla categoría/resumen/origen hasta regresar a la aplicación llamadora sin cerrar ni romper el flujo. NAV-001 puede considerarse físicamente validado en navegación por gestos.
+### FILES-001 — renombrado
 
+OclAx:
+1. compartir archivo desde MediaStore;
+2. abrir Renombrar;
+3. usar un nombre nuevo válido;
+4. comprobar nombre en OclAx;
+5. comprobar mismo nombre en galería/Files;
+6. reiniciar OclAx y confirmar persistencia.
 
-## PICKER-001 — validación física adicional 2026-09-25
+Origen no modificable:
+- usar un contenido de provider que no sea MediaStore;
+- OclAx puede renombrar la copia, pero debe informar que el origen no permite renombrado.
 
-**VERIFICADO:** cancelar desde **Elegir con OclAx** regresa correctamente a la aplicación llamadora. **VERIFICADO:** con acceso de almacenamiento negado/revocado, el flujo no se rompe y conserva la ruta prevista para conceder acceso. También quedó confirmada la navegación por tarjetas/categorías. Permanece pendiente ampliar la validación de devolución efectiva de archivos seleccionados a distintas aplicaciones llamadoras.
+Mi dispositivo:
+1. elegir imagen/documento;
+2. Renombrar;
+3. comprobar cambio en OclAx/Mi dispositivo y fuera de OclAx;
+4. comprobar apertura/compartir después del cambio.
 
+### FILES-001 — DocumentsProvider
 
-## PICKER-001 — cierre físico 2026-09-25
+Con acceso amplio concedido:
+1. desde una app externa elegir **Archivos**;
+2. entrar a **OclAx**;
+3. confirmar que se ven archivos, no únicamente carpetas;
+4. confirmar entrada **Mi dispositivo**;
+5. entrar y comprobar categorías + archivos reales;
+6. buscar un archivo real por nombre;
+7. abrir imagen/PDF y verificar miniatura cuando el Files del sistema la solicite;
+8. seleccionar un archivo y confirmar retorno a la app llamadora.
 
-**VERIFICADO:** un PDF elegido desde OclAx vuelve correctamente a la aplicación llamadora y queda seleccionado/adjunto. **VERIFICADO:** una imagen elegida desde **Mi dispositivo** también vuelve correctamente a la aplicación llamadora. Con las validaciones previas de presentación, navegación, cancelar y permiso negado/revocado, PICKER-001 queda físicamente cubierto para el alcance de producto actual.
+Con acceso revocado:
+- OclAx temporal debe seguir disponible;
+- **Mi dispositivo** no debe filtrar ni inventar acceso.
 
+Nota de plataforma:
+- la apariencia exacta de la app **Archivos** es del sistema Android; la prueba verifica contenido/jerarquía/miniaturas, no que Files copie el diseño Compose de OclAx.
+- para UI propia debe validarse **Elegir con OclAx**.
 
-## ERR-017 — pérdida asimétrica de sesión LAN
+## Revisión obligatoria de la renovación
 
-Evidencia física — 2026-09-25:
-- un dispositivo mostró **Conectado por LAN** mientras el otro ya había fallado la verificación del peer y regresado a modo aislado;
-- el estado visible de conexión no era una prueba suficiente de que el enlace siguiera vivo en ambos extremos.
+### Seguridad
+**Estado:** PENDIENTE REVISIÓN FINAL  
+Comprobar eliminación de red, receiver, límites de borrado y rename.
 
-Validación automática de la corrección:
-- **VERIFICADO:** PR #75 terminó con CI verde y fue fusionado; main run 296 quedó verde en runtime nativo, tests, lint, build, verificación del APK y artefacto;
-- compilar/lint/test del cambio que expone salud LAN desde el runtime y usa dos fallos consecutivos + revalidación final antes de aislar;
-- confirmar que el cleanup reutiliza `disconnectLan`, por lo que pausa el peer, restaura direcciones `dynamic` y opciones privadas, con detención fail-closed si la limpieza falla;
-- no se añaden permisos, endpoints externos ni cambios a global discovery/relay/NAT.
+### Privacidad
+**Estado:** PENDIENTE REVISIÓN FINAL  
+Comprobar que source URI/metadatos son privados y que una foto normal nunca entra en borrado automático.
 
-Validación física requerida:
-1. instalar la misma build en móvil y tablet;
-2. conectar ambos por LAN y mantener la pantalla abierta al menos 10 segundos;
-3. provocar pérdida en un extremo (desconectar LAN o reproducir el fallo del peer) y confirmar que el otro elimina automáticamente **Conectado por LAN** y vuelve a aislamiento en pocos segundos;
-4. repetir **Probar LAN** en ambos y exigir estado conectado simultáneo antes de iniciar transferencia;
-5. solo entonces ejecutar el guion de TRANSFER-004 de archivo pequeño, rechazo y autoaceptación.
+### Arquitectura
+**Estado:** PENDIENTE REVISIÓN FINAL  
+Comprobar separación ItemStore / policy / scheduler / repository / UI y ausencia de restos del motor retirado.
 
+### Plataforma Android
+**Estado:** PENDIENTE CI/FÍSICA  
+Comprobar ContentResolver update/delete, AlarmManager/BOOT y DocumentsProvider.
 
-### Revisión aplicable — ERR-017 / vigilancia de pérdida LAN
+### Calidad/Limpieza
+**Estado:** PENDIENTE REVISIÓN FINAL  
+Buscar imports, recursos, permisos, tests, docs y workflows huérfanos de LAN.
 
-- **Seguridad — INFORMATIVO.** La corrección no confía en el estado Compose: vuelve a consultar al Syncthing local y exige el mismo Device ID con `connected=true` + `isLocal=true`. Pérdida confirmada reutiliza cleanup fail-closed. Riesgo residual: un fallo temporal de REST podría parecer pérdida; se mitiga con dos muestras fallidas y una revalidación final.
-- **Privacidad — INFORMATIVO.** Solo se consulta REST loopback ya autenticado; no se añaden logs, telemetría, IPs visibles ni datos enviados fuera del dispositivo.
-- **Arquitectura — NO BLOQUEANTE.** La política de revalidación se engancha al polling existente de solicitudes en `MainActivity`. Es suficiente para este panel técnico, pero el flujo final debería mover supervisión de sesión a un state holder/coordinador cuando se retire el panel debug.
-- **Plataforma Android — INFORMATIVO.** No cambia lifecycle de servicio, manifest ni permisos. La recuperación usa el controlador de runtime existente y su apagado seguro.
-- **QA — PENDIENTE FÍSICO.** CI puede validar compilación/regresiones, pero el comportamiento decisivo exige dos dispositivos: pérdida remota, limpieza automática y reconexión simultánea estable.
-- **Rendimiento — INFORMATIVO.** Añade una consulta REST loopback por ciclo de 2 s mientras LAN está activa. Es tráfico local pequeño y acotado; no corre cuando no hay sesión. Si el flujo final mantiene polling, consolidar salud + solicitudes para evitar consultas duplicadas.
-- **Diseño/UX/Accesibilidad — INFORMATIVO.** Evita mostrar una conexión fantasma y comunica explícitamente pérdida/restauración de aislamiento mediante texto, no solo color.
-- **Calidad/Limpieza — INFORMATIVO.** Reutiliza `disconnectLan` en lugar de duplicar reglas de cleanup; no añade dependencias ni segundo mecanismo de red.
-- **Release — NO APLICA.** Continúa como build de validación física.
+### QA
+**Estado:** PENDIENTE CI/FÍSICA  
+Ejecutar matriz anterior.
 
+### Rendimiento
+**Estado:** INFORMATIVO  
+DocumentsProvider puede enumerar muchos archivos; la raíz limita la exposición directa inicial a 100, mientras **Mi dispositivo** conserva inventario completo. Validar un teléfono con inventario grande antes de optimizar.
 
-## ERR-018 — estabilización posterior a la primera conexión LAN
+### Diseño/UX/Accesibilidad
+**Estado:** PENDIENTE FÍSICO  
+Renombrar usa acción con contentDescription; la limpieza destructiva de screenshot tiene texto visible. Confirmar legibilidad/tamaños táctiles.
 
-Evidencia física — 2026-09-25:
-- con main run 296, el móvil llegó a **Conectado por LAN** mientras la tablet seguía buscando;
-- la tablet encontró al menos un candidato TCP/22000, pero no sostuvo una sesión verificada;
-- el móvil terminó detectando la pérdida y restaurando aislamiento, validando el comportamiento de ERR-017 en este escenario;
-- el Device ID del móvil almacenado en la tablet coincide exactamente con el Device ID actual del móvil.
+### Release
+**Estado:** NO APLICA TODAVÍA  
+No es release candidata hasta terminar validación física y SEC-001.
 
-Interpretación corregida:
-- encontrar un candidato TCP/22000 no demuestra por sí solo que exista un Device ID incorrecto;
-- el diagnóstico anterior era demasiado específico y se ajusta para describir únicamente que la sesión verificada no llegó a establecerse/mantenerse.
+## Criterio de cierre
 
-Validación automática requerida para la corrección:
-- **VERIFICADO:** PR #77 CI run 299 verde; PR #77 fusionado y main run 303 verde en runtime nativo, tests, lint, build, verificación del APK y artefacto;
-- `SyncthingLanDiagnosticsTest` cubre extracción de una IPv4 privada desde la dirección de una conexión Syncthing ya autenticada y rechaza rutas públicas/IPv6 para este flujo IPv4;
-- el controlador debe exigir varias muestras consecutivas `connected=true` + `isLocal=true` antes de apagar discovery;
-- después de obtener una conexión verificada, debe conservar temporalmente la IPv4 privada del peer como dirección directa, sin eliminar `dynamic`;
-- debe revalidar la sesión después de fijar la ruta y nuevamente después de apagar Local Discovery;
-- cualquier fallo debe reutilizar el cleanup fail-closed: peer pausado, dirección restaurada a `dynamic`, opciones privadas y detención del runtime si la limpieza no puede confirmarse;
-- no se añaden permisos, endpoints externos, relay, NAT, global discovery ni telemetría.
+Una tarea pasa a DONE solo cuando:
+- implementación está en main;
+- CI relevante verde;
+- revisiones aplicables cerradas;
+- validación física obligatoria registrada cuando corresponda;
+- memoria oficial reconciliada;
+- no quedan restos de la función sustituida.
 
-Validación física requerida:
-1. instalar la misma build en móvil y tablet;
-2. tocar **Probar LAN** en ambos dentro de la misma ventana;
-3. exigir **Conectado por LAN** simultáneo en ambos y mantenerlo al menos 10 segundos;
-4. confirmar que ninguno muestra éxito y luego cae durante la transición de apagado de discovery;
-5. desconectar/fallar deliberadamente un extremo y confirmar que el otro vuelve a aislamiento automáticamente;
-6. reconectar y, solo entonces, continuar TRANSFER-004 con archivo pequeño, rechazo y autoaceptación.
-
-### Revisión aplicable — ERR-018
-
-- **Seguridad — INFORMATIVO.** La dirección temporal se obtiene únicamente después de que Syncthing ya autenticó el Device ID y reportó una conexión local. Además se filtra a IPv4 privada/link-local y el puerto sigue fijo a 22000. No se usa una IP como identidad.
-- **Privacidad — INFORMATIVO.** La dirección del peer permanece en la configuración privada local de Syncthing durante la sesión; no se muestra, registra ni transmite a GitHub/telemetría. Se restaura a `dynamic` al desconectar/fallar.
-- **Arquitectura — INFORMATIVO.** La estabilización permanece dentro de `TransferRuntimeController`/`SyncthingRestClient`; la UI solo recibe éxito o error y no incorpora reglas de transporte.
-- **Plataforma Android — INFORMATIVO.** No cambia permisos, lifecycle ni foreground service; el MulticastLock sigue limitado a la fase explícita de discovery y ahora se libera únicamente después de que la sesión sobrevive la transición.
-- **QA — PENDIENTE FÍSICO.** CI puede validar parser/tests/build, pero la condición decisiva es una sesión simultánea estable en dos dispositivos reales.
-- **Rendimiento — INFORMATIVO.** Se añaden unas pocas consultas REST loopback de 500 ms durante el establecimiento; no hay polling extra después de quedar conectado.
-- **Calidad/Limpieza — INFORMATIVO.** Reutiliza las rutas directas y cleanup ya existentes; no añade dependencia ni protocolo alternativo.
-
-
-## ERR-019 — runtime LAN huérfano tras cerrar la tarea
-
-**Evidencia física — 2026-09-25:**
-- transferencia real imagen y APK funcionó móvil → tablet y tablet → móvil, con velocidad LAN alta;
-- al cerrar/retirar completamente OclAx en la tablet, el móvil permaneció **Conectado por LAN** durante más de cinco minutos;
-- un envío iniciado desde el móvil quedó esperando aceptación y continuó cuando la tablet volvió a abrir OclAx, demostrando que Syncthing había quedado activo aunque la UI receptora ya no existía.
-
-**Causa verificada en código:** `SyncthingRuntimeService` usa `stopWithTask=false` y no tenía `onTaskRemoved`; por eso el foreground service podía sobrevivir a la retirada de la tarea. El watcher de ERR-017 no fallaba: `/rest/system/connections` seguía viendo una sesión local real. Durante una transferencia, además, el polling de MainActivity se omite por `fileTransferBusy` y el canal no verificaba pérdida LAN por sí mismo.
-
-**Validación automática requerida:**
-- test unitario del contador de pérdidas LAN confirma que una muestra sana reinicia el contador y dos pérdidas consecutivas se conservan como umbral de abort;
-- lint/build deben validar `Service.onTaskRemoved`, cierre idempotente y cambios de lifecycle;
-- no se añaden permisos, dependencias, endpoints externos, global discovery, relay, NAT ni telemetría.
-
-**Validación física requerida:**
-1. conectar móvil y tablet y confirmar transferencia normal en ambos sentidos;
-2. retirar la tarea del receptor desde Recientes, sin usar **Desconectar LAN**;
-3. confirmar que el emisor abandona **Conectado por LAN** en pocos segundos y vuelve a ofrecer **Probar LAN**;
-4. reconectar, iniciar un envío y retirar la tarea del receptor durante el envío; debe fallar rápido, no esperar el timeout largo;
-5. volver a abrir ambos, reconectar y confirmar nueva transferencia normal;
-6. mandar OclAx solamente a segundo plano sin retirar la tarea y confirmar que ese gesto por sí solo no fuerza desconexión.
-
-### Revisión aplicable — ERR-019
-
-- **Seguridad — INFORMATIVO.** El cambio reduce exposición: una tarea retirada ya no deja el listener/runtime LAN activo indefinidamente. El cierre del runtime sigue siendo local y no habilita rutas nuevas.
-- **Privacidad — INFORMATIVO.** No se añaden logs, telemetría ni identificadores; se acorta la vida del proceso de red cuando el usuario cierra la tarea.
-- **Arquitectura — INFORMATIVO.** El ownership del runtime queda en la capa plataforma/service; MainActivity solo solicita cierre en salida explícita. La verificación durante transferencias vive en `OclAxTransferChannel`, no en la UI.
-- **Plataforma Android — NO BLOQUEANTE TRAS CI.** `onTaskRemoved` mantiene el cleanup en la capa Service con `stopWithTask=false`; build/lint cubren compatibilidad estática y la semántica OEM/lifecycle queda pendiente de prueba física.
-- **QA — PENDIENTE FÍSICO.** Debe cubrir retirada de tarea, pérdida durante transferencia, reapertura/reconexión y segundo plano sin retirada. Esta validación usa la APK resultante y no bloquea fusionar después de CI verde.
-- **Rendimiento — INFORMATIVO.** La verificación añade una consulta REST loopback por ciclo de transferencia (750 ms), sin tráfico externo adicional.
-- **Calidad/Limpieza — INFORMATIVO.** Reutiliza `requestStop`, el monitor REST existente y cleanup de transferencias; no introduce un segundo mecanismo de transporte.
-- **Diseño/UX/Accesibilidad — INFORMATIVO.** El efecto visible esperado es que el estado conectado desaparezca cuando el peer realmente cierra OclAx; no se añaden controles ni dependencia de color.
-- **Release — NO APLICA.** Continúa como build de validación física.
+Mientras falte prueba real:
+`IMPLEMENTED_PENDING_VALIDATION`.
