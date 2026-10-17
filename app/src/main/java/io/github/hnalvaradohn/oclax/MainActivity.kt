@@ -994,6 +994,7 @@ private fun OclAxHome(
                             value = query,
                             onValueChange = { query = it },
                             modifier = Modifier.fillMaxWidth(),
+                            enabled = !selecting,
                             singleLine = true,
                             label = { Text("Buscar en OclAx") },
                         )
