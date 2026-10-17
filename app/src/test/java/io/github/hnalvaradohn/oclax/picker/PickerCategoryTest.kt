@@ -27,10 +27,24 @@ class PickerCategoryTest {
     }
 
     @Test
+    fun installedApplicationsAreSeparateFromApkFiles() {
+        assertFalse(PickerCategory.APPLICATIONS.matches(INSTALLED_APP_MIME_TYPE))
+        assertTrue(PickerCategory.APK.matches(INSTALLED_APP_MIME_TYPE))
+    }
+
+    @Test
+    fun installedApplicationsRespectCallerMimeFilter() {
+        assertTrue(installedAppsCompatible(listOf("*/*")))
+        assertTrue(installedAppsCompatible(listOf("application/*")))
+        assertTrue(installedAppsCompatible(listOf(INSTALLED_APP_MIME_TYPE)))
+        assertFalse(installedAppsCompatible(listOf("image/*")))
+        assertFalse(installedAppsCompatible(listOf("application/pdf")))
+    }
+
+    @Test
     fun everyTypedCategoryRejectsUnrelatedContent() {
         assertFalse(PickerCategory.IMAGES.matches("application/pdf"))
         assertFalse(PickerCategory.PDF.matches("image/png"))
         assertFalse(PickerCategory.APK.matches("text/plain"))
     }
-
 }
