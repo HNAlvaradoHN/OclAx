@@ -2,7 +2,7 @@
 
 ## Estado
 
-ERR-020 permitió que **Aplicaciones** apareciera en Android Files. La prueba de run 319 reveló ERR-021 al abrir esa categoría.
+ERR-020 permitió que **Aplicaciones** apareciera en Android Files. ERR-021 quedó resuelto y validado físicamente con run 321.
 
 
 ### ERR-020 — Aplicaciones ausentes en Android Files → OclAx → Mi dispositivo
@@ -49,7 +49,7 @@ ERR-020 permitió que **Aplicaciones** apareciera en Android Files. La prueba de
 
 ---
 ### ERR-021 — Android Files no puede cargar Aplicaciones
-**Estado:** CORRECCIÓN_IMPLEMENTADA_PENDIENTE_CI_FÍSICA
+**Estado:** RESUELTO_VALIDADO_FÍSICAMENTE
 
 **Evidencia física:** run 319 muestra OclAx → Mi dispositivo → Aplicaciones, pero Android Files presenta “No se puede cargar el contenido en este momento”.
 
@@ -67,7 +67,7 @@ ERR-020 permitió que **Aplicaciones** apareciera en Android Files. La prueba de
 - APK virtuales sin thumbnails;
 - IDs validados y apertura de solo lectura se conservan.
 
-**Validación pendiente:** CI y repetir la misma ruta física.
+**Validación:** run 321 cargó físicamente la lista de aplicaciones y permitió entrar a una app con splits, mostrando `base.apk` y su split sin reproducir el error.
 
 ---
 
