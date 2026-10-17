@@ -8,4 +8,9 @@ data class StoredItem(
     val byteSize: Long,
     val createdAt: Long,
     val pinned: Boolean,
+    val sourceUri: String? = null,
+    val sourceDisplayName: String? = null,
+    val sourceByteSize: Long? = null,
+    val sourceAddedAt: Long? = null,
+    val deleteSourceOnExpiry: Boolean = false,
 )
