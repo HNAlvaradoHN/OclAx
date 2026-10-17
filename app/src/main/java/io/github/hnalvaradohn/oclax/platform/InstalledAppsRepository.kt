@@ -60,6 +60,13 @@ class InstalledAppsRepository(context: Context) {
             ?.takeIf { it.packageName != appContext.packageName }
             ?.let(::toDocumentInfo)
 
+    fun loadInstalledAppIcon(packageName: String): Drawable? =
+        packageName
+            .takeIf { it.isNotBlank() && it != appContext.packageName }
+            ?.let { safePackage ->
+                runCatching { packageManager.getApplicationIcon(safePackage) }.getOrNull()
+            }
+
     private fun toDocumentInfo(application: ApplicationInfo): InstalledAppDocumentInfo? =
         runCatching {
             val sourceApkPaths = buildList {
