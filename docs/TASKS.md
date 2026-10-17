@@ -72,13 +72,13 @@ Implementado en `fix/documents-provider-installed-apps`:
 - IDs virtuales validados;
 - no se requiere MANAGE_EXTERNAL_STORAGE para Aplicaciones.
 
+Validado físicamente:
+- **Aplicaciones** aparece y carga en Android Files;
+- una app split abre su carpeta y muestra base + split.
+
 Pendiente:
-- CI verde;
-- instalar nueva APK;
-- verificar **Archivos → OclAx → Mi dispositivo → Aplicaciones**;
-- seleccionar una app de APK único;
-- entrar en una app con splits y comprobar sus componentes;
-- confirmar que la app receptora puede leer el APK seleccionado.
+- seleccionar una app de APK único y confirmar retorno a la app receptora;
+- confirmar lectura del APK seleccionado por el caller.
 
 ---
 
@@ -103,8 +103,6 @@ Implementado en fix/picker-installed-apps:
 - tests de compatibilidad MIME.
 
 Pendiente:
-- CI verde;
-- instalar nueva build;
 - validar **Elegir con OclAx → Mi dispositivo → Aplicaciones** desde una app externa;
 - seleccionar una app de APK único;
 - probar una app con splits y confirmar el comportamiento según selección múltiple.
@@ -129,7 +127,6 @@ Implementado en `feat/local-content-refresh`:
 - eliminados tests exclusivos de transferencia.
 
 Pendiente:
-- CI verde;
 - auditoría final de referencias/residuos;
 - validar APK/Manifest generado.
 
@@ -153,8 +150,7 @@ Implementado:
 - pruebas unitarias de ventana de 60 s y casos negativos.
 
 Pendiente:
-- CI;
-- prueba física con captura recién creada;
+- prueba física de expiración completa con captura recién creada;
 - prueba física con captura existente >60 s;
 - prueba de Fijados;
 - comprobar comportamiento del OEM si el Share de screenshot no entrega URI MediaStore.
@@ -179,7 +175,6 @@ Implementado:
 - picker propio `ACTION_GET_CONTENT` se mantiene como UI visual OclAx.
 
 Pendiente:
-- CI;
 - renombrado físico de imagen/documento;
 - renombrado de una copia OclAx con original enlazado;
 - validar Files/DocumentsProvider con inventario real;
