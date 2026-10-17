@@ -120,7 +120,9 @@ Es la experiencia visual propia:
 - lista/cuadrícula;
 - miniaturas;
 - Cancelar;
-- selección compatible con MIME.
+- selección compatible con MIME;
+- en **Mi dispositivo**, categoría **Aplicaciones** cuando el caller acepta APK;
+- **Aplicaciones** y **APK** son categorías distintas: una representa software instalado y la otra archivos APK existentes.
 
 Debe sentirse coherente con la aplicación principal.
 
