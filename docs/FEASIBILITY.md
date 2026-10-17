@@ -1,247 +1,159 @@
-# FEASIBILITY — Validación técnica y panorama de alternativas
+# FEASIBILITY — Validación técnica del producto local
 
-**Fecha de revisión:** 2026-09-22  
-**Estado:** investigación técnica; no sustituye pruebas reales en dispositivo.
+**Estado:** viable en Android moderno; las nuevas operaciones sobre originales requieren validación física por OEM/API.
 
 ## Conclusión
 
-VERIFICADO: el núcleo de OclAx es técnicamente viable en Android moderno.
+OclAx es técnicamente viable como:
 
-La propuesta no debe definirse como “un clipboard manager que captura todo automáticamente”, porque Android 10+ impide a una app normal leer el portapapeles en segundo plano salvo que tenga foco o sea el IME activo.
+> una bandeja local y temporal de contenido mixto que recibe contenido de forma explícita, lo organiza, permite explorar el dispositivo y vuelve a exponerlo rápidamente a otras aplicaciones.
 
-La propuesta correcta es:
+No depende de nube ni red.
 
-> una bandeja local y temporal de contenido mixto que recibe contenido de forma explícita, lo organiza, lo expone al selector de archivos de Android y permite volver a compartir/copiarlo rápidamente.
-
-## Flujo viable
-
-### Entrada a OclAx
+## Entrada viable
 
 Vías robustas:
-- Android Share Sheet: ACTION_SEND / ACTION_SEND_MULTIPLE;
-- importar mediante selector;
-- agregar texto manualmente;
-- leer el portapapeles mientras OclAx tiene foco;
-- ACTION_PROCESS_TEXT para texto seleccionado, si se decide incorporar;
-- otras integraciones explícitas que no requieran vigilancia oculta.
+- Android Share Sheet: `ACTION_SEND` / `ACTION_SEND_MULTIPLE`;
+- picker propio para `ACTION_GET_CONTENT`;
+- DocumentsProvider/SAF;
+- acceso explícito a **Mi dispositivo**;
+- portapapeles mientras OclAx está en primer plano cuando aplica.
 
 No prometer:
-- captura universal automática de todo lo copiado en segundo plano.
+- captura universal del portapapeles en segundo plano;
+- controlar la UI de la app Files;
+- que todas las apps externas acepten todos los MIME.
 
-### Almacenamiento interno
+## Almacenamiento
 
 Viable:
-- archivos en almacenamiento privado de la app;
-- metadatos separados;
-- miniaturas/previsualizaciones;
-- texto, imágenes, PDF, APK, video, código y archivos arbitrarios;
-- TTL / límite por tamaño o cantidad;
-- fijar elementos para evitar su limpieza.
+- payload privado;
+- metadata separada;
+- miniaturas;
+- texto, imágenes, PDF, APK, video, audio, documentos y otros;
+- retención configurable;
+- Fijados;
+- límites de tamaño/espacio;
+- cleanup oportunista + programación mediante AlarmManager.
 
-La limpieza puede combinar:
-- limpieza perezosa al abrir/usar la app;
-- trabajo programado cuando sea necesario.
+## Capturas de pantalla
 
-### Salida desde OclAx
+Objetivo:
+- evitar que una captura recién creada solo para compartir quede acumulada en galería.
+
+Viable de forma segura si el origen puede verificarse con MediaStore:
+1. identificar screenshot por nombre/ruta;
+2. exigir `DATE_ADDED`;
+3. limitar la ventana a ≤60 s;
+4. persistir la URI exacta;
+5. al vencer, comprobar que sigue siendo la misma fila/archivo;
+6. borrar mediante ContentResolver.
+
+Limitación:
+- algunos OEM/apps pueden compartir una screenshot mediante un provider que no permite relacionarla de forma segura con MediaStore;
+- en ese caso OclAx debe conservar el original, no adivinar.
+
+## Renombrado
+
+### Mi dispositivo
+MediaStore permite actualizar `DISPLAY_NAME` cuando Android concede acceso suficiente.
+
+### Copia OclAx
+El nombre interno/visible es controlado por OclAx. Si se conservó una URI MediaStore de origen, puede intentarse el mismo rename sobre el original.
+
+Limitaciones:
+- providers externos pueden ser read-only;
+- Android puede negar una actualización aunque la URI siga siendo legible;
+- el producto debe informar el resultado real.
+
+## Salida hacia otras apps
 
 Viable:
 - Share Sheet;
-- copiar texto al portapapeles;
-- copiar imágenes/URI al portapapeles cuando corresponda;
-- DocumentsProvider para aparecer como ubicación en el selector de archivos del sistema;
-- URI grants de lectura al receptor;
-- opcionalmente IME/commitContent en una fase posterior.
+- ClipboardManager para texto/imagen;
+- FileProvider para copias privadas;
+- DocumentsProvider;
+- picker propio `ACTION_GET_CONTENT`.
 
-### Atajo confirmado para texto e imagen
-
-Cuando el usuario comparta texto o una imagen hacia OclAx, el mismo flujo de ingreso debe:
-- guardar el elemento en Recientes;
-- publicar también una representación compatible en el portapapeles.
-
-Para imágenes, OclAx debe copiar primero los bytes a almacenamiento propio y servir una URI que controle. Esto evita depender de URIs temporales del emisor que pueden expirar antes del pegado.
-
-Para archivos arbitrarios se mantiene DocumentsProvider como ruta principal de inserción.
+Para archivos arbitrarios, selector/Share son las rutas confiables. No existe “pegar cualquier archivo en cualquier app” universal.
 
 ## DocumentsProvider
 
-Android permite a proveedores locales o en nube participar en Storage Access Framework mediante DocumentsProvider.
+Puede exponer:
+- contenido privado OclAx;
+- jerarquías virtuales;
+- archivos reales referenciados por MediaStore;
+- búsqueda;
+- recientes;
+- miniaturas.
 
-Esto permite que OclAx aparezca como una raíz/ubicación dentro del selector de archivos del sistema para las apps que usen SAF.
+Límite de plataforma:
+- Android Files dibuja la interfaz;
+- OclAx no puede inyectar su Compose UI dentro de esa aplicación;
+- para apariencia propia existe `OclAxPickerActivity`.
 
-Límite importante:
-- una app que use un selector propio en vez del selector del sistema puede no mostrar OclAx;
-- por tanto, “aparece en todas las apps” NO es una promesa válida.
+## Mi dispositivo
 
-Los elementos temporales pueden eliminarse. Si un receptor conserva una URI persistente y OclAx elimina el elemento por TTL, esa referencia dejará de resolver. Para evitar sorpresas, los elementos fijados no deberían expirar automáticamente.
+Con acceso amplio aprobado:
+- inventario de archivos por MediaStore;
+- apps instaladas por PackageManager;
+- abrir/compartir/copiar;
+- renombrar;
+- eliminar original con confirmación cuando corresponda;
+- miniaturas y categorías.
 
-## Pegado directo
+Riesgos:
+- inventarios grandes requieren medir I/O antes de optimizar;
+- permisos pueden ser revocados;
+- APIs de MediaStore cambian por versión Android.
 
-### Texto
-Muy compatible mediante ClipboardManager o IME.
+## Seguridad
 
-### Imágenes / contenido rico
-InputConnection.commitContent permite que un IME entregue contenido como imágenes a un editor, pero el receptor debe anunciar/aceptar el MIME correspondiente.
+Requisitos:
+- cero permiso de Internet;
+- entradas tratadas como hostiles;
+- nombres sanitizados;
+- no ejecutar contenido recibido;
+- límites de tamaño;
+- URI `content://`;
+- metadatos de origen privados;
+- borrado automático fail-closed;
+- no buscar coincidencias aproximadas para destruir un original.
 
-Por tanto:
-- no existe un “pegar cualquier archivo en cualquier app” universal;
-- el camino confiable para archivos es Share Sheet o selector de archivos;
-- rich paste puede añadirse como mejora, no como base del MVP.
+## Dirección actual
 
-## Comparables encontrados
+Flujo principal:
 
-### Clipboard Hero
-Repositorio público MIT, Kotlin + Jetpack Compose.
+`crear/seleccionar/compartir → OclAx → usar temporalmente → autolimpieza`
 
-Demuestra un patrón muy relevante:
-- recibe imágenes por Share Sheet;
-- copia los bytes a almacenamiento propio;
-- expone la imagen mediante FileProvider;
-- conserva historial corto;
-- ofrece autoeliminación;
-- funciona localmente sin red.
+y, cuando otra app pide un archivo:
 
-Es una referencia técnica útil para la filosofía de OclAx, especialmente almacenamiento temporal, URI propias y limpieza.
+`otra app → Elegir con OclAx o Archivos → OclAx / Mi dispositivo → seleccionar → volver`
 
-No reemplaza OclAx porque está enfocado en imágenes y portapapeles, no en una bandeja mixta accesible como proveedor de documentos.
-
-### PasteFromClipboard
-Repositorio público MIT.
-
-Demuestra el concepto de presentarse como origen de contenido cuando otra app solicita ACTION_GET_CONTENT y devolver una URI procedente del portapapeles.
-
-Es una prueba conceptual interesante, pero el propio proyecto indica limitaciones y su enfoque de permisos de portapapeles debe revisarse frente a las restricciones modernas de Android. No debe copiarse ciegamente.
-
-### Easy Clipboard
-Proyecto de clipboard history con IME, ACTION_PROCESS_TEXT, accesibilidad y Shizuku opcional.
-
-Valor para OclAx:
-- confirma las restricciones reales del portapapeles moderno;
-- muestra que IME/PROCESS_TEXT son caminos posibles.
-
-No es el mismo producto: está centrado en historial/paste de texto y captura global.
-
-Antes de reutilizar código debe confirmarse la licencia real del repositorio; su README dice que MIT “se añadirá”.
-
-### File Shelf
-Aplicación de Play Store enfocada en organizar archivos de cualquier tipo recibidos por Share Sheet.
-
-Se acerca al concepto de “bandeja”, pero la información pública revisada no demuestra una raíz DocumentsProvider, historial de portapapeles mixto o filosofía temporal equivalente.
-
-### ClipSync
-Aplicación de Play Store que organiza texto, imágenes y archivos, con búsqueda y autolimpieza.
-
-Es más un clipboard manager permanente/organizador; incluye anuncios/compras y no se encontró evidencia pública de que se exponga como ubicación de DocumentsProvider.
-
-## Señales de necesidad observadas
-
-En Reddit aparecen usuarios que buscan:
-- historial local sin nube;
-- límites por tamaño/retención;
-- texto + imágenes;
-- mejores formas de mover archivos entre apps;
-- alternativas porque los clipboard managers tradicionales chocan con restricciones de Android 10+.
-
-Esto demuestra que el problema existe.
-
-NO demuestra todavía:
-- tamaño de mercado;
-- disposición a pagar;
-- que el conjunto exacto de OclAx tenga demanda masiva.
-
-## Diferenciación encontrada
-
-En esta búsqueda no apareció una solución pública claramente equivalente que reúna a la vez:
-
-1. bandeja local temporal;
-2. texto + imágenes + PDFs + APK + videos + código + archivos arbitrarios;
-3. recepción por Share Sheet;
-4. ubicación propia mediante DocumentsProvider;
-5. limpieza automática;
-6. interfaz tipo gestor visual;
-7. sin nube como requisito.
-
-Esto no prueba que no exista ninguna en todo Internet, pero sí indica que OclAx no es simplemente una copia obvia de una solución dominante encontrada.
-
-## Riesgos reales del producto
-
-1. **Compatibilidad por app:** algunas apps usan pickers propios.
-2. **Clipboard Android 10+:** no se puede vigilar globalmente sin IME/foco o mecanismos especiales.
-3. **MIME:** el receptor puede filtrar tipos.
-4. **Contenido rico:** commitContent depende del receptor.
-5. **TTL:** borrar un elemento invalida URIs guardadas.
-6. **Archivos grandes:** video/APK necesitan límites de almacenamiento y streaming, no cargar todo a RAM.
-7. **Seguridad:** archivos recibidos son datos no confiables; OclAx no debe ejecutarlos ni interpretarlos de forma peligrosa.
-
-## Dirección recomendada del MVP
-
-La prioridad de producto queda definida por este flujo:
-
-`capturar/seleccionar/tener archivo → guardar rápidamente en OclAx → otra app → + / Archivos → OclAx → Recientes → insertar`
-
-OclAx debe comportarse como una **bandeja temporal universal**, no como un gestor de carpetas tradicional.
-
-El MVP debe validar primero el flujo más valioso y menos frágil:
-
-1. recibir texto/imagen/archivo mediante Share;
-2. mostrar una bandeja ordenada y local;
-3. volver a copiar/compartir;
-4. exponer archivos mediante DocumentsProvider;
-5. autolimpieza configurable;
-6. fijar elementos para impedir expiración;
+Prioridades:
+1. recepción local;
+2. contenido temporal;
+3. acceso real al dispositivo;
+4. renombrado;
+5. autolimpieza segura;
+6. picker/provider;
 7. cero red.
 
-Dejar para después:
-- teclado/IME propio;
-- accesibilidad;
-- Shizuku;
-- sincronización entre dispositivos;
+## Fuera de alcance
+
+Retirado por DEC-032:
+- transferencia OclAx↔OclAx;
+- LAN;
+- Syncthing;
+- relay;
+- discovery;
+- servidores.
+
+También fuera por ahora:
+- IME propio;
+- Accessibility/Shizuku;
 - nube;
 - IA;
-- indexación compleja;
-- edición avanzada.
+- editor de archivos avanzado.
 
-## Prueba crítica antes de ampliar
-
-En un teléfono real verificar:
-- Qwen;
-- WhatsApp;
-- Telegram;
-- navegador;
-- gestor de archivos;
-- al menos una app que use ACTION_OPEN_DOCUMENT.
-
-Para cada app comprobar:
-- si OclAx aparece en el picker;
-- qué MIME acepta;
-- si importa una copia o conserva la URI;
-- comportamiento después de la limpieza del elemento.
-
-
-## Revisión 2026-09-23 — abrir contenido y transferencia OclAx ↔ OclAx
-
-### Abrir contenido
-
-VERIFICADO por documentación Android:
-- un archivo privado puede exponerse a otra app mediante una URI `content://` y permiso temporal de lectura;
-- `ACTION_VIEW` es el mecanismo estándar para entregar el contenido a un visor compatible;
-- para APK en Android 8+ una app que quiera solicitar instalación debe declarar `REQUEST_INSTALL_PACKAGES`; el usuario mantiene el control sobre si confía en OclAx como fuente de instalación.
-
-Conclusión para OclAx:
-- PDF, Word/documentos, imágenes, video, audio y otros elementos pueden abrirse desde la bandeja sin construir visores internos;
-- la compatibilidad final depende de que exista una aplicación instalada que acepte el MIME;
-- APK nunca debe auto-instalarse.
-
-### Syncthing como motor de envío
-
-VERIFICADO en el proyecto/documentación de Syncthing:
-- Syncthing es software libre bajo MPL-2.0;
-- prioriza comunicación entre dispositivos y puede usar relays cuando no logra una conexión directa;
-- los relays públicos retransmiten tráfico y no funcionan como almacenamiento permanente del archivo;
-- la conexión Syncthing entre los pares conserva cifrado TLS extremo a extremo incluso al atravesar un relay;
-- el relay puede conocer IP/device ID y volumen de tráfico;
-- mientras existe una conexión por relay, Syncthing sigue intentando una conexión directa y cambia a ella si la consigue.
-
-Implicación para UX OclAx:
-- **directo primero, relay después** puede ocultarse detrás de una única acción Enviar;
-- no hace falta presentar conceptos de NAT, relay o carpetas sincronizadas al usuario;
-- los relays públicos actuales permiten prototipar sin contratar infraestructura, pero no deben documentarse como un SLA gratuito garantizado para siempre.
+Si cualquiera de estos objetivos vuelve, necesita una nueva decisión explícita; no se conserva infraestructura inactiva.
