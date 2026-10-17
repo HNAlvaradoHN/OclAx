@@ -291,9 +291,10 @@ Validación automática:
 2. compilar modo selección Compose;
 3. ACTION_SEND_MULTIPLE usa FileProvider y grants de lectura;
 4. borrado múltiple llama solo a `ItemStore.deleteItem`;
-5. DocumentsProvider resuelve icono por package puntual;
-6. el cache se consulta antes de recargar thumbnail;
-7. tests, lint y assembleDebug verdes.
+5. compartir lote rechaza más de 100 elementos para acotar el Intent/ClipData;
+6. DocumentsProvider resuelve icono por package puntual;
+7. el cache se consulta antes de recargar thumbnail;
+8. tests, lint y assembleDebug verdes.
 
 Validación física — selección:
 1. entrar a **Todo** o una categoría con varios elementos;
