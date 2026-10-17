@@ -414,7 +414,6 @@ class ItemStore(private val context: Context) {
         var name: String? = null
         var size: Long? = null
         var addedAt: Long? = null
-        var modifiedAt: Long? = null
         var relativePath: String? = null
 
         try {
@@ -449,9 +448,6 @@ class ItemStore(private val context: Context) {
                         addedAt = cursor.longOrNull(MediaStore.MediaColumns.DATE_ADDED)
                             ?.takeIf { it > 0L }
                             ?.times(1000L)
-                        modifiedAt = cursor.longOrNull(MediaStore.MediaColumns.DATE_MODIFIED)
-                            ?.takeIf { it > 0L }
-                            ?.times(1000L)
                         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                             relativePath = cursor.stringOrNull(MediaStore.MediaColumns.RELATIVE_PATH)
                         }
@@ -465,7 +461,7 @@ class ItemStore(private val context: Context) {
         return SourceMetadata(
             displayName = name,
             byteSize = size,
-            addedAt = addedAt ?: modifiedAt,
+            addedAt = addedAt,
             relativePath = relativePath,
         )
     }
