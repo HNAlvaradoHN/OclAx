@@ -605,30 +605,38 @@ class MainActivity : ComponentActivity() {
 
     private fun setItemsPinned(selectedItems: List<StoredItem>, pinned: Boolean) {
         if (selectedItems.isEmpty()) return
-        selectedItems.forEach { item ->
-            store.setPinned(item.id, pinned)
+        deviceExecutor.execute {
+            selectedItems.forEach { item ->
+                store.setPinned(item.id, pinned)
+            }
+            runOnUiThread {
+                refresh()
+                Toast.makeText(
+                    this,
+                    if (pinned) {
+                        "Se fijaron ${selectedItems.size} elementos."
+                    } else {
+                        "Se desfijaron ${selectedItems.size} elementos."
+                    },
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
         }
-        refresh()
-        Toast.makeText(
-            this,
-            if (pinned) {
-                "Se fijaron ${selectedItems.size} elementos."
-            } else {
-                "Se desfijaron ${selectedItems.size} elementos."
-            },
-            Toast.LENGTH_SHORT,
-        ).show()
     }
 
     private fun deleteItems(selectedItems: List<StoredItem>) {
         if (selectedItems.isEmpty()) return
-        val deleted = selectedItems.count { item -> store.deleteItem(item.id) }
-        refresh()
-        Toast.makeText(
-            this,
-            "Se eliminaron $deleted de ${selectedItems.size} copias de OclAx.",
-            Toast.LENGTH_SHORT,
-        ).show()
+        deviceExecutor.execute {
+            val deleted = selectedItems.count { item -> store.deleteItem(item.id) }
+            runOnUiThread {
+                refresh()
+                Toast.makeText(
+                    this,
+                    "Se eliminaron $deleted de ${selectedItems.size} copias de OclAx.",
+                    Toast.LENGTH_SHORT,
+                ).show()
+            }
+        }
     }
 
     private fun copyItem(item: StoredItem) {
