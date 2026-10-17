@@ -1133,6 +1133,17 @@ private fun ItemCard(
                             .format(Date(item.createdAt)),
                         style = MaterialTheme.typography.labelSmall,
                     )
+                    if (item.deleteSourceOnExpiry) {
+                        Text(
+                            if (item.pinned) {
+                                "Captura reciente · original protegido mientras esté fijada"
+                            } else {
+                                "Captura reciente · original se limpiará al vencer"
+                            },
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                        )
+                    }
                 }
             }
 
