@@ -561,6 +561,10 @@ class MainActivity : ComponentActivity() {
 
     private fun shareItems(selectedItems: List<StoredItem>) {
         if (selectedItems.isEmpty()) return
+        if (selectedItems.size == 1) {
+            shareItem(selectedItems.first())
+            return
+        }
 
         try {
             val uris = ArrayList(
@@ -583,7 +587,7 @@ class MainActivity : ComponentActivity() {
                 selectedItems.first().displayName,
                 uris.first(),
             )
-            selectedItems.drop(1).zip(uris.drop(1)).forEach { (item, uri) ->
+            uris.drop(1).forEach { uri ->
                 clip.addItem(ClipData.Item(uri))
             }
             sendIntent.clipData = clip
@@ -1039,6 +1043,8 @@ private fun OclAxHome(
                                     },
                                     onPin = {
                                         onSetPinnedMany(selectedItems, bulkPinValue)
+                                        selecting = false
+                                        selectedItemIds = emptySet()
                                     },
                                     onDelete = {
                                         showBulkDeleteConfirmation = true
