@@ -212,3 +212,13 @@ PICKER-003 expone solo código de instalación:
 - nunca `dataDir`, preferencias, DB, cuentas, sesiones o caché privada;
 - sin permisos nuevos;
 - apps con splits se mantienen separadas en sus APK componentes; no se inventa un APK monolítico.
+
+## Hardening de DocumentsProvider para aplicaciones
+
+PICKER-004 cambia rendimiento, no permisos ni alcance de datos:
+- el provider obtiene solo label, packageName, flag de sistema y rutas de APK de instalación desde PackageManager;
+- no carga iconos al enumerar la carpeta SAF;
+- no expone rutas reales como documentId; los IDs siguen basados en packageName + índice validados;
+- los APK se abren en solo lectura;
+- no se accede a datos privados de las aplicaciones;
+- quitar thumbnails reduce trabajo repetido del provider y no amplía exposición.
