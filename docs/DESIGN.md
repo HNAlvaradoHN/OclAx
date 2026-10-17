@@ -132,10 +132,13 @@ La UI la dibuja Android.
 OclAx debe aportar:
 - archivos reales además de carpetas;
 - categorías;
+- **Aplicaciones** dentro de **Mi dispositivo**;
 - entrada **Mi dispositivo**;
 - nombres/fechas/tamaños;
 - miniaturas;
 - búsqueda/recientes.
+
+En **Aplicaciones**, una instalación de APK único aparece como archivo APK seleccionable. Si la instalación usa splits, aparece como carpeta con `base.apk` y sus splits para no presentar un paquete incompleto como si fuera un único APK.
 
 No diseñar componentes Compose esperando que aparezcan dentro de la app Files: DocumentsProvider no controla esa presentación.
 
