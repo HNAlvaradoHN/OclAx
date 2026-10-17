@@ -727,7 +727,7 @@ Reglas:
 **Selección múltiple**
 
 La primera selección múltiple de OclAx se limita a operaciones seguras sobre las **copias privadas de OclAx**:
-- compartir;
+- compartir (máximo 100 elementos por Intent);
 - fijar/desfijar;
 - eliminar copias.
 
