@@ -84,6 +84,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -1388,6 +1390,9 @@ private fun ItemCard(
                     Checkbox(
                         checked = selected,
                         onCheckedChange = { onToggleSelection() },
+                        modifier = Modifier.semantics {
+                            contentDescription = "Seleccionar ${item.displayName}"
+                        },
                     )
                     Spacer(Modifier.width(4.dp))
                 }
