@@ -56,10 +56,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.core.graphics.drawable.toBitmap
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 import io.github.hnalvaradohn.oclax.platform.DeviceFileInfo
+import io.github.hnalvaradohn.oclax.platform.InstalledAppInfo
 import io.github.hnalvaradohn.oclax.ui.CategoryOverviewGrid
 import io.github.hnalvaradohn.oclax.ui.CategoryOverviewItem
 import kotlinx.coroutines.Dispatchers
@@ -76,15 +78,18 @@ private enum class PickerSource(val label: String) {
 internal fun PickerScreen(
     oclaxItems: List<StoredItem>,
     deviceFiles: List<DeviceFileInfo>,
+    installedApps: List<InstalledAppInfo>,
     requestedMimeTypes: List<String>,
     hasBroadFileAccess: Boolean,
     loading: Boolean,
     allowMultiple: Boolean,
     selected: List<PickerSelection>,
+    exportingAppPackage: String?,
     onCancel: () -> Unit,
     onRequestBroadAccess: () -> Unit,
     onSelectOclAxItem: (StoredItem) -> Unit,
     onSelectDeviceFile: (DeviceFileInfo) -> Unit,
+    onSelectInstalledApp: (InstalledAppInfo) -> Unit,
     onLoadOclAxThumbnail: (StoredItem, Int) -> Bitmap?,
     onLoadDeviceThumbnail: (DeviceFileInfo, Int) -> Bitmap?,
     onConfirmSelection: () -> Unit,
@@ -119,6 +124,13 @@ internal fun PickerScreen(
         }
     }
 
+    val installedAppsAllowed = remember(requestedMimeTypes) {
+        installedAppsCompatible(requestedMimeTypes)
+    }
+    val compatibleInstalledApps = remember(installedApps, installedAppsAllowed) {
+        if (installedAppsAllowed) installedApps else emptyList()
+    }
+
     val needle = query.trim().lowercase()
     val visibleOclAxItems = remember(compatibleOclAxItems, needle, category) {
         compatibleOclAxItems.filter { item ->
@@ -141,15 +153,31 @@ internal fun PickerScreen(
                     )
         }
     }
+    val visibleInstalledApps = remember(compatibleInstalledApps, needle, category) {
+        compatibleInstalledApps.filter { app ->
+            (category == null || category == PickerCategory.APPLICATIONS) &&
+                (
+                    needle.isEmpty() ||
+                        app.label.lowercase().contains(needle) ||
+                        app.packageName.lowercase().contains(needle)
+                    )
+        }
+    }
     val categoryOverview = remember(
         source,
         compatibleOclAxItems,
         compatibleDeviceFiles,
+        compatibleInstalledApps,
+        installedAppsAllowed,
+        hasBroadFileAccess,
     ) {
         pickerCategoryOverviewItems(
             source = source,
             oclaxItems = compatibleOclAxItems,
             deviceFiles = compatibleDeviceFiles,
+            installedApps = compatibleInstalledApps,
+            installedAppsAllowed = installedAppsAllowed,
+            hasBroadFileAccess = hasBroadFileAccess,
         )
     }
     val selectedKeys = remember(selected) { selected.mapTo(mutableSetOf()) { it.key } }
@@ -217,10 +245,6 @@ internal fun PickerScreen(
             Spacer(Modifier.height(10.dp))
 
             when {
-                source == PickerSource.DEVICE && !hasBroadFileAccess -> {
-                    PickerAccessCard(onRequestBroadAccess)
-                }
-
                 loading && source == PickerSource.DEVICE -> {
                     Row(
                         modifier = Modifier
@@ -245,6 +269,13 @@ internal fun PickerScreen(
                         modifier = Modifier.weight(1f),
                         scrollable = true,
                     )
+                }
+
+                source == PickerSource.DEVICE &&
+                    !hasBroadFileAccess &&
+                    category != null &&
+                    category != PickerCategory.APPLICATIONS -> {
+                    PickerAccessCard(onRequestBroadAccess)
                 }
 
                 else -> {
@@ -287,13 +318,37 @@ internal fun PickerScreen(
                             modifier = Modifier.weight(1f),
                         )
                     } else {
+                        val deviceRows = when {
+                            category == PickerCategory.APPLICATIONS ->
+                                installedAppsToRows(
+                                    apps = visibleInstalledApps,
+                                    exportingAppPackage = exportingAppPackage,
+                                    onSelect = onSelectInstalledApp,
+                                )
+                            category == null && query.isNotBlank() ->
+                                installedAppsToRows(
+                                    apps = visibleInstalledApps,
+                                    exportingAppPackage = exportingAppPackage,
+                                    onSelect = onSelectInstalledApp,
+                                ) + deviceFilesToRows(
+                                    files = visibleDeviceFiles,
+                                    onSelect = onSelectDeviceFile,
+                                    onLoadThumbnail = onLoadDeviceThumbnail,
+                                )
+                            else ->
+                                deviceFilesToRows(
+                                    files = visibleDeviceFiles,
+                                    onSelect = onSelectDeviceFile,
+                                    onLoadThumbnail = onLoadDeviceThumbnail,
+                                )
+                        }
                         PickerList(
-                            emptyMessage = "No se encontraron archivos compatibles.",
-                            items = deviceFilesToRows(
-                                files = visibleDeviceFiles,
-                                onSelect = onSelectDeviceFile,
-                                onLoadThumbnail = onLoadDeviceThumbnail,
-                            ),
+                            emptyMessage = if (category == PickerCategory.APPLICATIONS) {
+                                "No se encontraron aplicaciones compatibles."
+                            } else {
+                                "No se encontraron archivos compatibles."
+                            },
+                            items = deviceRows,
                             selectedKeys = selectedKeys,
                             allowMultiple = allowMultiple,
                             modifier = Modifier.weight(1f),
@@ -325,11 +380,16 @@ private fun pickerCategoryOverviewItems(
     source: PickerSource,
     oclaxItems: List<StoredItem>,
     deviceFiles: List<DeviceFileInfo>,
+    installedApps: List<InstalledAppInfo>,
+    installedAppsAllowed: Boolean,
+    hasBroadFileAccess: Boolean,
 ): List<CategoryOverviewItem> {
     val categories = if (source == PickerSource.OCLAX) {
-        PickerCategory.entries
+        PickerCategory.entries.filterNot { it == PickerCategory.APPLICATIONS }
     } else {
-        PickerCategory.entries.filterNot { it == PickerCategory.PINNED }
+        PickerCategory.entries
+            .filterNot { it == PickerCategory.PINNED }
+            .filter { it != PickerCategory.APPLICATIONS || installedAppsAllowed }
     }
 
     return categories.map { category ->
@@ -347,6 +407,14 @@ private fun pickerCategoryOverviewItems(
                     null
                 },
             )
+        } else if (category == PickerCategory.APPLICATIONS) {
+            CategoryOverviewItem(
+                key = category.name,
+                label = category.label,
+                icon = pickerCategoryIcon(category),
+                count = installedApps.size,
+                note = "Instaladas en este dispositivo",
+            )
         } else {
             val matching = deviceFiles.filter { category.matches(it.mimeType) }
             CategoryOverviewItem(
@@ -354,7 +422,8 @@ private fun pickerCategoryOverviewItems(
                 label = category.label,
                 icon = pickerCategoryIcon(category),
                 count = matching.size,
-                totalBytes = matching.sumOf { it.byteSize },
+                totalBytes = if (hasBroadFileAccess) matching.sumOf { it.byteSize } else null,
+                note = if (hasBroadFileAccess) null else "Requiere acceso",
             )
         }
     }
@@ -363,6 +432,7 @@ private fun pickerCategoryOverviewItems(
 private fun pickerCategoryIcon(category: PickerCategory): ImageVector = when (category) {
     PickerCategory.RECENT -> Icons.Outlined.InsertDriveFile
     PickerCategory.PINNED -> Icons.Filled.Star
+    PickerCategory.APPLICATIONS -> Icons.Outlined.Android
     PickerCategory.IMAGES -> Icons.Outlined.ImageIcon
     PickerCategory.DOCUMENTS -> Icons.Outlined.Description
     PickerCategory.PDF -> Icons.Outlined.PictureAsPdf
@@ -442,6 +512,7 @@ private data class PickerListItem(
     val displayName: String,
     val mimeType: String,
     val byteSize: Long,
+    val summary: String? = null,
     val details: List<String>,
     val thumbnailVersion: Long,
     val onClick: () -> Unit,
@@ -486,6 +557,34 @@ private fun deviceFilesToRows(
         thumbnailVersion = file.modifiedAt,
         onClick = { onSelect(file) },
         onLoadThumbnail = { targetPx -> onLoadThumbnail(file, targetPx) },
+    )
+}
+
+private fun installedAppsToRows(
+    apps: List<InstalledAppInfo>,
+    exportingAppPackage: String?,
+    onSelect: (InstalledAppInfo) -> Unit,
+): List<PickerListItem> = apps.map { app ->
+    PickerListItem(
+        key = "installed-app:" + app.packageName,
+        displayName = app.label,
+        mimeType = INSTALLED_APP_MIME_TYPE,
+        byteSize = 0L,
+        summary = if (exportingAppPackage == app.packageName) {
+            "Preparando APK…"
+        } else if (app.isSystemApp) {
+            "Aplicación del sistema"
+        } else {
+            "Aplicación instalada"
+        },
+        details = listOf(app.packageName),
+        thumbnailVersion = 0L,
+        onClick = { onSelect(app) },
+        onLoadThumbnail = { targetPx ->
+            runCatching {
+                app.icon.toBitmap(width = targetPx, height = targetPx)
+            }.getOrNull()
+        },
     )
 }
 
@@ -567,7 +666,7 @@ private fun PickerItemCard(
                     maxLines = 2,
                 )
                 Text(
-                    type.label + " · " + formatPickerBytes(item.byteSize),
+                    item.summary ?: (type.label + " · " + formatPickerBytes(item.byteSize)),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 item.details.forEach { detail ->
@@ -597,7 +696,10 @@ private fun PickerItemVisual(
     type: ContentType,
 ) {
     val supportsThumbnail =
-        type == ContentType.IMAGE || type == ContentType.VIDEO || type == ContentType.PDF
+        type == ContentType.IMAGE ||
+            type == ContentType.VIDEO ||
+            type == ContentType.PDF ||
+            type == ContentType.APP
     val targetPx = if (supportsThumbnail) 160 else 96
     var thumbnail by remember(item.key, item.thumbnailVersion, targetPx) {
         mutableStateOf<Bitmap?>(null)

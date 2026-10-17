@@ -2,6 +2,35 @@
 
 ## Prioridad actual
 
+### PICKER-002 — Mostrar aplicaciones instaladas al adjuntar desde otra app
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Evidencia física:
+- run 314 muestra el resto del contenido de **Mi dispositivo** al elegir archivo;
+- las aplicaciones instaladas no aparecían.
+
+Causa verificada:
+- el picker propio solo cargaba archivos del dispositivo y copias OclAx; no cargaba InstalledAppsRepository.
+
+Implementado en fix/picker-installed-apps:
+- categoría **Aplicaciones** separada de **APK**;
+- icono, nombre y package de aplicaciones instaladas;
+- filtro según MIME pedido por la aplicación receptora;
+- selección prepara APK mediante InstalledAppExporter;
+- instalaciones con splits se entregan completas solo cuando el caller permite múltiples archivos;
+- Aplicaciones no depende de MANAGE_EXTERNAL_STORAGE;
+- tests de compatibilidad MIME.
+
+Pendiente:
+- CI verde;
+- instalar nueva build;
+- validar **Elegir con OclAx → Mi dispositivo → Aplicaciones** desde una app externa;
+- seleccionar una app de APK único;
+- probar una app con splits y confirmar el comportamiento según selección múltiple.
+
+---
+
 ### LOCAL-001 — Retirar LAN y simplificar OclAx
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta

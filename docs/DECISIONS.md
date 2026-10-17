@@ -684,4 +684,19 @@ Antes de borrar el original al vencer la retención, OclAx vuelve a resolver la 
 - el selector **Archivos** pertenece a Android: OclAx puede controlar documentos, jerarquía, MIME y miniaturas, pero no puede sustituir su interfaz por la UI Compose de la aplicación.
 
 **Motivo:** poder buscar contenido temporal y real desde el mismo punto, y que renombrar sea una operación útil sobre el archivo que realmente posee el usuario cuando OclAx tiene una referencia segura.
+---
 
+## DEC-035 — Aplicaciones instaladas también son seleccionables
+
+**Decisión:** cuando una app externa abre Elegir con OclAx mediante ACTION_GET_CONTENT y el MIME solicitado acepta APK, la superficie **Mi dispositivo** incluye una categoría **Aplicaciones** además de los archivos APK existentes.
+
+Reglas:
+- **Aplicaciones** representa paquetes instalados obtenidos desde PackageManager; **APK** representa archivos .apk existentes en almacenamiento;
+- seleccionar una aplicación prepara únicamente copias temporales de sus APK de instalación mediante InstalledAppExporter;
+- nunca se exportan datos privados, dataDir, preferencias, bases de datos, cuentas ni caché de la aplicación;
+- una instalación de un solo APK puede devolverse como un archivo;
+- base + splits solo se devuelve como conjunto completo cuando la app llamadora permite selección múltiple;
+- si el caller pidió un único archivo, OclAx no devuelve silenciosamente solo base.apk;
+- la categoría solo aparece cuando el MIME solicitado es compatible con application/vnd.android.package-archive.
+
+**Motivo:** Mi dispositivo dentro del picker debe conservar la capacidad de elegir aplicaciones instaladas que ya existe en la aplicación principal, sin confundirlas con APK sueltos ni romper el contrato MIME del caller.

@@ -191,3 +191,13 @@ Si un secreto llega a un commit público:
 6. revisar historial/artefactos;
 7. reescribir historial solo con autorización explícita;
 8. documentar sin copiar el secreto.
+
+## Picker de aplicaciones instaladas
+
+PICKER-002 reutiliza InstalledAppExporter:
+- solo copia sourceDir y splitSourceDirs;
+- no toca ni exporta dataDir, preferencias, DB, cuentas, sesiones o caché privada;
+- usa FileProvider y grants temporales de lectura;
+- respeta el MIME pedido por el caller;
+- una instalación split no se degrada silenciosamente a solo base.apk;
+- no añade permisos nuevos.
