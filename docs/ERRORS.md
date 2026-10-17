@@ -6,7 +6,7 @@ ERR-020 permitió que **Aplicaciones** apareciera en Android Files. ERR-021 qued
 
 
 ### ERR-020 — Aplicaciones ausentes en Android Files → OclAx → Mi dispositivo
-**Estado:** CORRECCIÓN_IMPLEMENTADA_PENDIENTE_CI_FÍSICA
+**Estado:** RESUELTO_VALIDADO_FÍSICAMENTE
 
 **Evidencia:** run 317 en dispositivo muestra Android Files con breadcrumb `OclAx → Mi dispositivo`, archivos/categorías reales visibles y ausencia de **Aplicaciones**.
 
@@ -23,29 +23,9 @@ ERR-020 permitió que **Aplicaciones** apareciera en Android Files. ERR-021 qued
 - búsqueda por label/package;
 - file descriptor de solo lectura y document IDs validados.
 
+**Validación:** run 319 mostró la categoría **Aplicaciones** dentro de Android Files; run 321 confirmó que la lista carga y que una app split abre sus APK componentes.
+
 **Prevención:** distinguir siempre en pruebas y memoria la ruta `ACTION_GET_CONTENT` del flujo `ACTION_OPEN_DOCUMENT`/SAF.
-
----
-### ERR-021 — Android Files no puede cargar el contenido de Aplicaciones
-**Estado:** CORRECCIÓN_IMPLEMENTADA_PENDIENTE_CI_FÍSICA
-
-**Evidencia física:** run 319 muestra `OclAx → Mi dispositivo → Aplicaciones`, pero Android Files presenta **“No se puede cargar el contenido en este momento”**.
-
-**VERIFICADO en código:**
-- la consulta de la carpeta enumeraba todas las apps con `listInstalledApps()`, cargando iconos `Drawable` aunque la consulta SAF solo necesita metadata;
-- por cada app se hacía una segunda consulta a PackageManager para descubrir base/splits;
-- cada documento APK anunciaba `FLAG_SUPPORTS_THUMBNAIL`; una solicitud de miniatura volvía a enumerar todas las apps para resolver un único icono.
-
-**HIPÓTESIS TÉCNICA:** esa ruta demasiado pesada/reentrante hace que el proveedor falle o exceda el presupuesto de Android Files en este dispositivo. Sin logcat físico no se declara causa runtime confirmada.
-
-**Corrección defensiva:**
-- metadata ligera específica para DocumentsProvider: label/package/system/source APK paths sin cargar iconos;
-- una sola enumeración de PackageManager para listar la carpeta;
-- lookup puntual por package para abrir/consultar un documento;
-- APK virtuales dejan de anunciar miniaturas; Android usa icono genérico;
-- se conservan IDs validados, modo solo lectura y soporte base + splits.
-
-**Validación pendiente:** CI y repetir exactamente `Archivos → OclAx → Mi dispositivo → Aplicaciones` en el mismo dispositivo.
 
 ---
 ### ERR-021 — Android Files no puede cargar Aplicaciones
