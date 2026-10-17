@@ -2,6 +2,30 @@
 
 ## Prioridad actual
 
+### PICKER-004 — Corregir carga de Aplicaciones en Android Files
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Evidencia física run 319:
+- la categoría Aplicaciones aparece;
+- al abrirla Android Files muestra **No se puede cargar el contenido en este momento**.
+
+Implementado:
+- metadata ligera para DocumentsProvider sin cargar Drawables;
+- elimina lookup N+1 de PackageManager durante el listado;
+- lookup puntual por package para documentos individuales;
+- APK virtuales ya no solicitan thumbnails;
+- mantiene solo lectura, IDs seguros y base + splits.
+
+Pendiente:
+- CI verde;
+- nueva APK;
+- repetir la ruta exacta en el mismo dispositivo;
+- seleccionar APK único;
+- abrir carpeta de una app split.
+
+---
+
 ### PICKER-003 — Aplicaciones instaladas dentro de Android Files/SAF
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta
