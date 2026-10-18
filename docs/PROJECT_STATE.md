@@ -6,7 +6,7 @@
 **Aplicación:** funcional en main; renovación local fusionada con CI verde. Validación física en progreso.  
 **Repositorio:** público.  
 **Protocol version:** 6.  
-**Autorización actual:** cerrar el feedback físico de run 334 extendiendo selección múltiple segura a Mi dispositivo.
+**Autorización actual:** cerrar validaciones físicas pendientes de la vertical local; no hay una nueva funcionalidad autorizada.
 
 ## Dirección vigente
 
@@ -212,10 +212,24 @@ Corrección en `fix/device-bulk-selection`:
 - búsqueda se bloquea durante selección;
 - no se añade borrado/renombrado masivo de originales.
 
+## Evidencia física adicional — run 336
+
+VERIFICADO por el dueño:
+- **Mi dispositivo → Apps** muestra el botón **Seleccionar**;
+- la selección múltiple dentro de la aplicación funciona;
+- Android Files sigue mostrando icono genérico para carpetas virtuales de apps split;
+- al entrar a una app split, los APK internos muestran el icono real.
+
+Decisión de cierre visual:
+- se acepta el icono genérico de carpeta en Android Files como limitación de presentación del sistema;
+- OclAx no cambia el formato de apps split solo para forzar una miniatura.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
-- compilar y pasar tests/lint/CI de selección múltiple en Mi dispositivo;
+- compartir físicamente varios archivos reales desde **Mi dispositivo**;
+- compartir físicamente varias aplicaciones instaladas desde **Mi dispositivo**;
+- confirmar que Atrás cancela selección en Mi dispositivo;
 - confirmar físicamente que el OEM entrega una URI MediaStore al compartir una captura reciente desde su flujo de screenshot;
 - validar expiración real de captura reciente y supervivencia de captura >60 s;
 - validar Fijados;
@@ -226,14 +240,11 @@ Corrección en `fix/device-bulk-selection`:
 
 ## Siguiente paso exacto
 
-1. Ejecutar CI de `feat/bulk-actions-app-icons`.
-2. Corregir cualquier fallo introducido.
-3. Revisar Seguridad, Privacidad, Arquitectura, Plataforma Android, Calidad, Rendimiento, QA y UX aplicables.
-4. Fusionar solo con CI verde y comprobar main.
-5. Validar físicamente:
-   - seleccionar varios elementos OclAx;
-   - compartirlos;
-   - fijar/desfijar;
-   - borrar copias y confirmar que originales sobreviven;
-   - Android Files → Aplicaciones y comprobar iconos reales cuando el sistema los solicite.
-6. Registrar resultados y continuar con los pendientes de capturas/renombrado que aún no estén físicamente cerrados.
+1. Cerrar PRODUCT-006 con tres comprobaciones físicas breves:
+   - compartir 2+ archivos reales desde **Mi dispositivo**;
+   - compartir 2 aplicaciones instaladas desde **Mi dispositivo**;
+   - confirmar que Atrás cancela selección.
+2. Cerrar el pendiente de PRODUCT-005: Fijar/Desfijar varios elementos OclAx.
+3. Priorizar después **DATA-002**, porque es la validación de mayor riesgo: comprobar expiración real de screenshot reciente, screenshot >60 s e ítem fijado.
+4. Continuar con **FILES-001**: renombrado OclAx↔original y renombrado desde Mi dispositivo.
+5. Cerrar pickers/SAF restantes y auditoría final de Manifest/LAN antes del bloque de release.
