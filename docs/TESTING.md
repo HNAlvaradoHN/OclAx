@@ -333,3 +333,18 @@ Validación física:
 6. Mi dispositivo → Aplicaciones;
 7. seleccionar 2 apps y compartir;
 8. confirmar que no aparece borrado/renombrado masivo de originales.
+
+## Validación física — run 336
+
+VERIFICADO:
+- **Mi dispositivo → Apps** muestra **Seleccionar**;
+- la selección múltiple dentro de la aplicación funciona;
+- Android Files mantiene carpetas genéricas para apps split;
+- los APK internos de una app split muestran el icono real.
+
+Pendiente para cerrar PRODUCT-006:
+1. compartir 2+ archivos reales;
+2. compartir 2 aplicaciones instaladas;
+3. confirmar que Atrás cancela selección.
+
+La ausencia de thumbnail personalizado en la carpeta split de Android Files se acepta como límite de presentación del sistema, no como error funcional de OclAx.
