@@ -27,6 +27,7 @@ OclAx también ofrece **Mi dispositivo** para explorar archivos reales y aplicac
 - Fijados y retención configurable;
 - búsqueda y categorías visuales;
 - selección múltiple de copias OclAx para compartir, fijar/desfijar y eliminar en lote;
+- selección múltiple en Mi dispositivo para compartir varios archivos o aplicaciones instaladas;
 - portapapeles para texto/imagen;
 - abrir/compartir contenido;
 - miniaturas de imagen/video/PDF;
