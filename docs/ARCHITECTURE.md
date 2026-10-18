@@ -211,3 +211,14 @@ Solo ante `openDocumentThumbnail(documentId)`:
 5. se devuelve AssetFileDescriptor.
 
 Esto evita volver al patrón de enumerar/cargar iconos de todo el inventario que precedió ERR-021.
+
+## Selección múltiple en Mi dispositivo
+
+DeviceBrowser mantiene estado efímero de selección por categoría.
+
+Flujo:
+- archivos reales seleccionados → MainActivity → ACTION_SEND_MULTIPLE con URI de DeviceFileInfo;
+- apps seleccionadas → MainActivity → InstalledAppExporter → ACTION_SEND_MULTIPLE;
+- ninguna operación masiva de Mi dispositivo llama a DeviceContentRepository.rename/requestDelete.
+
+La selección no cambia persistencia ni permisos y se descarta al navegar/Atrás.
