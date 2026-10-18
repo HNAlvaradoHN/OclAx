@@ -2,6 +2,38 @@
 
 ## Prioridad actual
 
+### PRODUCT-006 — Selección múltiple segura en Mi dispositivo
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Evidencia física run 334:
+- selección/compartir/borrado múltiple de copias OclAx funcionan;
+- el dueño reporta que **Seleccionar** no aparece en **Mi dispositivo**.
+
+Implementado en `fix/device-bulk-selection`:
+- botón **Seleccionar** dentro de categorías de Mi dispositivo;
+- archivos reales: selección individual, Todos/Ninguno y compartir lote;
+- apps instaladas: selección individual, Todos/Ninguno y compartir varias;
+- máximo 100 archivos o 20 apps por selección;
+- apps instaladas conservan base + splits;
+- Atrás cancela selección;
+- búsqueda queda deshabilitada durante selección.
+
+Límite deliberado:
+- no borrar, mover ni renombrar originales en lote;
+- esas operaciones permanecen individuales por riesgo de pérdida de datos y reglas de nombre/destino aún no definidas.
+
+Pendiente:
+- CI verde;
+- validar selección de archivos en Mi dispositivo;
+- validar compartir varios archivos reales;
+- validar seleccionar/compartir varias apps;
+- confirmar que Atrás cancela selección.
+
+---
+
+
+
 ### PRODUCT-005 — Selección múltiple segura + iconos de apps en Android Files
 **Estado:** IMPLEMENTED_PENDING_VALIDATION  
 **Prioridad:** alta
@@ -25,13 +57,16 @@ Fuera de este alcance:
 - mover originales: necesita selección de destino y modifica archivos reales;
 - borrado masivo de **Mi dispositivo**: se evita por riesgo de pérdida de datos.
 
+Validado físicamente con run 334:
+- selección múltiple OclAx;
+- compartir varios;
+- eliminar varias copias;
+- icono real visible en APK componentes de una app split;
+- Android Files mantiene icono genérico de carpeta para apps split en el nivel superior.
+
 Pendiente:
-- CI verde;
-- selección múltiple física;
-- compartir 2+ elementos;
-- fijar/desfijar varios;
-- borrar varias copias y confirmar que los originales permanecen;
-- verificar si Android Files muestra iconos reales en APK único y/o carpetas split.
+- validar Fijar/Desfijar en lote;
+- validar icono real de una app instalada con APK único si existe una disponible.
 
 ---
 
