@@ -238,3 +238,13 @@ PRODUCT-005 mantiene mínimo privilegio:
 - el thumbnail queda en `cacheDir` y no contiene datos privados de la aplicación;
 - un fallo al obtener icono debe degradar presentación, no bloquear acceso al APK;
 - no se añaden permisos, red ni dependencias.
+
+## Selección múltiple en Mi dispositivo
+
+PRODUCT-006 conserva mínimo privilegio:
+- archivos reales solo se comparten con URI content:// y grant temporal de lectura;
+- no se añade escritura ni borrado masivo de originales;
+- apps instaladas pasan por InstalledAppExporter, que solo copia sourceDir/splitSourceDirs;
+- no se exportan dataDir ni datos privados;
+- se limitan lotes para acotar IPC, almacenamiento temporal y errores de usuario;
+- búsqueda queda fija durante selección para evitar operar sobre elementos ocultos.
