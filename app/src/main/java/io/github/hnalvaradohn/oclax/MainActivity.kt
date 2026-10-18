@@ -118,6 +118,7 @@ import java.util.Date
 import java.util.concurrent.Executors
 
 private const val MAX_BULK_SELECTION = 100
+private const val MAX_BULK_INSTALLED_APPS = 20
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -207,11 +208,13 @@ class MainActivity : ComponentActivity() {
                     onRequestBroadAccess = ::requestBroadFileAccess,
                     onOpenDeviceFile = ::openDeviceFile,
                     onShareDeviceFile = ::shareDeviceFile,
+                    onShareDeviceFiles = ::shareDeviceFiles,
                     onCopyDeviceFile = ::copyDeviceFile,
                     onDeleteDeviceFile = ::deleteDeviceFile,
                     onRenameDeviceFile = ::renameDeviceFile,
                     onOpenApp = ::openInstalledApp,
                     onShareApp = ::shareInstalledApp,
+                    onShareApps = ::shareInstalledApps,
                     onLoadDeviceThumbnail = thumbnailLoader::loadDevice,
                     onLoadDeviceViewMode = viewModePreferences::getDeviceMode,
                     onSaveDeviceViewMode = viewModePreferences::setDeviceMode,
@@ -363,6 +366,46 @@ class MainActivity : ComponentActivity() {
         }
     }
 
+    private fun shareDeviceFiles(selectedFiles: List<DeviceFileInfo>) {
+        if (selectedFiles.isEmpty()) return
+        if (selectedFiles.size == 1) {
+            shareDeviceFile(selectedFiles.first())
+            return
+        }
+        if (selectedFiles.size > MAX_BULK_SELECTION) {
+            Toast.makeText(
+                this,
+                "Podés compartir hasta $MAX_BULK_SELECTION archivos a la vez.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+
+        try {
+            val uris = ArrayList(selectedFiles.map { it.uri })
+            val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                type = bulkShareMimeType(selectedFiles.map { it.mimeType })
+                putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+            }
+            val clip = ClipData.newUri(
+                contentResolver,
+                selectedFiles.first().displayName,
+                uris.first(),
+            )
+            uris.drop(1).forEach { uri -> clip.addItem(ClipData.Item(uri)) }
+            intent.clipData = clip
+            startActivity(Intent.createChooser(intent, "Compartir desde Mi dispositivo"))
+        } catch (error: Exception) {
+            Toast.makeText(
+                this,
+                "No se pudieron compartir los archivos: " +
+                    (error.message ?: "error desconocido"),
+                Toast.LENGTH_SHORT,
+            ).show()
+        }
+    }
+
     private fun copyDeviceFile(file: DeviceFileInfo) {
         if (!file.type.supportsClipboardCopy()) return
 
@@ -488,6 +531,78 @@ class MainActivity : ComponentActivity() {
                     Toast.makeText(
                         this,
                         "No se pudo preparar la app: " + (error.message ?: "error desconocido"),
+                        Toast.LENGTH_SHORT,
+                    ).show()
+                }
+            }
+        }
+    }
+
+    private fun shareInstalledApps(selectedApps: List<InstalledAppInfo>) {
+        if (selectedApps.isEmpty()) return
+        if (selectedApps.size == 1) {
+            shareInstalledApp(selectedApps.first())
+            return
+        }
+        if (selectedApps.size > MAX_BULK_INSTALLED_APPS) {
+            Toast.makeText(
+                this,
+                "Podés compartir hasta $MAX_BULK_INSTALLED_APPS aplicaciones a la vez.",
+                Toast.LENGTH_SHORT,
+            ).show()
+            return
+        }
+
+        Toast.makeText(
+            this,
+            "Preparando ${selectedApps.size} aplicaciones…",
+            Toast.LENGTH_SHORT,
+        ).show()
+
+        deviceExecutor.execute {
+            val prepared = runCatching {
+                val exports = selectedApps.map { app -> installedAppExporter.prepare(app) }
+                val uris = ArrayList(exports.flatMap { it.uris })
+                require(uris.size <= MAX_BULK_SELECTION) {
+                    "La selección genera demasiados APK para compartir en una sola operación."
+                }
+                uris
+            }
+
+            runOnUiThread {
+                prepared.onSuccess { uris ->
+                    try {
+                        val intent = Intent(Intent.ACTION_SEND_MULTIPLE).apply {
+                            type = "application/vnd.android.package-archive"
+                            putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris)
+                            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                        }
+                        val clip = ClipData.newUri(
+                            contentResolver,
+                            "Aplicaciones instaladas",
+                            uris.first(),
+                        )
+                        uris.drop(1).forEach { uri -> clip.addItem(ClipData.Item(uri)) }
+                        intent.clipData = clip
+                        startActivity(
+                            Intent.createChooser(
+                                intent,
+                                "Compartir aplicaciones instaladas",
+                            ),
+                        )
+                    } catch (error: Exception) {
+                        Toast.makeText(
+                            this,
+                            "No se pudieron compartir las aplicaciones: " +
+                                (error.message ?: "error desconocido"),
+                            Toast.LENGTH_SHORT,
+                        ).show()
+                    }
+                }.onFailure { error ->
+                    Toast.makeText(
+                        this,
+                        "No se pudieron preparar las aplicaciones: " +
+                            (error.message ?: "error desconocido"),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -742,11 +857,13 @@ private fun OclAxHome(
     onRequestBroadAccess: () -> Unit,
     onOpenDeviceFile: (DeviceFileInfo) -> Unit,
     onShareDeviceFile: (DeviceFileInfo) -> Unit,
+    onShareDeviceFiles: (List<DeviceFileInfo>) -> Unit,
     onCopyDeviceFile: (DeviceFileInfo) -> Unit,
     onDeleteDeviceFile: (DeviceFileInfo) -> Unit,
     onRenameDeviceFile: (DeviceFileInfo, String) -> Unit,
     onOpenApp: (InstalledAppInfo) -> Unit,
     onShareApp: (InstalledAppInfo) -> Unit,
+    onShareApps: (List<InstalledAppInfo>) -> Unit,
     onLoadDeviceThumbnail: (DeviceFileInfo, Int) -> Bitmap?,
     onLoadDeviceViewMode: (String, ContentViewMode) -> ContentViewMode,
     onSaveDeviceViewMode: (String, ContentViewMode) -> Unit,
@@ -992,11 +1109,13 @@ private fun OclAxHome(
                     onRequestBroadAccess = onRequestBroadAccess,
                     onOpenFile = onOpenDeviceFile,
                     onShareFile = onShareDeviceFile,
+                    onShareFiles = onShareDeviceFiles,
                     onCopyFile = onCopyDeviceFile,
                     onDeleteFile = onDeleteDeviceFile,
                     onRenameFile = onRenameDeviceFile,
                     onOpenApp = onOpenApp,
                     onShareApp = onShareApp,
+                    onShareApps = onShareApps,
                     onLoadThumbnail = onLoadDeviceThumbnail,
                     onLoadViewMode = onLoadDeviceViewMode,
                     onSaveViewMode = onSaveDeviceViewMode,

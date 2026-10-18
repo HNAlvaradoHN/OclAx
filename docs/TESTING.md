@@ -313,3 +313,23 @@ Validación física — iconos:
 3. observar si Android Files solicita/muestra iconos reales;
 4. entrar a una app split y comprobar que la carpeta sigue abriendo;
 5. si Files no muestra thumbnail en carpetas, registrar limitación de plataforma sin romper el flujo.
+
+### PRODUCT-006 — Selección múltiple en Mi dispositivo
+
+Validación automática:
+1. DeviceBrowser compila con modo selección para archivos y apps;
+2. archivos reales usan ACTION_SEND_MULTIPLE con grant temporal de lectura;
+3. apps instaladas usan InstalledAppExporter y mantienen base + splits;
+4. límites: 100 archivos, 20 apps y máximo 100 APK resultantes;
+5. búsqueda se deshabilita durante selección;
+6. tests, lint y assembleDebug verdes.
+
+Validación física:
+1. Mi dispositivo → Imágenes/PDF/otra categoría;
+2. tocar Seleccionar y marcar 2+ archivos;
+3. Todos/Ninguno y contador;
+4. compartir varios archivos reales;
+5. Atrás cancela selección;
+6. Mi dispositivo → Aplicaciones;
+7. seleccionar 2 apps y compartir;
+8. confirmar que no aparece borrado/renombrado masivo de originales.

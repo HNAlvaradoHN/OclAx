@@ -750,3 +750,23 @@ Regla:
 - las apps con splits conservan representación de carpeta con base + splits; OclAx ofrece thumbnail de app para esa carpeta, pero Android Files decide si lo muestra.
 
 **Motivo:** mejorar UX sin reintroducir el trabajo N+1/reentrante que precedió ERR-021 y sin ampliar operaciones destructivas.
+
+---
+
+## DEC-038 — Selección múltiple segura también en Mi dispositivo
+
+**Contexto:** run 334 validó selección múltiple en la superficie OclAx, pero el dueño reportó que **Mi dispositivo** no tenía modo Seleccionar.
+
+**Decisión:** extender el patrón de selección explícita a las categorías de **Mi dispositivo** sin ampliar operaciones destructivas.
+
+Reglas:
+- archivos reales: máximo 100 seleccionados;
+- aplicaciones instaladas: máximo 20 seleccionadas;
+- acción masiva inicial: **Compartir**;
+- archivos usan ACTION_SEND_MULTIPLE con sus URI reales y grants temporales de lectura;
+- apps instaladas usan InstalledAppExporter y conservan todos sus APK base + splits;
+- Atrás cancela selección antes de navegar;
+- búsqueda queda deshabilitada durante selección para no cambiar silenciosamente el conjunto;
+- borrar, mover o renombrar originales en lote sigue fuera de alcance hasta tener reglas explícitas de seguridad/nombres/destino.
+
+**Motivo:** mantener coherencia entre OclAx y Mi dispositivo sin introducir pérdida accidental de datos reales.

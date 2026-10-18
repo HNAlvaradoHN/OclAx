@@ -42,6 +42,7 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -61,6 +62,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
@@ -75,6 +78,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
+
+private const val MAX_DEVICE_FILE_SELECTION = 100
+private const val MAX_DEVICE_APP_SELECTION = 20
 
 private enum class DeviceFilter(
     val key: String,
@@ -101,11 +107,13 @@ fun DeviceBrowser(
     onRequestBroadAccess: () -> Unit,
     onOpenFile: (DeviceFileInfo) -> Unit,
     onShareFile: (DeviceFileInfo) -> Unit,
+    onShareFiles: (List<DeviceFileInfo>) -> Unit,
     onCopyFile: (DeviceFileInfo) -> Unit,
     onDeleteFile: (DeviceFileInfo) -> Unit,
     onRenameFile: (DeviceFileInfo, String) -> Unit,
     onOpenApp: (InstalledAppInfo) -> Unit,
     onShareApp: (InstalledAppInfo) -> Unit,
+    onShareApps: (List<InstalledAppInfo>) -> Unit,
     onLoadThumbnail: (DeviceFileInfo, Int) -> Bitmap?,
     onLoadViewMode: (String, ContentViewMode) -> ContentViewMode,
     onSaveViewMode: (String, ContentViewMode) -> Unit,
@@ -116,10 +124,19 @@ fun DeviceBrowser(
     var pendingRename by remember { mutableStateOf<DeviceFileInfo?>(null) }
     var renameText by remember { mutableStateOf("") }
     var viewMode by remember { mutableStateOf(ContentViewMode.LIST) }
+    var selecting by remember { mutableStateOf(false) }
+    var selectedFileUris by remember { mutableStateOf<Set<String>>(emptySet()) }
+    var selectedAppPackages by remember { mutableStateOf<Set<String>>(emptySet()) }
 
-    BackHandler(enabled = filter != null || query.isNotBlank()) {
-        filter = null
-        query = ""
+    BackHandler(enabled = selecting || filter != null || query.isNotBlank()) {
+        if (selecting) {
+            selecting = false
+            selectedFileUris = emptySet()
+            selectedAppPackages = emptySet()
+        } else {
+            filter = null
+            query = ""
+        }
     }
 
     pendingDelete?.let { file ->
@@ -223,12 +240,25 @@ fun DeviceBrowser(
             hasBroadFileAccess = hasBroadFileAccess,
         )
     }
+    val selectedFiles = remember(files, selectedFileUris) {
+        files.filter { it.uri.toString() in selectedFileUris }
+    }
+    val selectedApps = remember(apps, selectedAppPackages) {
+        apps.filter { it.packageName in selectedAppPackages }
+    }
+
+    LaunchedEffect(files, apps) {
+        selectedFileUris = selectedFileUris.intersect(files.mapTo(mutableSetOf()) { it.uri.toString() })
+        selectedAppPackages =
+            selectedAppPackages.intersect(apps.mapTo(mutableSetOf()) { it.packageName })
+    }
 
     Column(modifier = Modifier.fillMaxSize()) {
         OutlinedTextField(
             value = query,
             onValueChange = { query = it },
             modifier = Modifier.fillMaxWidth(),
+            enabled = !selecting,
             singleLine = true,
             label = { Text("Buscar en mi dispositivo") },
         )
@@ -241,6 +271,9 @@ fun DeviceBrowser(
                     val next = DeviceFilter.entries.firstOrNull { it.key == selected.key }
                         ?: return@CategoryOverviewGrid
                     filter = next
+                    selecting = false
+                    selectedFileUris = emptySet()
+                    selectedAppPackages = emptySet()
                     viewMode = onLoadViewMode(next.key, next.defaultViewMode)
                 },
                 modifier = Modifier.weight(1f),
@@ -281,11 +314,21 @@ fun DeviceBrowser(
                     verticalArrangement = Arrangement.spacedBy(7.dp),
                 ) {
                     items(visibleApps, key = { "app:" + it.packageName }) { app ->
-                        DeviceAppListCard(app, onOpenApp, onShareApp)
+                        DeviceAppListCard(
+                            app = app,
+                            selectionMode = false,
+                            selected = false,
+                            onToggleSelection = {},
+                            onOpen = onOpenApp,
+                            onShare = onShareApp,
+                        )
                     }
                     items(visibleFiles, key = { "file:" + it.uri.toString() }) { file ->
                         DeviceFileListCard(
                             file = file,
+                            selectionMode = false,
+                            selected = false,
+                            onToggleSelection = {},
                             onOpen = onOpenFile,
                             onShare = onShareFile,
                             onCopy = onCopyFile,
@@ -303,52 +346,122 @@ fun DeviceBrowser(
         }
 
         val activeFilter = requireNotNull(filter)
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            TextButton(
-                onClick = {
-                    filter = null
-                    query = ""
-                },
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.ArrowBack,
-                    contentDescription = null,
-                    modifier = Modifier.size(18.dp),
-                )
-                Text("Categorías")
-            }
-            Spacer(Modifier.width(6.dp))
-            Text(
-                activeFilter.label,
-                modifier = Modifier.weight(1f),
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-            )
-            IconButton(
-                onClick = {
-                    viewMode = if (viewMode == ContentViewMode.LIST) {
-                        ContentViewMode.GRID
+        val selectingApps = activeFilter == DeviceFilter.APPS
+        val selectionCount = if (selectingApps) selectedApps.size else selectedFiles.size
+        val allVisibleSelected = if (selectingApps) {
+            visibleApps.isNotEmpty() && visibleApps.all { it.packageName in selectedAppPackages }
+        } else {
+            visibleFiles.isNotEmpty() && visibleFiles.all { it.uri.toString() in selectedFileUris }
+        }
+
+        if (selecting) {
+            DeviceBulkSelectionBar(
+                selectedCount = selectionCount,
+                allVisibleSelected = allVisibleSelected,
+                onToggleAll = {
+                    if (selectingApps) {
+                        val visiblePackages = visibleApps
+                            .take(MAX_DEVICE_APP_SELECTION)
+                            .mapTo(mutableSetOf()) { it.packageName }
+                        selectedAppPackages = if (
+                            visiblePackages.isNotEmpty() &&
+                            visiblePackages.all { it in selectedAppPackages }
+                        ) {
+                            selectedAppPackages - visiblePackages
+                        } else {
+                            visiblePackages
+                        }
                     } else {
-                        ContentViewMode.LIST
+                        val visibleUris = visibleFiles
+                            .take(MAX_DEVICE_FILE_SELECTION)
+                            .mapTo(mutableSetOf()) { it.uri.toString() }
+                        selectedFileUris = if (
+                            visibleUris.isNotEmpty() &&
+                            visibleUris.all { it in selectedFileUris }
+                        ) {
+                            selectedFileUris - visibleUris
+                        } else {
+                            visibleUris
+                        }
                     }
-                    onSaveViewMode(activeFilter.key, viewMode)
                 },
+                onShare = {
+                    if (selectingApps) {
+                        onShareApps(selectedApps)
+                    } else {
+                        onShareFiles(selectedFiles)
+                    }
+                    selecting = false
+                    selectedFileUris = emptySet()
+                    selectedAppPackages = emptySet()
+                },
+                onCancel = {
+                    selecting = false
+                    selectedFileUris = emptySet()
+                    selectedAppPackages = emptySet()
+                },
+            )
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
             ) {
-                Icon(
-                    imageVector = if (viewMode == ContentViewMode.LIST) {
-                        Icons.Outlined.GridView
-                    } else {
-                        Icons.Outlined.ViewList
+                TextButton(
+                    onClick = {
+                        filter = null
+                        query = ""
                     },
-                    contentDescription = if (viewMode == ContentViewMode.LIST) {
-                        "Ver ${activeFilter.label} en cuadrícula"
-                    } else {
-                        "Ver ${activeFilter.label} como lista"
-                    },
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.ArrowBack,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp),
+                    )
+                    Text("Categorías")
+                }
+                Spacer(Modifier.width(6.dp))
+                Text(
+                    activeFilter.label,
+                    modifier = Modifier.weight(1f),
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
                 )
+                val hasSelectableContent =
+                    if (activeFilter == DeviceFilter.APPS) visibleApps.isNotEmpty() else visibleFiles.isNotEmpty()
+                if (hasSelectableContent) {
+                    TextButton(
+                        onClick = {
+                            selecting = true
+                            selectedFileUris = emptySet()
+                            selectedAppPackages = emptySet()
+                        },
+                    ) {
+                        Text("Seleccionar")
+                    }
+                }
+                IconButton(
+                    onClick = {
+                        viewMode = if (viewMode == ContentViewMode.LIST) {
+                            ContentViewMode.GRID
+                        } else {
+                            ContentViewMode.LIST
+                        }
+                        onSaveViewMode(activeFilter.key, viewMode)
+                    },
+                ) {
+                    Icon(
+                        imageVector = if (viewMode == ContentViewMode.LIST) {
+                            Icons.Outlined.GridView
+                        } else {
+                            Icons.Outlined.ViewList
+                        },
+                        contentDescription = if (viewMode == ContentViewMode.LIST) {
+                            "Ver ${activeFilter.label} en cuadrícula"
+                        } else {
+                            "Ver ${activeFilter.label} como lista"
+                        },
+                    )
+                }
             }
         }
         Spacer(Modifier.height(8.dp))
@@ -371,7 +484,22 @@ fun DeviceBrowser(
                         verticalArrangement = Arrangement.spacedBy(8.dp),
                     ) {
                         gridItems(visibleApps, key = { it.packageName }) { app ->
-                            DeviceAppGridCard(app, onOpenApp, onShareApp)
+                            DeviceAppGridCard(
+                                app = app,
+                                selectionMode = selecting,
+                                selected = app.packageName in selectedAppPackages,
+                                onToggleSelection = {
+                                    selectedAppPackages = if (app.packageName in selectedAppPackages) {
+                                        selectedAppPackages - app.packageName
+                                    } else if (selectedAppPackages.size < MAX_DEVICE_APP_SELECTION) {
+                                        selectedAppPackages + app.packageName
+                                    } else {
+                                        selectedAppPackages
+                                    }
+                                },
+                                onOpen = onOpenApp,
+                                onShare = onShareApp,
+                            )
                         }
                     }
                 } else {
@@ -380,7 +508,22 @@ fun DeviceBrowser(
                         verticalArrangement = Arrangement.spacedBy(6.dp),
                     ) {
                         items(visibleApps, key = { it.packageName }) { app ->
-                            DeviceAppListCard(app, onOpenApp, onShareApp)
+                            DeviceAppListCard(
+                                app = app,
+                                selectionMode = selecting,
+                                selected = app.packageName in selectedAppPackages,
+                                onToggleSelection = {
+                                    selectedAppPackages = if (app.packageName in selectedAppPackages) {
+                                        selectedAppPackages - app.packageName
+                                    } else if (selectedAppPackages.size < MAX_DEVICE_APP_SELECTION) {
+                                        selectedAppPackages + app.packageName
+                                    } else {
+                                        selectedAppPackages
+                                    }
+                                },
+                                onOpen = onOpenApp,
+                                onShare = onShareApp,
+                            )
                         }
                     }
                 }
@@ -397,6 +540,18 @@ fun DeviceBrowser(
                     gridItems(visibleFiles, key = { it.uri.toString() }) { file ->
                         DeviceFileGridCard(
                             file = file,
+                            selectionMode = selecting,
+                            selected = file.uri.toString() in selectedFileUris,
+                            onToggleSelection = {
+                                val key = file.uri.toString()
+                                selectedFileUris = if (key in selectedFileUris) {
+                                    selectedFileUris - key
+                                } else if (selectedFileUris.size < MAX_DEVICE_FILE_SELECTION) {
+                                    selectedFileUris + key
+                                } else {
+                                    selectedFileUris
+                                }
+                            },
                             onOpen = onOpenFile,
                             onShare = onShareFile,
                             onCopy = onCopyFile,
@@ -418,6 +573,18 @@ fun DeviceBrowser(
                     items(visibleFiles, key = { it.uri.toString() }) { file ->
                         DeviceFileListCard(
                             file = file,
+                            selectionMode = selecting,
+                            selected = file.uri.toString() in selectedFileUris,
+                            onToggleSelection = {
+                                val key = file.uri.toString()
+                                selectedFileUris = if (key in selectedFileUris) {
+                                    selectedFileUris - key
+                                } else if (selectedFileUris.size < MAX_DEVICE_FILE_SELECTION) {
+                                    selectedFileUris + key
+                                } else {
+                                    selectedFileUris
+                                }
+                            },
                             onOpen = onOpenFile,
                             onShare = onShareFile,
                             onCopy = onCopyFile,
@@ -479,6 +646,53 @@ private fun deviceFilterIcon(filter: DeviceFilter): ImageVector = when (filter) 
 }
 
 @Composable
+private fun DeviceBulkSelectionBar(
+    selectedCount: Int,
+    allVisibleSelected: Boolean,
+    onToggleAll: () -> Unit,
+    onShare: () -> Unit,
+    onCancel: () -> Unit,
+) {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(4.dp),
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                "$selectedCount seleccionados",
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+            )
+            TextButton(onClick = onToggleAll) {
+                Text(if (allVisibleSelected) "Ninguno" else "Todos")
+            }
+            TextButton(onClick = onCancel) {
+                Text("Cancelar")
+            }
+        }
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.End,
+        ) {
+            IconButton(
+                onClick = onShare,
+                enabled = selectedCount > 0,
+            ) {
+                Icon(
+                    imageVector = Icons.Outlined.Share,
+                    contentDescription = "Compartir seleccionados",
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+            }
+        }
+    }
+}
+
+@Composable
 private fun AccessRequiredCard(onRequestBroadAccess: () -> Unit) {
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -508,6 +722,9 @@ private fun AccessRequiredCard(onRequestBroadAccess: () -> Unit) {
 @Composable
 private fun DeviceAppListCard(
     app: InstalledAppInfo,
+    selectionMode: Boolean,
+    selected: Boolean,
+    onToggleSelection: () -> Unit,
     onOpen: (InstalledAppInfo) -> Unit,
     onShare: (InstalledAppInfo) -> Unit,
 ) {
@@ -518,14 +735,29 @@ private fun DeviceAppListCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onOpen(app) },
+            .clickable {
+                if (selectionMode) onToggleSelection() else onOpen(app)
+            },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(
+            if (selected) 2.dp else 1.dp,
+            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (selectionMode) {
+                Checkbox(
+                    checked = selected,
+                    onCheckedChange = { onToggleSelection() },
+                    modifier = Modifier.semantics {
+                        contentDescription = "Seleccionar ${app.label}"
+                    },
+                )
+                Spacer(Modifier.width(4.dp))
+            }
             Image(
                 bitmap = bitmap,
                 contentDescription = "Icono de ${app.label}",
@@ -543,12 +775,14 @@ private fun DeviceAppListCard(
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
-            IconButton(onClick = { onShare(app) }) {
-                Icon(
-                    imageVector = Icons.Outlined.Share,
-                    contentDescription = "Compartir ${app.label}",
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+            if (!selectionMode) {
+                IconButton(onClick = { onShare(app) }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Share,
+                        contentDescription = "Compartir ${app.label}",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
     }
@@ -557,6 +791,9 @@ private fun DeviceAppListCard(
 @Composable
 private fun DeviceAppGridCard(
     app: InstalledAppInfo,
+    selectionMode: Boolean,
+    selected: Boolean,
+    onToggleSelection: () -> Unit,
     onOpen: (InstalledAppInfo) -> Unit,
     onShare: (InstalledAppInfo) -> Unit,
 ) {
@@ -567,14 +804,28 @@ private fun DeviceAppGridCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onOpen(app) },
+            .clickable {
+                if (selectionMode) onToggleSelection() else onOpen(app)
+            },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(
+            if (selected) 2.dp else 1.dp,
+            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
     ) {
         Column(
             modifier = Modifier.padding(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
+            if (selectionMode) {
+                Checkbox(
+                    checked = selected,
+                    onCheckedChange = { onToggleSelection() },
+                    modifier = Modifier.semantics {
+                        contentDescription = "Seleccionar ${app.label}"
+                    },
+                )
+            }
             Image(
                 bitmap = bitmap,
                 contentDescription = "Icono de ${app.label}",
@@ -591,12 +842,14 @@ private fun DeviceAppGridCard(
                 if (app.isSystemApp) "Sistema" else "Instalada",
                 style = MaterialTheme.typography.labelSmall,
             )
-            IconButton(onClick = { onShare(app) }) {
-                Icon(
-                    imageVector = Icons.Outlined.Share,
-                    contentDescription = "Compartir ${app.label}",
-                    tint = MaterialTheme.colorScheme.primary,
-                )
+            if (!selectionMode) {
+                IconButton(onClick = { onShare(app) }) {
+                    Icon(
+                        imageVector = Icons.Outlined.Share,
+                        contentDescription = "Compartir ${app.label}",
+                        tint = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
     }
@@ -605,6 +858,9 @@ private fun DeviceAppGridCard(
 @Composable
 private fun DeviceFileListCard(
     file: DeviceFileInfo,
+    selectionMode: Boolean,
+    selected: Boolean,
+    onToggleSelection: () -> Unit,
     onOpen: (DeviceFileInfo) -> Unit,
     onShare: (DeviceFileInfo) -> Unit,
     onCopy: (DeviceFileInfo) -> Unit,
@@ -615,14 +871,29 @@ private fun DeviceFileListCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onOpen(file) },
+            .clickable {
+                if (selectionMode) onToggleSelection() else onOpen(file)
+            },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(
+            if (selected) 2.dp else 1.dp,
+            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
     ) {
         Row(
             modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            if (selectionMode) {
+                Checkbox(
+                    checked = selected,
+                    onCheckedChange = { onToggleSelection() },
+                    modifier = Modifier.semantics {
+                        contentDescription = "Seleccionar ${file.displayName}"
+                    },
+                )
+                Spacer(Modifier.width(4.dp))
+            }
             DeviceFileVisual(
                 file = file,
                 sizePx = 160,
@@ -655,7 +926,9 @@ private fun DeviceFileListCard(
                     )
                 }
             }
-            DeviceFileActions(file, onShare, onCopy, onRenameRequest, onDeleteRequest)
+            if (!selectionMode) {
+                DeviceFileActions(file, onShare, onCopy, onRenameRequest, onDeleteRequest)
+            }
         }
     }
 }
@@ -663,6 +936,9 @@ private fun DeviceFileListCard(
 @Composable
 private fun DeviceFileGridCard(
     file: DeviceFileInfo,
+    selectionMode: Boolean,
+    selected: Boolean,
+    onToggleSelection: () -> Unit,
     onOpen: (DeviceFileInfo) -> Unit,
     onShare: (DeviceFileInfo) -> Unit,
     onCopy: (DeviceFileInfo) -> Unit,
@@ -673,11 +949,25 @@ private fun DeviceFileGridCard(
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable { onOpen(file) },
+            .clickable {
+                if (selectionMode) onToggleSelection() else onOpen(file)
+            },
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        border = BorderStroke(
+            if (selected) 2.dp else 1.dp,
+            if (selected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant,
+        ),
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
+            if (selectionMode) {
+                Checkbox(
+                    checked = selected,
+                    onCheckedChange = { onToggleSelection() },
+                    modifier = Modifier.semantics {
+                        contentDescription = "Seleccionar ${file.displayName}"
+                    },
+                )
+            }
             DeviceFileVisual(
                 file = file,
                 sizePx = 420,
@@ -704,11 +994,13 @@ private fun DeviceFileGridCard(
                     maxLines = 1,
                 )
             }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.End,
-            ) {
-                DeviceFileActions(file, onShare, onCopy, onRenameRequest, onDeleteRequest)
+            if (!selectionMode) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End,
+                ) {
+                    DeviceFileActions(file, onShare, onCopy, onRenameRequest, onDeleteRequest)
+                }
             }
         }
     }

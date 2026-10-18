@@ -231,3 +231,20 @@ Reglas visuales:
 - si el icono no puede cargarse, Files debe poder usar su representación genérica;
 - apps split siguen siendo carpetas porque representan varios APK;
 - Android Files decide finalmente si muestra thumbnail en carpetas; OclAx no controla esa UI.
+
+## Selección múltiple en Mi dispositivo
+
+Dentro de una categoría de **Mi dispositivo**:
+- botón **Seleccionar** junto al título;
+- checkbox y borde reforzado en tarjetas;
+- contador;
+- **Todos/Ninguno**;
+- **Compartir** como acción masiva;
+- **Cancelar** y Atrás salen primero del modo selección;
+- búsqueda deshabilitada mientras la selección está activa.
+
+Límites visuales/funcionales:
+- no mostrar Eliminar/Renombrar/Mover como acciones masivas de originales;
+- archivos reales admiten hasta 100 seleccionados;
+- aplicaciones instaladas admiten hasta 20;
+- la app debe seguir dejando claro que compartir aplicaciones significa APK de instalación, no datos privados.

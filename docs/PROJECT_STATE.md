@@ -6,7 +6,7 @@
 **Aplicación:** funcional en main; renovación local fusionada con CI verde. Validación física en progreso.  
 **Repositorio:** público.  
 **Protocol version:** 6.  
-**Autorización actual:** añadir selección múltiple segura en OclAx y recuperar iconos de aplicaciones en Android Files sin reintroducir el fallo de carga.
+**Autorización actual:** cerrar el feedback físico de run 334 extendiendo selección múltiple segura a Mi dispositivo.
 
 ## Dirección vigente
 
@@ -186,10 +186,36 @@ IMPLEMENTADO_PENDIENTE_VALIDACIÓN en `feat/bulk-actions-app-icons`:
 Límite de plataforma:
 - Android Files decide si usa y cómo presenta thumbnails en carpetas. OclAx puede ofrecer el icono, no controlar su renderizado exacto.
 
+## Evidencia física adicional — run 334
+
+VERIFICADO por el dueño:
+- selección múltiple OclAx funciona;
+- compartir selección funciona;
+- eliminar varias copias OclAx funciona;
+- Android Files sigue cargando **Aplicaciones** sin ERR-021;
+- dentro de una app split, los APK muestran el icono real de la aplicación;
+- en el nivel superior, Android Files sigue dibujando las apps split como carpetas genéricas.
+
+Conclusión visual:
+- OclAx entrega thumbnail real por package;
+- Android Files usa ese thumbnail en documentos APK;
+- el sistema no usa el thumbnail ofrecido para representar las carpetas virtuales de apps split en este dispositivo.
+
+Feedback bloqueante:
+- el modo **Seleccionar** estaba solo en la superficie OclAx y faltaba en **Mi dispositivo**.
+
+Corrección en `fix/device-bulk-selection`:
+- selección múltiple por categoría en **Mi dispositivo**;
+- archivos reales: hasta 100 seleccionados, compartir por ACTION_SEND_MULTIPLE;
+- aplicaciones instaladas: hasta 20 apps, exportación segura de base + splits y compartir en conjunto;
+- Atrás cancela selección primero;
+- búsqueda se bloquea durante selección;
+- no se añade borrado/renombrado masivo de originales.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
-- compilar y pasar tests/lint/CI del nuevo bloque;
+- compilar y pasar tests/lint/CI de selección múltiple en Mi dispositivo;
 - confirmar físicamente que el OEM entrega una URI MediaStore al compartir una captura reciente desde su flujo de screenshot;
 - validar expiración real de captura reciente y supervivencia de captura >60 s;
 - validar Fijados;
