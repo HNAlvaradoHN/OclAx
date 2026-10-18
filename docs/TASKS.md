@@ -23,11 +23,14 @@ Límite deliberado:
 - no borrar, mover ni renombrar originales en lote;
 - esas operaciones permanecen individuales por riesgo de pérdida de datos y reglas de nombre/destino aún no definidas.
 
+Validado:
+- PR #88 y main run 336 verdes;
+- botón **Seleccionar** visible en **Mi dispositivo → Apps**;
+- selección múltiple dentro de la aplicación funciona.
+
 Pendiente:
-- CI verde;
-- validar selección de archivos en Mi dispositivo;
-- validar compartir varios archivos reales;
-- validar seleccionar/compartir varias apps;
+- compartir varios archivos reales;
+- compartir varias apps instaladas;
 - confirmar que Atrás cancela selección.
 
 ---
@@ -65,8 +68,12 @@ Validado físicamente con run 334:
 - Android Files mantiene icono genérico de carpeta para apps split en el nivel superior.
 
 Pendiente:
-- validar Fijar/Desfijar en lote;
-- validar icono real de una app instalada con APK único si existe una disponible.
+- validar Fijar/Desfijar en lote.
+
+Cierre visual aceptado:
+- Android Files puede mostrar icono genérico para carpetas de apps split;
+- los APK internos sí muestran el icono real;
+- no se cambia el formato de la app instalada solo para forzar la miniatura.
 
 ---
 
