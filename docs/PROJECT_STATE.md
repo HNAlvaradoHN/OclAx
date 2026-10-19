@@ -243,18 +243,28 @@ Aún NO VERIFICADO:
 - que al vencer la captura antigua elimine solo la copia OclAx y conserve el original;
 - que una captura fijada sobreviva al vencimiento junto con su original.
 
+## Evidencia física adicional — FILES-001 y pickers
+
+VERIFICADO por el dueño:
+- renombrar desde OclAx funciona y el original enlazado refleja el cambio cuando corresponde;
+- renombrar desde **Mi dispositivo** funciona;
+- abrir/compartir después del renombrado sigue funcionando;
+- **Elegir con OclAx → Mi dispositivo → Aplicaciones** funciona desde una app externa;
+- una app de APK único puede seleccionarse y volver al caller;
+- una app con splits se comporta correctamente según selección simple/múltiple;
+- Android Files/SAF devuelve correctamente el contenido seleccionado a la app receptora.
+
+Con esto se cierran físicamente **FILES-001**, **PICKER-002** y **PICKER-003** para el alcance aprobado.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
 - validar expiración real de captura reciente y supervivencia de captura >60 s;
 - validar Fijados;
-- validar renombrado OclAx↔original y renombrado desde Mi dispositivo;
-- validar que **Archivos → OclAx → Mi dispositivo → Aplicaciones** cargue sin error y permita seleccionar APK instalado;
-- confirmar que el picker propio sigue devolviendo archivos correctamente;
 - auditar APK/Manifest final para comprobar ausencia total de runtime/permisos LAN.
 
 ## Siguiente paso exacto
 
 1. Priorizar **DATA-002**, porque es la validación de mayor riesgo: comprobar expiración real de screenshot reciente, screenshot >60 s e ítem fijado.
-2. Continuar con **FILES-001**: renombrado OclAx↔original y renombrado desde Mi dispositivo.
-3. Cerrar pickers/SAF restantes y auditoría final de Manifest/LAN antes del bloque de release.
+2. Cerrar **LOCAL-001** con auditoría final de APK/Manifest y referencias LAN/Syncthing.
+3. Después, completar revisiones finales de seguridad/calidad y preparar el bloque de release.
