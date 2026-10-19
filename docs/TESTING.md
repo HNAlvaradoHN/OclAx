@@ -342,9 +342,12 @@ VERIFICADO:
 - Android Files mantiene carpetas genéricas para apps split;
 - los APK internos de una app split muestran el icono real.
 
-Pendiente para cerrar PRODUCT-006:
-1. compartir 2+ archivos reales;
-2. compartir 2 aplicaciones instaladas;
-3. confirmar que Atrás cancela selección.
+VERIFICADO adicionalmente:
+- compartir 2+ archivos reales desde **Mi dispositivo**;
+- compartir varias aplicaciones instaladas;
+- Atrás cancela selección;
+- Fijar/Desfijar varios elementos OclAx.
+
+PRODUCT-005 y PRODUCT-006 quedan cerrados físicamente para el alcance aprobado.
 
 La ausencia de thumbnail personalizado en la carpeta split de Android Files se acepta como límite de presentación del sistema, no como error funcional de OclAx.
