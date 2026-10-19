@@ -189,11 +189,15 @@ Implementado:
 - UI informa si la captura está enlazada a la limpieza del original;
 - pruebas unitarias de ventana de 60 s y casos negativos.
 
+Validado físicamente en este dispositivo:
+- screenshot antigua (>60 s) compartida sin marca de borrado del original;
+- screenshot recién creada y compartida inmediatamente marcada como **Captura reciente · original se limpiará al vencer**;
+- el flujo OEM entrega metadata suficiente para aplicar la política MediaStore/DATE_ADDED/60 s.
+
 Pendiente:
-- prueba física de expiración completa con captura recién creada;
-- prueba física con captura existente >60 s;
-- prueba de Fijados;
-- comprobar comportamiento del OEM si el Share de screenshot no entrega URI MediaStore.
+- dejar vencer una captura reciente y confirmar que desaparecen copia OclAx + original;
+- dejar vencer una captura antigua y confirmar que desaparece solo la copia OclAx;
+- prueba de Fijados durante el vencimiento.
 
 ---
 
