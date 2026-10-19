@@ -20,7 +20,7 @@ VERIFICADO:
 - búsquedas de secretos no encuentran credenciales/llaves embebidas.
 
 Hardening de esta revisión:
-- límite de 100 URI por operación entrante de Share Sheet para acotar abuso de la actividad exportada;
+- límite de 100 URI por operación entrante de Share Sheet para acotar abuso de la actividad exportada, validado antes de iterar lotes crudos cuando Android expone su tamaño;
 - test unitario del límite;
 - Kotlin tooling actualizado de 2.4.10 a 2.4.21 porque 2.4.10 está afectado por CVE-2026-53914;
 - CodeQL añadido con `java-kotlin`.
@@ -96,8 +96,10 @@ Artefactos esperados:
 - `OclAx-debug`;
 - `OclAx-release-unsigned`.
 
+Los artefactos usan `actions/upload-artifact@v7` para evitar el runtime Node.js 20 deprecado.
+
 CodeQL:
-- Java/Kotlin;
+- Java/Kotlin con suite `security-extended`;
 - PR, push a main y ejecución semanal;
 - permisos mínimos: `contents: read` + `security-events: write`.
 
