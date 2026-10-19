@@ -92,7 +92,7 @@ CI:
 ---
 
 ### PICKER-003 — Aplicaciones instaladas dentro de Android Files/SAF
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Evidencia física:
@@ -116,14 +116,16 @@ Validado físicamente:
 - **Aplicaciones** aparece y carga en Android Files;
 - una app split abre su carpeta y muestra base + split.
 
-Pendiente:
-- seleccionar una app de APK único y confirmar retorno a la app receptora;
-- confirmar lectura del APK seleccionado por el caller.
+Validado físicamente:
+- app de APK único seleccionable;
+- retorno correcto a la app receptora;
+- el caller puede leer el APK seleccionado;
+- apps split siguen exponiendo base + splits sin datos privados.
 
 ---
 
 ### PICKER-002 — Mostrar aplicaciones instaladas al adjuntar desde otra app
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Evidencia física:
@@ -142,10 +144,10 @@ Implementado en fix/picker-installed-apps:
 - Aplicaciones no depende de MANAGE_EXTERNAL_STORAGE;
 - tests de compatibilidad MIME.
 
-Pendiente:
-- validar **Elegir con OclAx → Mi dispositivo → Aplicaciones** desde una app externa;
-- seleccionar una app de APK único;
-- probar una app con splits y confirmar el comportamiento según selección múltiple.
+Validado físicamente:
+- **Elegir con OclAx → Mi dispositivo → Aplicaciones** funciona desde una app externa;
+- app de APK único retorna correctamente;
+- apps con splits respetan selección simple/múltiple y entregan el paquete de instalación correspondiente.
 
 ---
 
@@ -202,7 +204,7 @@ Pendiente:
 ---
 
 ### FILES-001 — Renombrado real y selector combinado
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Objetivo:
@@ -218,11 +220,12 @@ Implementado:
 - miniaturas de imagen/video/PDF se conservan;
 - picker propio `ACTION_GET_CONTENT` se mantiene como UI visual OclAx.
 
-Pendiente:
-- renombrado físico de imagen/documento;
-- renombrado de una copia OclAx con original enlazado;
-- validar Files/DocumentsProvider con inventario real;
-- confirmar que Android Files sigue devolviendo el URI correcto a la app llamadora.
+Validado físicamente:
+- renombrado de imagen/documento desde **Mi dispositivo**;
+- renombrado de copia OclAx con original enlazado;
+- apertura y compartir continúan funcionando después del cambio;
+- Files/DocumentsProvider funciona con inventario real;
+- Android Files devuelve correctamente el contenido a la app llamadora.
 
 ---
 
