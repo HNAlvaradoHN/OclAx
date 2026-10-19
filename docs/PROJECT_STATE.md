@@ -238,10 +238,13 @@ VERIFICADO por el dueño:
 
 Esto valida físicamente la **clasificación** de captura reciente vs. captura antigua en este dispositivo.
 
-Aún NO VERIFICADO:
-- que al vencer la retención la captura reciente elimine tanto copia OclAx como original;
-- que al vencer la captura antigua elimine solo la copia OclAx y conserve el original;
-- que una captura fijada sobreviva al vencimiento junto con su original.
+VERIFICADO posteriormente por el dueño:
+- las pruebas de vencimiento solicitadas se comportan correctamente en el dispositivo;
+- la captura reciente cumple su limpieza al vencer;
+- la captura antigua conserva su original;
+- la protección de Fijados durante el vencimiento funciona.
+
+Con esto DATA-002 queda físicamente cerrada para el alcance aprobado.
 
 ## Evidencia física adicional — FILES-001 y pickers
 
@@ -259,12 +262,9 @@ Con esto se cierran físicamente **FILES-001**, **PICKER-002** y **PICKER-003** 
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
-- validar expiración real de captura reciente y supervivencia de captura >60 s;
-- validar Fijados;
 - auditar APK/Manifest final para comprobar ausencia total de runtime/permisos LAN.
 
 ## Siguiente paso exacto
 
-1. Priorizar **DATA-002**, porque es la validación de mayor riesgo: comprobar expiración real de screenshot reciente, screenshot >60 s e ítem fijado.
-2. Cerrar **LOCAL-001** con auditoría final de APK/Manifest y referencias LAN/Syncthing.
-3. Después, completar revisiones finales de seguridad/calidad y preparar el bloque de release.
+1. Cerrar **LOCAL-001** con auditoría final de APK/Manifest y referencias LAN/Syncthing.
+2. Después, completar revisiones finales de seguridad/calidad y preparar el bloque de release.
