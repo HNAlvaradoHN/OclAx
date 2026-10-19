@@ -360,10 +360,13 @@ VERIFICADO:
 - el dispositivo entrega a OclAx el origen/metadata necesarios para aplicar la política de 60 s;
 - la captura antigua permanece en la galería.
 
-Pendiente para cerrar DATA-002:
-1. esperar el vencimiento de la captura reciente y confirmar copia OclAx + original eliminados;
-2. esperar el vencimiento de la captura antigua y confirmar copia OclAx eliminada + original conservado;
-3. repetir con una captura reciente fijada y confirmar supervivencia de copia + original.
+VERIFICADO posteriormente por el dueño:
+- el vencimiento real funciona correctamente;
+- la captura reciente cumple la limpieza esperada;
+- la captura antigua conserva su original;
+- una captura fijada permanece protegida durante el vencimiento.
+
+Resultado: **DATA-002 DONE**.
 
 ## Validación física — renombrado y selectores
 
