@@ -29,6 +29,14 @@ GitHub es la fuente técnica de verdad. Ninguna herramienta externa reemplaza AG
 
 El pipeline nativo de Syncthing fue eliminado por DEC-032.
 
+## CodeQL
+
+**Estado:** activo en revisión final.  
+**Uso:** análisis estático Java/Kotlin en PR, push a main y ejecución semanal.  
+**Costo:** sin costo para este repositorio público.  
+**Permisos CI:** `contents: read` + `security-events: write`.  
+**Regla:** un hallazgo bloqueante impide cerrar release hasta corregirlo o justificar con evidencia que sea falso positivo.
+
 ## Syncthing
 
 **Estado:** RETIRADO.  

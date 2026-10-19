@@ -5,10 +5,10 @@
 Cada PR y cada push a `main` ejecutan:
 
 ```bash
-gradle --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+gradle --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease
 ```
 
-Si todo pasa, CI publica `OclAx-debug`.
+Si todo pasa, CI publica `OclAx-debug` y `OclAx-release-unsigned`.
 
 La renovación local elimina por completo el job nativo de Syncthing; ya no existe build/caché/verificación JNI de transferencia.
 
@@ -181,40 +181,40 @@ Nota de plataforma:
 ## Revisión obligatoria de la renovación
 
 ### Seguridad
-**Estado:** PENDIENTE REVISIÓN FINAL  
-Comprobar eliminación de red, receiver, límites de borrado y rename.
+**Estado:** IMPLEMENTADO_PENDIENTE_CI/CODEQL  
+Revisión final completada. Se corrigieron dos hallazgos bloqueantes: Kotlin 2.4.10 vulnerable y lote Share Sheet sin límite.
 
 ### Privacidad
-**Estado:** PENDIENTE REVISIÓN FINAL  
-Comprobar que source URI/metadatos son privados y que una foto normal nunca entra en borrado automático.
+**Estado:** VERIFICADO  
+Metadata privada, sin red/telemetría/logs sensibles; exportación de apps limitada a código APK.
 
 ### Arquitectura
-**Estado:** PENDIENTE REVISIÓN FINAL  
-Comprobar separación ItemStore / policy / scheduler / repository / UI y ausencia de restos del motor retirado.
+**Estado:** VERIFICADO  
+Separación ItemStore / policy / scheduler / repository / UI conservada; no quedan restos de runtime LAN.
 
 ### Plataforma Android
-**Estado:** PENDIENTE CI/FÍSICA  
-Comprobar ContentResolver update/delete, AlarmManager/BOOT y DocumentsProvider.
+**Estado:** VERIFICADO_FÍSICAMENTE  
+ContentResolver update/delete, retención, DocumentsProvider, picker, APK split y grants fueron probados en dispositivo.
 
 ### Calidad/Limpieza
-**Estado:** PENDIENTE REVISIÓN FINAL  
-Buscar imports, recursos, permisos, tests, docs y workflows huérfanos de LAN.
+**Estado:** VERIFICADO  
+Sin código LAN huérfano, TODO/FIXME de producto, logging sensible, WebView, procesos o clientes de red.
 
 ### QA
-**Estado:** PENDIENTE CI/FÍSICA  
-Ejecutar matriz anterior.
+**Estado:** IMPLEMENTADO_PENDIENTE_QA_VISUAL_FINAL  
+Flujos funcionales principales validados. Falta modo claro, pantalla pequeña y smoke test del build final.
 
 ### Rendimiento
 **Estado:** INFORMATIVO  
-DocumentsProvider puede enumerar muchos archivos; la raíz limita la exposición directa inicial a 100, mientras **Mi dispositivo** conserva inventario completo. Validar un teléfono con inventario grande antes de optimizar.
+DocumentsProvider puede enumerar muchos archivos; no hay evidencia física actual de fallo tras el hardening de Aplicaciones.
 
 ### Diseño/UX/Accesibilidad
-**Estado:** PENDIENTE FÍSICO  
-Renombrar usa acción con contentDescription; la limpieza destructiva de screenshot tiene texto visible. Confirmar legibilidad/tamaños táctiles.
+**Estado:** PENDIENTE_FÍSICO_PARCIAL  
+Modo oscuro observado; faltan modo claro y pantalla pequeña.
 
 ### Release
-**Estado:** NO APLICA TODAVÍA  
-No es release candidata hasta terminar validación física y SEC-001.
+**Estado:** IMPLEMENTADO_PENDIENTE_CI_CODEQL_QA  
+CI ahora construye debug + release unsigned; firma/publicación son un gate separado.
 
 ## Criterio de cierre
 
@@ -398,3 +398,17 @@ VERIFICADO:
 9. referencias restantes a LAN/Syncthing solo documentales/históricas.
 
 Resultado: **LOCAL-001 DONE**.
+
+
+## Revisión final de release — automatización
+
+Añadido:
+- test `ShareIngestorPolicyTest` para el límite de 100 URI entrantes;
+- build release en PR/main;
+- artefacto `OclAx-release-unsigned`;
+- CodeQL Java/Kotlin en PR/main/semanal.
+
+Gate actual:
+- CI Android;
+- CodeQL;
+- QA visual final.

@@ -37,3 +37,11 @@ Configurar:
 - checks requeridos en main una vez que sus nombres sean estables.
 
 No activar servicios pagos.
+
+## Actualización 2026-10-19
+
+- CodeQL advanced setup añadido en `.github/workflows/codeql.yml`.
+- Lenguaje: `java-kotlin`.
+- Triggers: PR, push a main y semanal.
+- Permisos: `contents: read`, `security-events: write`.
+- Falta validar el primer run antes de declarar code scanning operativo.

@@ -10,6 +10,7 @@ import android.os.Build
 import androidx.core.content.FileProvider
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.StoredItem
+import java.io.IOException
 import java.util.LinkedHashSet
 
 class ShareIngestor(private val context: Context) {
@@ -24,7 +25,13 @@ class ShareIngestor(private val context: Context) {
             return Result(0, ClipboardKind.NONE)
         }
 
-        val importedFiles = collectUris(intent).map { store.importUri(it, intent.type) }
+        val incomingUris = collectUris(intent)
+        if (!isSupportedIncomingUriCount(incomingUris.size)) {
+            throw IOException(
+                "OclAx acepta hasta $MAX_INCOMING_SHARED_URIS archivos por operación.",
+            )
+        }
+        val importedFiles = incomingUris.map { store.importUri(it, intent.type) }
         val sharedText = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()?.trim().orEmpty()
         val textItem = sharedText.takeIf { it.isNotEmpty() }?.let {
             store.importText(it, intent.getStringExtra(Intent.EXTRA_SUBJECT))
@@ -69,15 +76,36 @@ class ShareIngestor(private val context: Context) {
 
     private fun collectUris(intent: Intent): List<Uri> {
         val result = LinkedHashSet<Uri>()
-        if (intent.action == Intent.ACTION_SEND) singleStream(intent)?.let(result::add)
-        if (intent.action == Intent.ACTION_SEND_MULTIPLE) multipleStreams(intent).forEach(result::add)
+        if (intent.action == Intent.ACTION_SEND) {
+            singleStream(intent)?.let(result::add)
+        }
+        if (intent.action == Intent.ACTION_SEND_MULTIPLE) {
+            val streams = multipleStreams(intent)
+            requireSupportedIncomingUriCount(streams.size)
+            streams.forEach { uri ->
+                result += uri
+                requireSupportedIncomingUriCount(result.size)
+            }
+        }
 
         intent.clipData?.let { clip ->
+            requireSupportedIncomingUriCount(clip.itemCount)
             for (index in 0 until clip.itemCount) {
-                clip.getItemAt(index).uri?.let(result::add)
+                clip.getItemAt(index).uri?.let { uri ->
+                    result += uri
+                    requireSupportedIncomingUriCount(result.size)
+                }
             }
         }
         return result.toList()
+    }
+
+    private fun requireSupportedIncomingUriCount(count: Int) {
+        if (!isSupportedIncomingUriCount(count)) {
+            throw IOException(
+                "OclAx acepta hasta $MAX_INCOMING_SHARED_URIS archivos por operación.",
+            )
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -96,3 +124,9 @@ class ShareIngestor(private val context: Context) {
             intent.getParcelableArrayListExtra<Uri>(Intent.EXTRA_STREAM).orEmpty()
         }
 }
+
+
+internal const val MAX_INCOMING_SHARED_URIS = 100
+
+internal fun isSupportedIncomingUriCount(count: Int): Boolean =
+    count in 0..MAX_INCOMING_SHARED_URIS

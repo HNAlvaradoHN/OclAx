@@ -239,7 +239,7 @@ Validado físicamente:
 
 ### SEC-001 — Protecciones del repositorio y release
 **Estado:** IN_PROGRESS  
-**Prioridad:** media
+**Prioridad:** alta
 
 Completado:
 - ruleset de main;
@@ -248,13 +248,32 @@ Completado:
 - Secret Scanning/Push Protection revisados;
 - Dependabot;
 - CI Android con permisos mínimos;
-- firma estable de APK de pruebas almacenada solo en Secrets.
+- firma estable de APK de pruebas almacenada solo en Secrets;
+- revisión final de permisos/Manifest y componentes exportados;
+- revisión final de privacidad, almacenamiento y providers;
+- auditoría de secretos por búsqueda del árbol activo;
+- hardening del Share Sheet: máximo 100 URI por operación entrante;
+- Kotlin tooling actualizado 2.4.10 → 2.4.21 por CVE-2026-53914;
+- CodeQL Java/Kotlin añadido;
+- CI ampliado para `:app:assembleRelease`;
+- artefacto `OclAx-release-unsigned` añadido;
+- checklist técnico en `docs/RELEASE_CHECKLIST.md`;
+- revisión de licencias directas: AndroidX/AGP/Kotlin Apache-2.0; JUnit EPL-1.0 solo tests.
 
-Pendiente antes de release estable:
-- CodeQL/code scanning si sigue disponible sin costo;
-- revisión final de permisos/manifest;
-- revisión de dependencias y licencia;
-- build release y checklist de publicación.
+Validado en PR #90:
+- Android CI run 352 verde con Kotlin 2.4.21, tests, lint, debug y assembleRelease;
+- artefactos debug y release unsigned generados;
+- CodeQL run 6 verde.
+
+Pendiente antes de candidata técnica:
+- validar modo claro y pantalla pequeña;
+- regresión rápida física del APK generado por main.
+
+Pendiente para publicación estable:
+- decidir canal de distribución;
+- decidir licencia del código fuente si se desea ofrecer reutilización open source;
+- definir firma de producción; no reutilizar automáticamente la firma de pruebas;
+- si el canal es Google Play, revisar elegibilidad/políticas de MANAGE_EXTERNAL_STORAGE, QUERY_ALL_PACKAGES y REQUEST_INSTALL_PACKAGES.
 
 ---
 

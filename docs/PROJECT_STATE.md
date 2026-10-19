@@ -2,11 +2,11 @@
 
 ## Estado
 
-**Fase:** refinamiento de la primera vertical Android local.  
-**Aplicación:** funcional en main; renovación local fusionada con CI verde. Validación física en progreso.  
+**Fase:** cierre técnico y preparación de candidata de release Android local.  
+**Aplicación:** funcional en main; vertical local validada físicamente en sus flujos principales. Hardening/release en progreso.  
 **Repositorio:** público.  
 **Protocol version:** 6.  
-**Autorización actual:** cerrar validaciones físicas pendientes de la vertical local; no hay una nueva funcionalidad autorizada.
+**Autorización actual:** completar revisión final de seguridad/calidad/release y preparar candidata técnica sin firmar ni publicar.
 
 ## Dirección vigente
 
@@ -277,13 +277,38 @@ Las referencias textuales a LAN/Syncthing que permanecen están limitadas a docu
 
 Resultado: **LOCAL-001 queda cerrado** para el alcance aprobado.
 
+## Revisión final de release — rama release/final-review
+
+VERIFICADO:
+- permisos, componentes exportados, providers, retención, rename y exportación de APK revisados;
+- sin secretos embebidos detectados por búsquedas del árbol activo;
+- dependencias runtime AndroidX revisadas sin vulnerabilidades directas conocidas en las versiones usadas;
+- licencias directas compatibles con el uso actual: AndroidX/AGP/Kotlin Apache-2.0; JUnit EPL-1.0 solo tests;
+- hallazgo BLOQUEANTE: Kotlin tooling 2.4.10 afectado por CVE-2026-53914;
+- corrección IMPLEMENTADA: actualización a Kotlin 2.4.21;
+- hardening IMPLEMENTADO: máximo 100 URI entrantes por operación de Share Sheet;
+- CodeQL Java/Kotlin IMPLEMENTADO;
+- assembleRelease y artefacto release unsigned IMPLEMENTADOS en CI;
+- checklist creado en docs/RELEASE_CHECKLIST.md.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
-- ninguna tarea funcional de prioridad alta queda abierta por LAN/transferencia.
+- CI Android de la rama debe quedar verde;
+- CodeQL debe completar sin hallazgos bloqueantes;
+- validar físicamente modo claro y pantalla pequeña;
+- ejecutar regresión rápida con el APK de main después del merge.
+
+**DECISIÓN PENDIENTE PARA PUBLICAR:**
+- canal de distribución;
+- firma de producción;
+- licencia propia del código si el dueño desea declarar reutilización open source;
+- si se usa Google Play, cumplimiento de políticas para permisos amplios.
 
 ## Siguiente paso exacto
 
-1. Completar revisiones finales de seguridad, privacidad, arquitectura, plataforma Android, calidad, QA y release.
-2. Revisar dependencias/licencias y CodeQL/code scanning si sigue disponible sin costo.
-3. Preparar build/checklist de release cuando esas revisiones queden cerradas.
+1. Abrir PR de release/final-review y ejecutar Android CI + CodeQL.
+2. Corregir cualquier hallazgo bloqueante.
+3. Fusionar solo con CI/análisis verdes y comprobar main.
+4. Entregar APK debug de main para regresión física y pedir únicamente modo claro/pantalla pequeña + smoke test.
+5. Con QA físico cerrado, marcar candidata técnica; firma/publicación quedan como gate separado.
