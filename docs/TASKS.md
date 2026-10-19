@@ -3,7 +3,7 @@
 ## Prioridad actual
 
 ### PRODUCT-006 — Selección múltiple segura en Mi dispositivo
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Evidencia física run 334:
@@ -26,19 +26,17 @@ Límite deliberado:
 Validado:
 - PR #88 y main run 336 verdes;
 - botón **Seleccionar** visible en **Mi dispositivo → Apps**;
-- selección múltiple dentro de la aplicación funciona.
-
-Pendiente:
-- compartir varios archivos reales;
-- compartir varias apps instaladas;
-- confirmar que Atrás cancela selección.
+- selección múltiple dentro de la aplicación funciona;
+- compartir varios archivos reales funciona;
+- compartir varias apps instaladas funciona;
+- Atrás cancela selección antes de navegar.
 
 ---
 
 
 
 ### PRODUCT-005 — Selección múltiple segura + iconos de apps en Android Files
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Autorizado por el dueño después de validar run 321.
@@ -67,8 +65,8 @@ Validado físicamente con run 334:
 - icono real visible en APK componentes de una app split;
 - Android Files mantiene icono genérico de carpeta para apps split en el nivel superior.
 
-Pendiente:
-- validar Fijar/Desfijar en lote.
+Validado adicionalmente:
+- Fijar/Desfijar varios elementos funciona.
 
 Cierre visual aceptado:
 - Android Files puede mostrar icono genérico para carpetas de apps split;
