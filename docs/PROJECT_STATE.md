@@ -259,12 +259,31 @@ VERIFICADO por el dueño:
 
 Con esto se cierran físicamente **FILES-001**, **PICKER-002** y **PICKER-003** para el alcance aprobado.
 
+## Auditoría final — LOCAL-001
+
+VERIFICADO sobre el árbol activo de `main` y el APK run 336:
+- no existen rutas/archivos activos con nombres de Syncthing, transferencia, peer/pairing, JNI propio ni `network_security_config`;
+- búsquedas de código no encuentran sockets, ServerSocket, DatagramSocket, HttpURLConnection, OkHttp, Retrofit, Ktor, `java.net`, Wi-Fi/P2P/NSD ni callbacks de red;
+- el Manifest fuente no declara `INTERNET`, `ACCESS_NETWORK_STATE`, `CHANGE_WIFI_MULTICAST_STATE` ni permisos de foreground service;
+- el Manifest fuente no contiene ningún `<service>`;
+- el Manifest generado del APK no contiene cadenas de permisos de red ni clases de servicio OclAx/Syncthing;
+- el APK no contiene binarios Syncthing ni otros runtimes de transferencia;
+- los únicos `.so` del APK son `libandroidx.graphics.path.so` de AndroidX para cuatro ABI;
+- Gradle no configura JNI ni depende de Syncthing;
+- GitHub Actions solo ejecuta tests/lint/assembleDebug y no descarga/compila runtimes nativos;
+- no existe configuración de seguridad de red activa.
+
+Las referencias textuales a LAN/Syncthing que permanecen están limitadas a documentación histórica/decisiones y describen explícitamente que la función fue retirada.
+
+Resultado: **LOCAL-001 queda cerrado** para el alcance aprobado.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
-- auditar APK/Manifest final para comprobar ausencia total de runtime/permisos LAN.
+- ninguna tarea funcional de prioridad alta queda abierta por LAN/transferencia.
 
 ## Siguiente paso exacto
 
-1. Cerrar **LOCAL-001** con auditoría final de APK/Manifest y referencias LAN/Syncthing.
-2. Después, completar revisiones finales de seguridad/calidad y preparar el bloque de release.
+1. Completar revisiones finales de seguridad, privacidad, arquitectura, plataforma Android, calidad, QA y release.
+2. Revisar dependencias/licencias y CodeQL/code scanning si sigue disponible sin costo.
+3. Preparar build/checklist de release cuando esas revisiones queden cerradas.
