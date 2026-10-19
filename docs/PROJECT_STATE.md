@@ -6,7 +6,7 @@
 **Aplicación:** funcional en main; renovación local fusionada con CI verde. Validación física en progreso.  
 **Repositorio:** público.  
 **Protocol version:** 6.  
-**Autorización actual:** cerrar el feedback físico de run 334 extendiendo selección múltiple segura a Mi dispositivo.
+**Autorización actual:** cerrar validaciones físicas pendientes de la vertical local; no hay una nueva funcionalidad autorizada.
 
 ## Dirección vigente
 
@@ -212,28 +212,78 @@ Corrección en `fix/device-bulk-selection`:
 - búsqueda se bloquea durante selección;
 - no se añade borrado/renombrado masivo de originales.
 
+## Evidencia física adicional — run 336
+
+VERIFICADO por el dueño:
+- **Mi dispositivo → Apps** muestra el botón **Seleccionar**;
+- la selección múltiple dentro de la aplicación funciona;
+- compartir varios archivos reales desde **Mi dispositivo** funciona;
+- compartir varias aplicaciones instaladas desde **Mi dispositivo** funciona;
+- Atrás cancela primero el modo selección;
+- Fijar/Desfijar varios elementos OclAx funciona;
+- Android Files sigue mostrando icono genérico para carpetas virtuales de apps split;
+- al entrar a una app split, los APK internos muestran el icono real.
+
+Decisión de cierre visual:
+- se acepta el icono genérico de carpeta en Android Files como limitación de presentación del sistema;
+- OclAx no cambia el formato de apps split solo para forzar una miniatura.
+
+## Evidencia física adicional — DATA-002 en run 336
+
+VERIFICADO por el dueño:
+- una captura antigua ya existente en galería se comparte a OclAx sin quedar marcada para borrar el original;
+- una captura creada y compartida inmediatamente queda marcada como **Captura reciente · original se limpiará al vencer**;
+- el flujo OEM de compartir screenshot entrega metadata suficiente para que OclAx aplique la regla MediaStore + DATE_ADDED + ventana de 60 s;
+- la captura antigua permanece en la galería.
+
+Esto valida físicamente la **clasificación** de captura reciente vs. captura antigua en este dispositivo.
+
+VERIFICADO posteriormente por el dueño:
+- las pruebas de vencimiento solicitadas se comportan correctamente en el dispositivo;
+- la captura reciente cumple su limpieza al vencer;
+- la captura antigua conserva su original;
+- la protección de Fijados durante el vencimiento funciona.
+
+Con esto DATA-002 queda físicamente cerrada para el alcance aprobado.
+
+## Evidencia física adicional — FILES-001 y pickers
+
+VERIFICADO por el dueño:
+- renombrar desde OclAx funciona y el original enlazado refleja el cambio cuando corresponde;
+- renombrar desde **Mi dispositivo** funciona;
+- abrir/compartir después del renombrado sigue funcionando;
+- **Elegir con OclAx → Mi dispositivo → Aplicaciones** funciona desde una app externa;
+- una app de APK único puede seleccionarse y volver al caller;
+- una app con splits se comporta correctamente según selección simple/múltiple;
+- Android Files/SAF devuelve correctamente el contenido seleccionado a la app receptora.
+
+Con esto se cierran físicamente **FILES-001**, **PICKER-002** y **PICKER-003** para el alcance aprobado.
+
+## Auditoría final — LOCAL-001
+
+VERIFICADO sobre el árbol activo de `main` y el APK run 336:
+- no existen rutas/archivos activos con nombres de Syncthing, transferencia, peer/pairing, JNI propio ni `network_security_config`;
+- búsquedas de código no encuentran sockets, ServerSocket, DatagramSocket, HttpURLConnection, OkHttp, Retrofit, Ktor, `java.net`, Wi-Fi/P2P/NSD ni callbacks de red;
+- el Manifest fuente no declara `INTERNET`, `ACCESS_NETWORK_STATE`, `CHANGE_WIFI_MULTICAST_STATE` ni permisos de foreground service;
+- el Manifest fuente no contiene ningún `<service>`;
+- el Manifest generado del APK no contiene cadenas de permisos de red ni clases de servicio OclAx/Syncthing;
+- el APK no contiene binarios Syncthing ni otros runtimes de transferencia;
+- los únicos `.so` del APK son `libandroidx.graphics.path.so` de AndroidX para cuatro ABI;
+- Gradle no configura JNI ni depende de Syncthing;
+- GitHub Actions solo ejecuta tests/lint/assembleDebug y no descarga/compila runtimes nativos;
+- no existe configuración de seguridad de red activa.
+
+Las referencias textuales a LAN/Syncthing que permanecen están limitadas a documentación histórica/decisiones y describen explícitamente que la función fue retirada.
+
+Resultado: **LOCAL-001 queda cerrado** para el alcance aprobado.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
-- compilar y pasar tests/lint/CI de selección múltiple en Mi dispositivo;
-- confirmar físicamente que el OEM entrega una URI MediaStore al compartir una captura reciente desde su flujo de screenshot;
-- validar expiración real de captura reciente y supervivencia de captura >60 s;
-- validar Fijados;
-- validar renombrado OclAx↔original y renombrado desde Mi dispositivo;
-- validar que **Archivos → OclAx → Mi dispositivo → Aplicaciones** cargue sin error y permita seleccionar APK instalado;
-- confirmar que el picker propio sigue devolviendo archivos correctamente;
-- auditar APK/Manifest final para comprobar ausencia total de runtime/permisos LAN.
+- ninguna tarea funcional de prioridad alta queda abierta por LAN/transferencia.
 
 ## Siguiente paso exacto
 
-1. Ejecutar CI de `feat/bulk-actions-app-icons`.
-2. Corregir cualquier fallo introducido.
-3. Revisar Seguridad, Privacidad, Arquitectura, Plataforma Android, Calidad, Rendimiento, QA y UX aplicables.
-4. Fusionar solo con CI verde y comprobar main.
-5. Validar físicamente:
-   - seleccionar varios elementos OclAx;
-   - compartirlos;
-   - fijar/desfijar;
-   - borrar copias y confirmar que originales sobreviven;
-   - Android Files → Aplicaciones y comprobar iconos reales cuando el sistema los solicite.
-6. Registrar resultados y continuar con los pendientes de capturas/renombrado que aún no estén físicamente cerrados.
+1. Completar revisiones finales de seguridad, privacidad, arquitectura, plataforma Android, calidad, QA y release.
+2. Revisar dependencias/licencias y CodeQL/code scanning si sigue disponible sin costo.
+3. Preparar build/checklist de release cuando esas revisiones queden cerradas.

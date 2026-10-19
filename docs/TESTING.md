@@ -333,3 +333,68 @@ Validación física:
 6. Mi dispositivo → Aplicaciones;
 7. seleccionar 2 apps y compartir;
 8. confirmar que no aparece borrado/renombrado masivo de originales.
+
+## Validación física — run 336
+
+VERIFICADO:
+- **Mi dispositivo → Apps** muestra **Seleccionar**;
+- la selección múltiple dentro de la aplicación funciona;
+- Android Files mantiene carpetas genéricas para apps split;
+- los APK internos de una app split muestran el icono real.
+
+VERIFICADO adicionalmente:
+- compartir 2+ archivos reales desde **Mi dispositivo**;
+- compartir varias aplicaciones instaladas;
+- Atrás cancela selección;
+- Fijar/Desfijar varios elementos OclAx.
+
+PRODUCT-005 y PRODUCT-006 quedan cerrados físicamente para el alcance aprobado.
+
+La ausencia de thumbnail personalizado en la carpeta split de Android Files se acepta como límite de presentación del sistema, no como error funcional de OclAx.
+
+## Validación física — DATA-002 clasificación
+
+VERIFICADO:
+- una captura antigua compartida desde galería no muestra el estado de borrado del original;
+- una captura recién creada y compartida inmediatamente muestra **Captura reciente · original se limpiará al vencer**;
+- el dispositivo entrega a OclAx el origen/metadata necesarios para aplicar la política de 60 s;
+- la captura antigua permanece en la galería.
+
+VERIFICADO posteriormente por el dueño:
+- el vencimiento real funciona correctamente;
+- la captura reciente cumple la limpieza esperada;
+- la captura antigua conserva su original;
+- una captura fijada permanece protegida durante el vencimiento.
+
+Resultado: **DATA-002 DONE**.
+
+## Validación física — renombrado y selectores
+
+VERIFICADO:
+- renombrar desde OclAx actualiza el original enlazado cuando corresponde;
+- renombrar desde **Mi dispositivo** funciona;
+- abrir y compartir siguen funcionando después del renombrado;
+- **Elegir con OclAx → Mi dispositivo → Aplicaciones** funciona desde una app externa;
+- una app de APK único retorna correctamente al caller;
+- apps con splits respetan selección simple/múltiple;
+- Android Files/SAF devuelve contenido correctamente a la app receptora.
+
+Resultado:
+- **FILES-001: DONE**;
+- **PICKER-002: DONE**;
+- **PICKER-003: DONE**.
+
+## Auditoría final — LOCAL-001
+
+VERIFICADO:
+1. árbol recursivo sin archivos/rutas Syncthing, transferencia, JNI propio ni network_security_config;
+2. Manifest fuente sin INTERNET, ACCESS_NETWORK_STATE, CHANGE_WIFI_MULTICAST_STATE ni foreground-service;
+3. Manifest fuente sin elementos service;
+4. APK run 336 sin cadenas de permisos de red ni clases de servicio OclAx/Syncthing;
+5. APK sin binarios Syncthing; solo `libandroidx.graphics.path.so` de AndroidX;
+6. código sin ServerSocket/DatagramSocket/HttpURLConnection/OkHttp/Retrofit/Ktor/java.net/Wi-Fi P2P/NSD;
+7. Gradle sin JNI ni dependencia Syncthing;
+8. workflow Android puro: testDebugUnitTest + lintDebug + assembleDebug;
+9. referencias restantes a LAN/Syncthing solo documentales/históricas.
+
+Resultado: **LOCAL-001 DONE**.

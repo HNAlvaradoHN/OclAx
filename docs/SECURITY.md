@@ -248,3 +248,19 @@ PRODUCT-006 conserva mínimo privilegio:
 - no se exportan dataDir ni datos privados;
 - se limitan lotes para acotar IPC, almacenamiento temporal y errores de usuario;
 - búsqueda queda fija durante selección para evitar operar sobre elementos ocultos.
+
+## Auditoría de cierre LOCAL-001
+
+Revisión final de seguridad/privacidad de la retirada de red:
+
+- Manifest fuente: sin INTERNET, ACCESS_NETWORK_STATE, multicast ni foreground-service;
+- no existe servicio de transferencia ni listener;
+- no existe network_security_config;
+- no hay código activo de sockets/HTTP/Wi-Fi discovery;
+- no hay dependencia ni runtime Syncthing;
+- APK run 336 no contiene binarios Syncthing;
+- los únicos .so son componentes AndroidX de gráficos, no de red;
+- CI no descarga/compila código de transferencia;
+- referencias LAN/Syncthing restantes son históricas y no ejecutables.
+
+Estado: **VERIFICADO** para LOCAL-001. No se detectó ampliación de permisos ni superficie de red residual.

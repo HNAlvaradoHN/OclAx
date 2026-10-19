@@ -3,7 +3,7 @@
 ## Prioridad actual
 
 ### PRODUCT-006 — Selección múltiple segura en Mi dispositivo
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Evidencia física run 334:
@@ -23,19 +23,20 @@ Límite deliberado:
 - no borrar, mover ni renombrar originales en lote;
 - esas operaciones permanecen individuales por riesgo de pérdida de datos y reglas de nombre/destino aún no definidas.
 
-Pendiente:
-- CI verde;
-- validar selección de archivos en Mi dispositivo;
-- validar compartir varios archivos reales;
-- validar seleccionar/compartir varias apps;
-- confirmar que Atrás cancela selección.
+Validado:
+- PR #88 y main run 336 verdes;
+- botón **Seleccionar** visible en **Mi dispositivo → Apps**;
+- selección múltiple dentro de la aplicación funciona;
+- compartir varios archivos reales funciona;
+- compartir varias apps instaladas funciona;
+- Atrás cancela selección antes de navegar.
 
 ---
 
 
 
 ### PRODUCT-005 — Selección múltiple segura + iconos de apps en Android Files
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Autorizado por el dueño después de validar run 321.
@@ -64,9 +65,13 @@ Validado físicamente con run 334:
 - icono real visible en APK componentes de una app split;
 - Android Files mantiene icono genérico de carpeta para apps split en el nivel superior.
 
-Pendiente:
-- validar Fijar/Desfijar en lote;
-- validar icono real de una app instalada con APK único si existe una disponible.
+Validado adicionalmente:
+- Fijar/Desfijar varios elementos funciona.
+
+Cierre visual aceptado:
+- Android Files puede mostrar icono genérico para carpetas de apps split;
+- los APK internos sí muestran el icono real;
+- no se cambia el formato de la app instalada solo para forzar la miniatura.
 
 ---
 
@@ -87,7 +92,7 @@ CI:
 ---
 
 ### PICKER-003 — Aplicaciones instaladas dentro de Android Files/SAF
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Evidencia física:
@@ -111,14 +116,16 @@ Validado físicamente:
 - **Aplicaciones** aparece y carga en Android Files;
 - una app split abre su carpeta y muestra base + split.
 
-Pendiente:
-- seleccionar una app de APK único y confirmar retorno a la app receptora;
-- confirmar lectura del APK seleccionado por el caller.
+Validado físicamente:
+- app de APK único seleccionable;
+- retorno correcto a la app receptora;
+- el caller puede leer el APK seleccionado;
+- apps split siguen exponiendo base + splits sin datos privados.
 
 ---
 
 ### PICKER-002 — Mostrar aplicaciones instaladas al adjuntar desde otra app
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Evidencia física:
@@ -137,15 +144,15 @@ Implementado en fix/picker-installed-apps:
 - Aplicaciones no depende de MANAGE_EXTERNAL_STORAGE;
 - tests de compatibilidad MIME.
 
-Pendiente:
-- validar **Elegir con OclAx → Mi dispositivo → Aplicaciones** desde una app externa;
-- seleccionar una app de APK único;
-- probar una app con splits y confirmar el comportamiento según selección múltiple.
+Validado físicamente:
+- **Elegir con OclAx → Mi dispositivo → Aplicaciones** funciona desde una app externa;
+- app de APK único retorna correctamente;
+- apps con splits respetan selección simple/múltiple y entregan el paquete de instalación correspondiente.
 
 ---
 
 ### LOCAL-001 — Retirar LAN y simplificar OclAx
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Objetivo:
@@ -161,14 +168,20 @@ Implementado en `feat/local-content-refresh`:
 - eliminado `network_security_config` asociado al REST local;
 - eliminados tests exclusivos de transferencia.
 
-Pendiente:
-- auditoría final de referencias/residuos;
-- validar APK/Manifest generado.
+Validado:
+- árbol activo sin clases/recursos/configuración de transferencia;
+- Manifest fuente sin permisos de red ni servicios;
+- APK run 336 sin permisos de red detectables ni runtime Syncthing;
+- únicos binarios nativos: `libandroidx.graphics.path.so` de AndroidX;
+- Gradle sin JNI/Syncthing;
+- workflow sin pipeline nativo/descargas de runtime.
+
+Las referencias históricas conservadas están solo en documentación y no forman parte del runtime.
 
 ---
 
 ### DATA-002 — Limpieza inteligente de capturas recientes
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Regla aprobada:
@@ -184,16 +197,22 @@ Implementado:
 - UI informa si la captura está enlazada a la limpieza del original;
 - pruebas unitarias de ventana de 60 s y casos negativos.
 
-Pendiente:
-- prueba física de expiración completa con captura recién creada;
-- prueba física con captura existente >60 s;
-- prueba de Fijados;
-- comprobar comportamiento del OEM si el Share de screenshot no entrega URI MediaStore.
+Validado físicamente en este dispositivo:
+- screenshot antigua (>60 s) compartida sin marca de borrado del original;
+- screenshot recién creada y compartida inmediatamente marcada como **Captura reciente · original se limpiará al vencer**;
+- el flujo OEM entrega metadata suficiente para aplicar la política MediaStore/DATE_ADDED/60 s.
+
+Validado físicamente:
+- vencimiento de captura reciente correcto;
+- captura antigua conserva el original al vencer;
+- Fijados quedan protegidos durante el vencimiento.
+
+DATA-002 queda cerrada para el alcance aprobado.
 
 ---
 
 ### FILES-001 — Renombrado real y selector combinado
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Objetivo:
@@ -209,11 +228,12 @@ Implementado:
 - miniaturas de imagen/video/PDF se conservan;
 - picker propio `ACTION_GET_CONTENT` se mantiene como UI visual OclAx.
 
-Pendiente:
-- renombrado físico de imagen/documento;
-- renombrado de una copia OclAx con original enlazado;
-- validar Files/DocumentsProvider con inventario real;
-- confirmar que Android Files sigue devolviendo el URI correcto a la app llamadora.
+Validado físicamente:
+- renombrado de imagen/documento desde **Mi dispositivo**;
+- renombrado de copia OclAx con original enlazado;
+- apertura y compartir continúan funcionando después del cambio;
+- Files/DocumentsProvider funciona con inventario real;
+- Android Files devuelve correctamente el contenido a la app llamadora.
 
 ---
 
