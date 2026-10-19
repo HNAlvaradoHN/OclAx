@@ -63,7 +63,7 @@ jobs:
           OCLAX_TEST_KEYSTORE_PASSWORD: ${{ secrets.OCLAX_TEST_KEYSTORE_PASSWORD }}
           OCLAX_TEST_KEY_ALIAS: ${{ secrets.OCLAX_TEST_KEY_ALIAS }}
           OCLAX_TEST_KEY_PASSWORD: ${{ secrets.OCLAX_TEST_KEY_PASSWORD }}
-        run: gradle --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug
+        run: gradle --no-daemon :app:testDebugUnitTest :app:lintDebug :app:assembleDebug :app:assembleRelease
 
       - name: Upload debug APK
         if: success()
