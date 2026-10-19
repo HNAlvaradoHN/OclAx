@@ -175,7 +175,7 @@ Pendiente:
 ---
 
 ### DATA-002 — Limpieza inteligente de capturas recientes
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Regla aprobada:
@@ -196,10 +196,12 @@ Validado físicamente en este dispositivo:
 - screenshot recién creada y compartida inmediatamente marcada como **Captura reciente · original se limpiará al vencer**;
 - el flujo OEM entrega metadata suficiente para aplicar la política MediaStore/DATE_ADDED/60 s.
 
-Pendiente:
-- dejar vencer una captura reciente y confirmar que desaparecen copia OclAx + original;
-- dejar vencer una captura antigua y confirmar que desaparece solo la copia OclAx;
-- prueba de Fijados durante el vencimiento.
+Validado físicamente:
+- vencimiento de captura reciente correcto;
+- captura antigua conserva el original al vencer;
+- Fijados quedan protegidos durante el vencimiento.
+
+DATA-002 queda cerrada para el alcance aprobado.
 
 ---
 
