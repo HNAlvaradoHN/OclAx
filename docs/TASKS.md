@@ -260,9 +260,12 @@ Completado:
 - checklist técnico en `docs/RELEASE_CHECKLIST.md`;
 - revisión de licencias directas: AndroidX/AGP/Kotlin Apache-2.0; JUnit EPL-1.0 solo tests.
 
+Validado en PR #90:
+- Android CI run 352 verde con Kotlin 2.4.21, tests, lint, debug y assembleRelease;
+- artefactos debug y release unsigned generados;
+- CodeQL run 6 verde.
+
 Pendiente antes de candidata técnica:
-- CI Android verde con Kotlin 2.4.21 y assembleRelease;
-- CodeQL sin hallazgos bloqueantes;
 - validar modo claro y pantalla pequeña;
 - regresión rápida física del APK generado por main.
 
