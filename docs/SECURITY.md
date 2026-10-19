@@ -264,3 +264,37 @@ Revisión final de seguridad/privacidad de la retirada de red:
 - referencias LAN/Syncthing restantes son históricas y no ejecutables.
 
 Estado: **VERIFICADO** para LOCAL-001. No se detectó ampliación de permisos ni superficie de red residual.
+
+## Revisión final de release
+
+Hallazgos y acciones:
+
+1. **BLOQUEANTE — supply chain / Kotlin tooling**
+   - Kotlin plugin 2.4.10 está afectado por CVE-2026-53914 (deserialización insegura de metadata de build cache).
+   - Acción: actualizar a 2.4.21 antes de release.
+   - Estado: IMPLEMENTADO_PENDIENTE_CI.
+
+2. **BLOQUEANTE — abuso de ShareReceiverActivity exportada**
+   - ACTION_SEND/ACTION_SEND_MULTIPLE es una superficie intencionalmente exportada.
+   - Sin límite de cantidad, una app podía intentar entregar un lote arbitrariamente grande en una sola operación.
+   - Acción: límite de 100 URI entrantes y test unitario.
+   - Estado: IMPLEMENTADO_PENDIENTE_CI.
+
+3. **Defense in depth**
+   - CodeQL Java/Kotlin añadido para PR/main/semanal.
+   - Estado: IMPLEMENTADO_PENDIENTE_PR_CI.
+
+No se detectaron:
+- credenciales o llaves embebidas;
+- WebView/JavaScript;
+- ejecución de procesos;
+- sockets/clientes HTTP;
+- FileProvider exportado;
+- escritura externa mediante DocumentsProvider.
+
+Riesgos de publicación dependientes del canal:
+- MANAGE_EXTERNAL_STORAGE;
+- QUERY_ALL_PACKAGES;
+- REQUEST_INSTALL_PACKAGES.
+
+Son funciones aprobadas del producto, pero una tienda puede exigir declaración/justificación específica. Esto no se resuelve ocultando permisos ni degradando silenciosamente funciones.
