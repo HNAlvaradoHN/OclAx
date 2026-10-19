@@ -351,3 +351,16 @@ VERIFICADO adicionalmente:
 PRODUCT-005 y PRODUCT-006 quedan cerrados físicamente para el alcance aprobado.
 
 La ausencia de thumbnail personalizado en la carpeta split de Android Files se acepta como límite de presentación del sistema, no como error funcional de OclAx.
+
+## Validación física — DATA-002 clasificación
+
+VERIFICADO:
+- una captura antigua compartida desde galería no muestra el estado de borrado del original;
+- una captura recién creada y compartida inmediatamente muestra **Captura reciente · original se limpiará al vencer**;
+- el dispositivo entrega a OclAx el origen/metadata necesarios para aplicar la política de 60 s;
+- la captura antigua permanece en la galería.
+
+Pendiente para cerrar DATA-002:
+1. esperar el vencimiento de la captura reciente y confirmar copia OclAx + original eliminados;
+2. esperar el vencimiento de la captura antigua y confirmar copia OclAx eliminada + original conservado;
+3. repetir con una captura reciente fijada y confirmar supervivencia de copia + original.
