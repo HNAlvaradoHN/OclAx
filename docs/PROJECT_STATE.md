@@ -228,10 +228,24 @@ Decisión de cierre visual:
 - se acepta el icono genérico de carpeta en Android Files como limitación de presentación del sistema;
 - OclAx no cambia el formato de apps split solo para forzar una miniatura.
 
+## Evidencia física adicional — DATA-002 en run 336
+
+VERIFICADO por el dueño:
+- una captura antigua ya existente en galería se comparte a OclAx sin quedar marcada para borrar el original;
+- una captura creada y compartida inmediatamente queda marcada como **Captura reciente · original se limpiará al vencer**;
+- el flujo OEM de compartir screenshot entrega metadata suficiente para que OclAx aplique la regla MediaStore + DATE_ADDED + ventana de 60 s;
+- la captura antigua permanece en la galería.
+
+Esto valida físicamente la **clasificación** de captura reciente vs. captura antigua en este dispositivo.
+
+Aún NO VERIFICADO:
+- que al vencer la retención la captura reciente elimine tanto copia OclAx como original;
+- que al vencer la captura antigua elimine solo la copia OclAx y conserve el original;
+- que una captura fijada sobreviva al vencimiento junto con su original.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
-- confirmar físicamente que el OEM entrega una URI MediaStore al compartir una captura reciente desde su flujo de screenshot;
 - validar expiración real de captura reciente y supervivencia de captura >60 s;
 - validar Fijados;
 - validar renombrado OclAx↔original y renombrado desde Mi dispositivo;
