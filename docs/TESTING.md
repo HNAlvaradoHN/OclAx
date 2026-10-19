@@ -383,3 +383,18 @@ Resultado:
 - **FILES-001: DONE**;
 - **PICKER-002: DONE**;
 - **PICKER-003: DONE**.
+
+## Auditoría final — LOCAL-001
+
+VERIFICADO:
+1. árbol recursivo sin archivos/rutas Syncthing, transferencia, JNI propio ni network_security_config;
+2. Manifest fuente sin INTERNET, ACCESS_NETWORK_STATE, CHANGE_WIFI_MULTICAST_STATE ni foreground-service;
+3. Manifest fuente sin elementos service;
+4. APK run 336 sin cadenas de permisos de red ni clases de servicio OclAx/Syncthing;
+5. APK sin binarios Syncthing; solo `libandroidx.graphics.path.so` de AndroidX;
+6. código sin ServerSocket/DatagramSocket/HttpURLConnection/OkHttp/Retrofit/Ktor/java.net/Wi-Fi P2P/NSD;
+7. Gradle sin JNI ni dependencia Syncthing;
+8. workflow Android puro: testDebugUnitTest + lintDebug + assembleDebug;
+9. referencias restantes a LAN/Syncthing solo documentales/históricas.
+
+Resultado: **LOCAL-001 DONE**.
