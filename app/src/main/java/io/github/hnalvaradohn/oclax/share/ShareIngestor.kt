@@ -76,15 +76,36 @@ class ShareIngestor(private val context: Context) {
 
     private fun collectUris(intent: Intent): List<Uri> {
         val result = LinkedHashSet<Uri>()
-        if (intent.action == Intent.ACTION_SEND) singleStream(intent)?.let(result::add)
-        if (intent.action == Intent.ACTION_SEND_MULTIPLE) multipleStreams(intent).forEach(result::add)
+        if (intent.action == Intent.ACTION_SEND) {
+            singleStream(intent)?.let(result::add)
+        }
+        if (intent.action == Intent.ACTION_SEND_MULTIPLE) {
+            val streams = multipleStreams(intent)
+            requireSupportedIncomingUriCount(streams.size)
+            streams.forEach { uri ->
+                result += uri
+                requireSupportedIncomingUriCount(result.size)
+            }
+        }
 
         intent.clipData?.let { clip ->
+            requireSupportedIncomingUriCount(clip.itemCount)
             for (index in 0 until clip.itemCount) {
-                clip.getItemAt(index).uri?.let(result::add)
+                clip.getItemAt(index).uri?.let { uri ->
+                    result += uri
+                    requireSupportedIncomingUriCount(result.size)
+                }
             }
         }
         return result.toList()
+    }
+
+    private fun requireSupportedIncomingUriCount(count: Int) {
+        if (!isSupportedIncomingUriCount(count)) {
+            throw IOException(
+                "OclAx acepta hasta $MAX_INCOMING_SHARED_URIS archivos por operación.",
+            )
+        }
     }
 
     @Suppress("DEPRECATION")
