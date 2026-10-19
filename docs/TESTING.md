@@ -364,3 +364,19 @@ Pendiente para cerrar DATA-002:
 1. esperar el vencimiento de la captura reciente y confirmar copia OclAx + original eliminados;
 2. esperar el vencimiento de la captura antigua y confirmar copia OclAx eliminada + original conservado;
 3. repetir con una captura reciente fijada y confirmar supervivencia de copia + original.
+
+## Validación física — renombrado y selectores
+
+VERIFICADO:
+- renombrar desde OclAx actualiza el original enlazado cuando corresponde;
+- renombrar desde **Mi dispositivo** funciona;
+- abrir y compartir siguen funcionando después del renombrado;
+- **Elegir con OclAx → Mi dispositivo → Aplicaciones** funciona desde una app externa;
+- una app de APK único retorna correctamente al caller;
+- apps con splits respetan selección simple/múltiple;
+- Android Files/SAF devuelve contenido correctamente a la app receptora.
+
+Resultado:
+- **FILES-001: DONE**;
+- **PICKER-002: DONE**;
+- **PICKER-003: DONE**.
