@@ -277,11 +277,11 @@ Hallazgos y acciones:
 2. **BLOQUEANTE — abuso de ShareReceiverActivity exportada**
    - ACTION_SEND/ACTION_SEND_MULTIPLE es una superficie intencionalmente exportada.
    - Sin límite de cantidad, una app podía intentar entregar un lote arbitrariamente grande en una sola operación.
-   - Acción: límite de 100 URI entrantes y test unitario.
+   - Acción: límite de 100 URI entrantes, rechazo temprano de lotes crudos sobredimensionados cuando su tamaño es observable y test unitario.
    - Estado: IMPLEMENTADO_PENDIENTE_CI.
 
 3. **Defense in depth**
-   - CodeQL Java/Kotlin añadido para PR/main/semanal.
+   - CodeQL Java/Kotlin añadido para PR/main/semanal con suite `security-extended`.
    - Estado: IMPLEMENTADO_PENDIENTE_PR_CI.
 
 No se detectaron:
