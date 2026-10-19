@@ -152,7 +152,7 @@ Validado físicamente:
 ---
 
 ### LOCAL-001 — Retirar LAN y simplificar OclAx
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Objetivo:
@@ -168,9 +168,15 @@ Implementado en `feat/local-content-refresh`:
 - eliminado `network_security_config` asociado al REST local;
 - eliminados tests exclusivos de transferencia.
 
-Pendiente:
-- auditoría final de referencias/residuos;
-- validar APK/Manifest generado.
+Validado:
+- árbol activo sin clases/recursos/configuración de transferencia;
+- Manifest fuente sin permisos de red ni servicios;
+- APK run 336 sin permisos de red detectables ni runtime Syncthing;
+- únicos binarios nativos: `libandroidx.graphics.path.so` de AndroidX;
+- Gradle sin JNI/Syncthing;
+- workflow sin pipeline nativo/descargas de runtime.
+
+Las referencias históricas conservadas están solo en documentación y no forman parte del runtime.
 
 ---
 
