@@ -44,4 +44,4 @@ No activar servicios pagos.
 - Lenguaje: `java-kotlin`.
 - Triggers: PR, push a main y semanal.
 - Permisos: `contents: read`, `security-events: write`.
-- Falta validar el primer run antes de declarar code scanning operativo.
+- CodeQL quedó operativo y validado con ejecuciones verdes en PR #90 y PR #91.
