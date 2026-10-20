@@ -15,8 +15,11 @@ Implementado en `feat/app-launcher-icon`:
 - referencias `android:icon` y `android:roundIcon` en el Manifest;
 - sin dependencias ni permisos nuevos.
 
+Validado en PR #91:
+- Android CI run 356 verde;
+- CodeQL run 10 verde.
+
 Pendiente:
-- CI Android verde;
 - validar físicamente el icono instalado y su recorte en el launcher/recientes del dispositivo.
 
 ---
