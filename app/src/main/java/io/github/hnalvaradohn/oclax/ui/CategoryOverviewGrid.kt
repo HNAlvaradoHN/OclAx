@@ -25,6 +25,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -208,8 +209,13 @@ internal fun categoryAccentFor(
     }
 }
 
+@Composable
 private fun categorySummary(item: CategoryOverviewItem): String {
-    val countLabel = if (item.count == 1) "1 elemento" else "${item.count} elementos"
+    val countLabel = if (item.count == 1) {
+        stringResource(io.github.hnalvaradohn.oclax.R.string.category_one_item)
+    } else {
+        stringResource(io.github.hnalvaradohn.oclax.R.string.category_many_items, item.count)
+    }
     val total = item.totalBytes
     return if (total == null) {
         countLabel
