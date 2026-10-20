@@ -146,10 +146,7 @@ fun DeviceBrowser(
             onDismissRequest = { pendingDelete = null },
             title = { Text(stringResource(R.string.delete_device_title)) },
             text = {
-                Text(
-                    "Se eliminará el archivo original “${file.displayName}”. " +
-                        "Esta acción no es la autolimpieza de OclAx y puede no tener deshacer.",
-                )
+                Text(stringResource(R.string.delete_device_message, file.displayName))
             },
             confirmButton = {
                 TextButton(
@@ -725,8 +722,7 @@ private fun AccessRequiredCard(onRequestBroadAccess: () -> Unit) {
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                "Para mostrar imágenes, videos, documentos, PDF, APK y otros archivos reales " +
-                    "del teléfono, Android necesita que autoricés a OclAx a administrar archivos.",
+                stringResource(R.string.file_access_message),
                 style = MaterialTheme.typography.bodySmall,
             )
             Spacer(Modifier.height(10.dp))
