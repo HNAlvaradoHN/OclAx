@@ -22,15 +22,18 @@ fun contentTypeFor(mimeType: String): ContentType {
         mime == "application/vnd.android.package-archive" -> ContentType.APP
         mime.startsWith("video/") -> ContentType.VIDEO
         mime.startsWith("audio/") -> ContentType.AUDIO
+        isDocumentMime(mime) -> ContentType.DOCUMENT
         mime.startsWith("text/") || mime.contains("json") || mime.contains("xml") -> ContentType.TEXT
-        mime.contains("msword") ||
-            mime.contains("officedocument") ||
-            mime.contains("openxmlformats-officedocument") ||
-            mime.contains("opendocument") ||
-            mime == "application/rtf" -> ContentType.DOCUMENT
         else -> ContentType.OTHER
     }
 }
+
+fun isDocumentMime(mime: String): Boolean =
+    mime.contains("msword") ||
+        mime.contains("officedocument") ||
+        mime.contains("openxmlformats-officedocument") ||
+        mime.contains("opendocument") ||
+        mime == "application/rtf"
 
 fun ContentType.supportsClipboardCopy(): Boolean =
     this == ContentType.TEXT || this == ContentType.IMAGE
