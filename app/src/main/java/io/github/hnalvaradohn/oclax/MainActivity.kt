@@ -953,9 +953,7 @@ private fun OclAxHome(
                     )
         }
     }
-    val categoryOverview = remember(allItems) {
-        contentFilterOverviewItems(allItems)
-    }
+    val categoryOverview = contentFilterOverviewItems(allItems)
     val selectedItems = remember(allItems, selectedItemIds) {
         allItems.filter { it.id in selectedItemIds }
     }
@@ -1583,10 +1581,7 @@ private fun ItemCard(
                         checked = selected,
                         onCheckedChange = { onToggleSelection() },
                         modifier = Modifier.semantics {
-                            contentDescription = stringResource(
-                                R.string.select_item,
-                                item.displayName,
-                            )
+                            contentDescription = item.displayName
                         },
                     )
                     Spacer(Modifier.width(4.dp))
