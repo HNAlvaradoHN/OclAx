@@ -3,7 +3,7 @@
 ## Prioridad actual
 
 ### BRAND-001 — Icono propio de OclAx
-**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Objetivo:
@@ -15,12 +15,12 @@ Implementado en `feat/app-launcher-icon`:
 - referencias `android:icon` y `android:roundIcon` en el Manifest;
 - sin dependencias ni permisos nuevos.
 
-Validado en PR #91:
-- Android CI run 356 verde;
-- CodeQL run 10 verde.
-
-Pendiente:
-- validar físicamente el icono instalado y su recorte en el launcher/recientes del dispositivo.
+Validado:
+- Android CI runs 356/357 verdes;
+- CodeQL runs 10/11 verdes;
+- PR #91 fusionado a main;
+- APK instalado físicamente por el dueño;
+- icono validado visualmente en el dispositivo.
 
 ---
 
@@ -261,7 +261,7 @@ Validado físicamente:
 ---
 
 ### SEC-001 — Protecciones del repositorio y release
-**Estado:** IN_PROGRESS  
+**Estado:** DONE  
 **Prioridad:** alta
 
 Completado:
@@ -288,9 +288,14 @@ Validado en PR #90:
 - artefactos debug y release unsigned generados;
 - CodeQL run 6 verde.
 
-Pendiente antes de candidata técnica:
-- validar modo claro y pantalla pequeña;
-- regresión rápida física del APK generado por main.
+Validación final:
+- modo claro: VERIFICADO;
+- pantalla pequeña/ventana estrecha: VERIFICADO;
+- regresión rápida física del APK con PR #91: VERIFICADO;
+- icono propio de OclAx: VERIFICADO.
+
+Resultado:
+- candidata técnica local: **RELEASE_CANDIDATE_READY**.
 
 Pendiente para publicación estable:
 - decidir canal de distribución;
