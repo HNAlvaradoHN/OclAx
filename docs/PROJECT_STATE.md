@@ -2,8 +2,8 @@
 
 ## Estado
 
-**Fase:** cierre técnico y preparación de candidata de release Android local.  
-**Aplicación:** funcional en main; vertical local validada físicamente en sus flujos principales. Hardening/release en progreso.  
+**Fase:** candidata técnica Android local lista; firma y publicación quedan como gate separado.  
+**Aplicación:** funcional en main; vertical local y QA físico final validados.  
 **Repositorio:** público.  
 **Protocol version:** 6.  
 **Autorización actual:** completar revisión final de seguridad/calidad/release y preparar candidata técnica sin firmar ni publicar.
@@ -293,12 +293,12 @@ VERIFICADO:
 
 ## Cambio visual actual — BRAND-001
 
-IMPLEMENTADO_PENDIENTE_VALIDACIÓN en `feat/app-launcher-icon`:
+VERIFICADO en `main` tras PR #91:
 - OclAx ya declara icono de aplicación propio;
 - el icono adaptativo usa fondo casi negro, naranja OclAx y una marca geométrica O+X;
 - sustituye el icono Android genérico que aparecía por no existir `android:icon` en el Manifest;
-- Android CI run 356 y CodeQL run 10 del PR #91 están verdes;
-- falta validación física del recorte/renderizado en el dispositivo.
+- Android CI runs 356/357 y CodeQL runs 10/11 del PR #91 quedaron verdes;
+- el dueño instaló el APK resultante y confirmó que el icono se ve bien en el dispositivo.
 
 Diagnóstico de la opción OEM **Mini**:
 - el Manifest no fija orientación ni marca la actividad como no redimensionable;
@@ -306,13 +306,22 @@ Diagnóstico de la opción OEM **Mini**:
 - el sistema ya ofrece **Formato libre** a OclAx;
 - no se añade Picture-in-Picture ni un cambio especulativo de Manifest: **Mini** es una función del gestor de ventanas/OEM y no existe evidencia de un bloqueo propio de OclAx que deba corregirse.
 
+## QA físico final — 2026-10-20
+
+VERIFICADO por el dueño con el APK que contiene PR #91:
+- icono OclAx visible correctamente en el dispositivo;
+- modo claro funciona correctamente;
+- ventana estrecha/Formato libre permite desplazamiento y mantiene la UI utilizable;
+- smoke test final correcto: compartir a OclAx, categorías, búsqueda, Mi dispositivo, abrir/compartir archivo y Atrás.
+
+Resultado:
+- **BRAND-001 cerrado**;
+- **SEC-001 cerrado para candidata técnica**;
+- **RELEASE_CANDIDATE_READY** para el alcance técnico local sin firma ni publicación.
+
 ## Pendientes reales / bloqueos
 
-**IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
-- CI Android de la rama debe quedar verde;
-- CodeQL debe completar sin hallazgos bloqueantes;
-- validar físicamente modo claro y pantalla pequeña;
-- ejecutar regresión rápida con el APK de main después del merge.
+No hay bloqueos técnicos abiertos para la candidata local.
 
 **DECISIÓN PENDIENTE PARA PUBLICAR:**
 - canal de distribución;
@@ -322,8 +331,10 @@ Diagnóstico de la opción OEM **Mini**:
 
 ## Siguiente paso exacto
 
-1. Abrir PR de release/final-review y ejecutar Android CI + CodeQL.
-2. Corregir cualquier hallazgo bloqueante.
-3. Fusionar solo con CI/análisis verdes y comprobar main.
-4. Entregar APK debug de main para regresión física y pedir únicamente modo claro/pantalla pequeña + smoke test.
-5. Con QA físico cerrado, marcar candidata técnica; firma/publicación quedan como gate separado.
+La candidata técnica local está cerrada. No iniciar otra funcionalidad automáticamente.
+
+Para publicar, el siguiente paso requiere una decisión explícita del dueño sobre:
+1. canal de distribución;
+2. firma de producción;
+3. licencia del código si se desea declarar reutilización open source;
+4. cumplimiento de políticas de permisos amplios si se elige Google Play.
