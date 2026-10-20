@@ -2,6 +2,7 @@ package io.github.hnalvaradohn.oclax.picker
 
 import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -54,6 +55,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.core.graphics.drawable.toBitmap
@@ -69,9 +71,9 @@ import kotlinx.coroutines.withContext
 import java.text.DateFormat
 import java.util.Date
 
-private enum class PickerSource(val label: String) {
-    OCLAX("OclAx"),
-    DEVICE("Mi dispositivo"),
+private enum class PickerSource(@StringRes val labelRes: Int) {
+    OCLAX(io.github.hnalvaradohn.oclax.R.string.app_name),
+    DEVICE(io.github.hnalvaradohn.oclax.R.string.device_tab),
 }
 
 @Composable
@@ -194,7 +196,7 @@ internal fun PickerScreen(
             ) {
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
-                        "OclAx",
+                        stringResource(io.github.hnalvaradohn.oclax.R.string.app_name),
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.primary,
@@ -209,7 +211,7 @@ internal fun PickerScreen(
                     )
                 }
                 TextButton(onClick = onCancel) {
-                    Text("Cancelar")
+                    Text(stringResource(io.github.hnalvaradohn.oclax.R.string.cancel))
                 }
             }
 
@@ -255,7 +257,7 @@ internal fun PickerScreen(
                     ) {
                         CircularProgressIndicator(modifier = Modifier.size(24.dp))
                         Spacer(Modifier.width(10.dp))
-                        Text("Leyendo archivos del dispositivo…")
+                        Text(stringResource(io.github.hnalvaradohn.oclax.R.string.picker_loading))
                     }
                 }
 
@@ -294,11 +296,12 @@ internal fun PickerScreen(
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp),
                             )
-                            Text("Categorías")
+                            Text(stringResource(io.github.hnalvaradohn.oclax.R.string.categories))
                         }
                         Spacer(Modifier.width(8.dp))
                         Text(
-                            category?.label ?: "Resultados",
+                            category?.let { stringResource(it.labelRes) }
+                                ?: stringResource(io.github.hnalvaradohn.oclax.R.string.results),
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.SemiBold,
                         )
@@ -307,7 +310,7 @@ internal fun PickerScreen(
 
                     if (source == PickerSource.OCLAX) {
                         PickerList(
-                            emptyMessage = "No se encontró contenido compatible.",
+                            emptyMessage = stringResource(io.github.hnalvaradohn.oclax.R.string.picker_empty_compatible),
                             items = oclaxItemsToRows(
                                 items = visibleOclAxItems,
                                 onSelect = onSelectOclAxItem,
@@ -344,9 +347,9 @@ internal fun PickerScreen(
                         }
                         PickerList(
                             emptyMessage = if (category == PickerCategory.APPLICATIONS) {
-                                "No se encontraron aplicaciones compatibles."
+                                stringResource(io.github.hnalvaradohn.oclax.R.string.picker_empty_apps)
                             } else {
-                                "No se encontraron archivos compatibles."
+                                stringResource(io.github.hnalvaradohn.oclax.R.string.picker_empty_files)
                             },
                             items = deviceRows,
                             selectedKeys = selectedKeys,
@@ -397,7 +400,7 @@ private fun pickerCategoryOverviewItems(
             val matching = oclaxItems.filter { category.matches(it.mimeType, it.pinned) }
             CategoryOverviewItem(
                 key = category.name,
-                label = category.label,
+                label = stringResource(category.labelRes),
                 icon = pickerCategoryIcon(category),
                 count = matching.size,
                 totalBytes = matching.sumOf { it.byteSize },
@@ -410,20 +413,20 @@ private fun pickerCategoryOverviewItems(
         } else if (category == PickerCategory.APPLICATIONS) {
             CategoryOverviewItem(
                 key = category.name,
-                label = category.label,
+                label = stringResource(category.labelRes),
                 icon = pickerCategoryIcon(category),
                 count = installedApps.size,
-                note = "Instaladas en este dispositivo",
+                note = stringResource(io.github.hnalvaradohn.oclax.R.string.installed_on_device),
             )
         } else {
             val matching = deviceFiles.filter { category.matches(it.mimeType) }
             CategoryOverviewItem(
                 key = category.name,
-                label = category.label,
+                label = stringResource(category.labelRes),
                 icon = pickerCategoryIcon(category),
                 count = matching.size,
                 totalBytes = if (hasBroadFileAccess) matching.sumOf { it.byteSize } else null,
-                note = if (hasBroadFileAccess) null else "Requiere acceso",
+                note = if (hasBroadFileAccess) null else stringResource(io.github.hnalvaradohn.oclax.R.string.requires_access),
             )
         }
     }
@@ -461,7 +464,7 @@ private fun PickerSourceSwitch(
                         .height(38.dp),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
                 ) {
-                    Text(option.label)
+                    Text(stringResource(option.labelRes))
                 }
             } else {
                 OutlinedButton(
@@ -471,7 +474,7 @@ private fun PickerSourceSwitch(
                         .height(38.dp),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
                 ) {
-                    Text(option.label)
+                    Text(stringResource(option.labelRes))
                 }
             }
         }
@@ -489,7 +492,7 @@ private fun PickerAccessCard(onRequestBroadAccess: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
-                "Acceso a Mi dispositivo",
+                stringResource(io.github.hnalvaradohn.oclax.R.string.picker_device_access_title),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
@@ -501,7 +504,7 @@ private fun PickerAccessCard(onRequestBroadAccess: () -> Unit) {
             )
             Spacer(Modifier.height(10.dp))
             Button(onClick = onRequestBroadAccess) {
-                Text("Conceder acceso")
+                Text(stringResource(io.github.hnalvaradohn.oclax.R.string.grant_access))
             }
         }
     }
@@ -551,7 +554,7 @@ private fun deviceFilesToRows(
         mimeType = file.mimeType,
         byteSize = file.byteSize,
         details = buildList {
-            formatPickerModifiedAt(file.modifiedAt)?.let { add("Modificado · $it") }
+            formatPickerModifiedAt(file.modifiedAt)?.let { add(stringResource(io.github.hnalvaradohn.oclax.R.string.modified_at, it)) }
             file.relativePath?.takeIf { it.isNotBlank() }?.let(::add)
         },
         thumbnailVersion = file.modifiedAt,
@@ -666,7 +669,7 @@ private fun PickerItemCard(
                     maxLines = 2,
                 )
                 Text(
-                    item.summary ?: (type.label + " · " + formatPickerBytes(item.byteSize)),
+                    item.summary ?: (stringResource(type.labelRes) + " · " + formatPickerBytes(item.byteSize)),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 item.details.forEach { detail ->
@@ -682,7 +685,7 @@ private fun PickerItemCard(
                 Spacer(Modifier.width(8.dp))
                 Icon(
                     imageVector = Icons.Filled.CheckCircle,
-                    contentDescription = "Seleccionado",
+                    contentDescription = stringResource(io.github.hnalvaradohn.oclax.R.string.selected),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
@@ -719,7 +722,7 @@ private fun PickerItemVisual(
     if (bitmap != null) {
         Image(
             bitmap = bitmap.asImageBitmap(),
-            contentDescription = "Miniatura de ${item.displayName}",
+            contentDescription = stringResource(io.github.hnalvaradohn.oclax.R.string.thumbnail_of, item.displayName),
             modifier = Modifier
                 .size(48.dp)
                 .clip(MaterialTheme.shapes.small),
@@ -735,7 +738,7 @@ private fun PickerItemVisual(
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = pickerContentTypeIcon(type),
-                    contentDescription = type.label,
+                    contentDescription = stringResource(type.labelRes),
                     modifier = Modifier.size(26.dp),
                 )
             }
