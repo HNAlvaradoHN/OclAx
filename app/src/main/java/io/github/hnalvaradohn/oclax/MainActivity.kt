@@ -605,7 +605,7 @@ class MainActivity : ComponentActivity() {
                 val exports = selectedApps.map { app -> installedAppExporter.prepare(app) }
                 val uris = ArrayList(exports.flatMap { it.uris })
                 require(uris.size <= MAX_BULK_SELECTION) {
-                    "La selección genera demasiados APK para compartir en una sola operación."
+                    getString(R.string.toast_too_many_apks)
                 }
                 uris
             }
@@ -1006,18 +1006,18 @@ private fun OclAxHome(
     if (showExitConfirmation) {
         AlertDialog(
             onDismissRequest = onExitApp,
-            title = { Text("¿Salir de OclAx?") },
+            title = { Text(stringResource(R.string.exit_title)) },
             text = {
-                Text("Podés elegir Salir o quedarte. Si volvés a presionar Atrás, OclAx se cerrará.")
+                Text(stringResource(R.string.exit_message))
             },
             confirmButton = {
                 TextButton(onClick = onExitApp) {
-                    Text("Salir")
+                    Text(stringResource(R.string.exit))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showExitConfirmation = false }) {
-                    Text("No")
+                    Text(stringResource(R.string.no))
                 }
             },
             properties = DialogProperties(
@@ -1030,12 +1030,9 @@ private fun OclAxHome(
     pendingDelete?.let { item ->
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
-            title = { Text("¿Eliminar de OclAx?") },
+            title = { Text(stringResource(R.string.delete_oclax_title)) },
             text = {
-                Text(
-                    "Se eliminará únicamente la copia interna de OclAx. " +
-                        "El archivo original del teléfono no se tocará.",
-                )
+                Text(stringResource(R.string.delete_oclax_message))
             },
             confirmButton = {
                 TextButton(
@@ -1044,12 +1041,12 @@ private fun OclAxHome(
                         onDelete(item)
                     },
                 ) {
-                    Text("Eliminar", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             },
         )
@@ -1058,14 +1055,14 @@ private fun OclAxHome(
     pendingRename?.let { item ->
         AlertDialog(
             onDismissRequest = { pendingRename = null },
-            title = { Text("Renombrar") },
+            title = { Text(stringResource(R.string.rename)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
                         if (item.sourceUri != null) {
-                            "OclAx intentará aplicar el mismo nombre al archivo original."
+                            stringResource(R.string.rename_linked_original)
                         } else {
-                            "Este elemento no conserva un original enlazado."
+                            stringResource(R.string.rename_unlinked)
                         },
                         style = MaterialTheme.typography.bodySmall,
                     )
@@ -1073,7 +1070,7 @@ private fun OclAxHome(
                         value = renameText,
                         onValueChange = { renameText = it },
                         singleLine = true,
-                        label = { Text("Nombre") },
+                        label = { Text(stringResource(R.string.name)) },
                     )
                 }
             },
@@ -1085,12 +1082,12 @@ private fun OclAxHome(
                         onRename(target, renameText)
                     },
                 ) {
-                    Text("Renombrar")
+                    Text(stringResource(R.string.rename))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { pendingRename = null }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             },
         )
@@ -1099,12 +1096,11 @@ private fun OclAxHome(
     if (showBulkDeleteConfirmation) {
         AlertDialog(
             onDismissRequest = { showBulkDeleteConfirmation = false },
-            title = { Text("¿Eliminar ${selectedItems.size} elementos de OclAx?") },
+            title = {
+                Text(stringResource(R.string.delete_many_title, selectedItems.size))
+            },
             text = {
-                Text(
-                    "Solo se eliminarán las copias internas de OclAx. " +
-                        "Los archivos originales del dispositivo no se tocarán.",
-                )
+                Text(stringResource(R.string.delete_many_message))
             },
             confirmButton = {
                 TextButton(
@@ -1115,12 +1111,12 @@ private fun OclAxHome(
                         selectedItemIds = emptySet()
                     },
                 ) {
-                    Text("Eliminar copias", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete_copies), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showBulkDeleteConfirmation = false }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             },
         )
@@ -1133,13 +1129,13 @@ private fun OclAxHome(
                 .padding(horizontal = 16.dp, vertical = 18.dp),
         ) {
             Text(
-                "OclAx",
+                stringResource(R.string.app_name),
                 style = MaterialTheme.typography.headlineMedium,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
             Text(
-                "Tu contenido, listo donde lo necesitás.",
+                stringResource(R.string.tagline),
                 style = MaterialTheme.typography.bodyMedium,
             )
             Spacer(Modifier.height(12.dp))
@@ -1191,7 +1187,7 @@ private fun OclAxHome(
                             modifier = Modifier.fillMaxWidth(),
                             enabled = !selecting,
                             singleLine = true,
-                            label = { Text("Buscar en OclAx") },
+                            label = { Text(stringResource(R.string.search_oclax)) },
                         )
                     }
 
@@ -1268,11 +1264,12 @@ private fun OclAxHome(
                                             contentDescription = null,
                                             modifier = Modifier.size(18.dp),
                                         )
-                                        Text("Categorías")
+                                        Text(stringResource(R.string.categories))
                                     }
                                     Spacer(Modifier.width(8.dp))
                                     Text(
-                                        filter?.label ?: "Resultados",
+                                        filter?.let { stringResource(it.labelRes) }
+                                            ?: stringResource(R.string.results),
                                         modifier = Modifier.weight(1f),
                                         style = MaterialTheme.typography.titleMedium,
                                         fontWeight = FontWeight.SemiBold,
@@ -1284,7 +1281,7 @@ private fun OclAxHome(
                                                 selectedItemIds = emptySet()
                                             },
                                         ) {
-                                            Text("Seleccionar")
+                                            Text(stringResource(R.string.select))
                                         }
                                     }
                                 }
@@ -1295,9 +1292,9 @@ private fun OclAxHome(
                             item(key = "oclax-empty") {
                                 Text(
                                     if (allItems.isEmpty()) {
-                                        "Todavía no hay elementos. Compartí contenido hacia OclAx."
+                                        stringResource(R.string.empty_oclax)
                                     } else {
-                                        "No se encontraron elementos para esa búsqueda."
+                                        stringResource(R.string.empty_search)
                                     },
                                     style = MaterialTheme.typography.bodyLarge,
                                 )
@@ -1354,7 +1351,7 @@ private fun SourceModeSwitch(
                     modifier = Modifier.weight(1f).height(38.dp),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
                 ) {
-                    Text(option.label)
+                    Text(stringResource(option.labelRes))
                 }
             } else {
                 OutlinedButton(
@@ -1362,25 +1359,26 @@ private fun SourceModeSwitch(
                     modifier = Modifier.weight(1f).height(38.dp),
                     contentPadding = PaddingValues(horizontal = 10.dp, vertical = 0.dp),
                 ) {
-                    Text(option.label)
+                    Text(stringResource(option.labelRes))
                 }
             }
         }
     }
 }
 
+@Composable
 private fun contentFilterOverviewItems(items: List<StoredItem>): List<CategoryOverviewItem> =
     ContentFilter.entries.map { filter ->
         val matching = items.filter { matchesFilter(it, filter) }
         CategoryOverviewItem(
             key = filter.name,
-            label = filter.label,
+            label = stringResource(filter.labelRes),
             icon = contentFilterIcon(filter),
             count = matching.size,
             totalBytes = matching.sumOf { it.byteSize },
             note = when (filter) {
-                ContentFilter.ALL -> "Todo tu contenido OclAx"
-                ContentFilter.PINNED -> "No caduca automáticamente"
+                ContentFilter.ALL -> stringResource(R.string.content_all_title)
+                ContentFilter.PINNED -> stringResource(R.string.content_pinned_title)
                 else -> null
             },
         )
@@ -1425,7 +1423,7 @@ private fun RetentionControl(
 
     Column(modifier = modifier) {
         Text(
-            "Autolimpieza",
+            stringResource(R.string.retention_title),
             style = MaterialTheme.typography.labelMedium,
         )
         Box(
@@ -1467,8 +1465,7 @@ private fun RetentionControl(
             }
         }
         Text(
-            "Las copias de OclAx caducan según este tiempo. Si una captura recién creada " +
-                "se compartió dentro de 60 s, OclAx también intentará borrar su original.",
+            stringResource(R.string.retention_explainer),
             style = MaterialTheme.typography.labelSmall,
         )
     }
@@ -1495,16 +1492,20 @@ private fun BulkSelectionBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "$selectedCount seleccionados",
+                stringResource(R.string.selected_count, selectedCount),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             TextButton(onClick = onToggleAll) {
-                Text(if (allVisibleSelected) "Ninguno" else "Todos")
+                Text(
+                    stringResource(
+                        if (allVisibleSelected) R.string.select_none else R.string.select_all,
+                    ),
+                )
             }
             TextButton(onClick = onCancel) {
-                Text("Cancelar")
+                Text(stringResource(R.string.cancel))
             }
         }
         Row(
@@ -1514,23 +1515,21 @@ private fun BulkSelectionBar(
         ) {
             CompactActionButton(
                 icon = Icons.Outlined.Share,
-                description = "Compartir seleccionados",
+                description = stringResource(R.string.share_selected),
                 enabled = canAct,
                 onClick = onShare,
             )
             CompactActionButton(
                 icon = if (pinValue) Icons.Outlined.StarBorder else Icons.Filled.Star,
-                description = if (pinValue) {
-                    "Fijar seleccionados"
-                } else {
-                    "Desfijar seleccionados"
-                },
+                description = stringResource(
+                    if (pinValue) R.string.pin_selected else R.string.unpin_selected,
+                ),
                 enabled = canAct,
                 onClick = onPin,
             )
             CompactActionButton(
                 icon = Icons.Outlined.Delete,
-                description = "Eliminar seleccionados",
+                description = stringResource(R.string.delete_selected),
                 tint = MaterialTheme.colorScheme.error,
                 enabled = canAct,
                 onClick = onDelete,
@@ -1580,7 +1579,10 @@ private fun ItemCard(
                         checked = selected,
                         onCheckedChange = { onToggleSelection() },
                         modifier = Modifier.semantics {
-                            contentDescription = "Seleccionar ${item.displayName}"
+                            contentDescription = stringResource(
+                                R.string.select_item,
+                                item.displayName,
+                            )
                         },
                     )
                     Spacer(Modifier.width(4.dp))
@@ -1601,7 +1603,7 @@ private fun ItemCard(
                         fontWeight = FontWeight.Medium,
                     )
                     Text(
-                        type.label + " · " + formatBytes(item.byteSize),
+                        stringResource(type.labelRes) + " · " + formatBytes(item.byteSize),
                         style = MaterialTheme.typography.bodySmall,
                     )
                     Text(
@@ -1613,9 +1615,9 @@ private fun ItemCard(
                     if (item.deleteSourceOnExpiry) {
                         Text(
                             if (item.pinned) {
-                                "Captura reciente · original protegido mientras esté fijada"
+                                stringResource(R.string.recent_screenshot_pinned)
                             } else {
-                                "Captura reciente · original se limpiará al vencer"
+                                stringResource(R.string.recent_screenshot_cleanup)
                             },
                             style = MaterialTheme.typography.labelSmall,
                             color = MaterialTheme.colorScheme.primary,
@@ -1635,37 +1637,36 @@ private fun ItemCard(
                 ) {
                     CompactActionButton(
                         icon = Icons.Outlined.Edit,
-                        description = "Renombrar ${item.displayName}",
+                        description = stringResource(R.string.rename_item, item.displayName),
                         onClick = onRenameRequest,
                     )
 
                     CompactActionButton(
                         icon = Icons.Outlined.Share,
-                        description = "Compartir ${item.displayName}",
+                        description = stringResource(R.string.share_item, item.displayName),
                         onClick = { onShare(item) },
                     )
 
                     if (type.supportsClipboardCopy()) {
                         CompactActionButton(
                             icon = Icons.Outlined.ContentCopy,
-                            description = "Copiar ${item.displayName}",
+                            description = stringResource(R.string.copy_item, item.displayName),
                             onClick = { onCopy(item) },
                         )
                     }
 
                     CompactActionButton(
                         icon = if (item.pinned) Icons.Filled.Star else Icons.Outlined.StarBorder,
-                        description = if (item.pinned) {
-                            "Desfijar ${item.displayName}"
-                        } else {
-                            "Fijar ${item.displayName}"
-                        },
+                        description = stringResource(
+                            if (item.pinned) R.string.unpin_item else R.string.pin_item,
+                            item.displayName,
+                        ),
                         onClick = { onPinToggle(item) },
                     )
 
                     CompactActionButton(
                         icon = Icons.Outlined.Delete,
-                        description = "Eliminar ${item.displayName}",
+                        description = stringResource(R.string.delete_item, item.displayName),
                         tint = MaterialTheme.colorScheme.error,
                         onClick = onDeleteRequest,
                     )
@@ -1718,7 +1719,7 @@ private fun StoredItemVisual(
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = contentTypeIcon(type),
-                    contentDescription = type.label,
+                    contentDescription = stringResource(type.labelRes),
                     modifier = Modifier.size(if (supportsThumbnail) 28.dp else 22.dp),
                 )
             }
@@ -1745,7 +1746,7 @@ private fun InstalledAppCard(app: InstalledAppInfo) {
         ) {
             Image(
                 bitmap = bitmap,
-                contentDescription = "Icono de ${app.label}",
+                contentDescription = stringResource(R.string.icon_of, app.label),
                 modifier = Modifier.size(38.dp),
             )
             Spacer(Modifier.width(10.dp))
@@ -1756,7 +1757,7 @@ private fun InstalledAppCard(app: InstalledAppInfo) {
                     fontWeight = FontWeight.Medium,
                 )
                 Text(
-                    "Aplicación instalada",
+                    stringResource(R.string.installed_app),
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
@@ -1797,23 +1798,29 @@ private fun CompactActionButton(
     }
 }
 
-private fun retentionCompactLabel(hours: Int): String = when (hours) {
-    1 -> "1 h"
-    24 -> "24 h"
-    72 -> "3 d"
-    168 -> "7 d"
-    0 -> "Nunca"
-    else -> "24 h"
-}
+@Composable
+private fun retentionCompactLabel(hours: Int): String = stringResource(
+    when (hours) {
+        1 -> R.string.retention_1h
+        24 -> R.string.retention_24h
+        72 -> R.string.retention_3d
+        168 -> R.string.retention_7d
+        0 -> R.string.never
+        else -> R.string.retention_24h
+    },
+)
 
-private fun retentionLabel(hours: Int): String = when (hours) {
-    1 -> "1 hora"
-    24 -> "24 horas"
-    72 -> "3 días"
-    168 -> "7 días"
-    0 -> "Nunca"
-    else -> "24 horas"
-}
+@Composable
+private fun retentionLabel(hours: Int): String = stringResource(
+    when (hours) {
+        1 -> R.string.retention_1_hour
+        24 -> R.string.retention_24_hours
+        72 -> R.string.retention_3_days
+        168 -> R.string.retention_7_days
+        0 -> R.string.never
+        else -> R.string.retention_24_hours
+    },
+)
 
 private fun formatBytes(bytes: Long): String {
     if (bytes < 1024) return "$bytes B"
