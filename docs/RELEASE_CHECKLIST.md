@@ -3,7 +3,7 @@
 ## Estado
 
 **Objetivo:** preparar una candidata técnica de release sin firmar ni publicar.  
-**Estado:** IMPLEMENTADO_PENDIENTE_CI_Y_QA_FINAL.
+**Estado:** RELEASE_CANDIDATE_READY.
 
 Una release estable no se declara lista solo porque compile. Debe cerrar seguridad, privacidad, dependencias, CodeQL, build release, QA físico y firma/publicación.
 
@@ -25,9 +25,10 @@ Hardening de esta revisión:
 - Kotlin tooling actualizado de 2.4.10 a 2.4.21 porque 2.4.10 está afectado por CVE-2026-53914;
 - CodeQL añadido con `java-kotlin`.
 
-Pendiente:
-- CI verde con el cambio de Kotlin;
-- CodeQL sin hallazgos bloqueantes.
+VERIFICADO:
+- Android CI verde en PR #90 y PR #91;
+- CodeQL verde en PR #90 y PR #91;
+- no quedaron hallazgos bloqueantes abiertos para la candidata técnica.
 
 ## Privacidad
 
@@ -114,10 +115,11 @@ Ya verificado:
 - renombrado;
 - modo oscuro observado físicamente.
 
-Pendiente:
+VERIFICADO físicamente:
 - modo claro;
-- pantalla pequeña / densidad alta;
-- regresión rápida del APK generado por main después de esta revisión.
+- pantalla pequeña mediante ventana estrecha/Formato libre, con scroll y controles utilizables;
+- regresión rápida del APK final: compartir, categorías, búsqueda, Mi dispositivo, abrir/compartir y Atrás;
+- icono propio OclAx visible correctamente.
 
 ## Firma y publicación
 
@@ -139,11 +141,13 @@ Crear o usar una clave de producción implica material criptográfico sensible y
 
 ## Criterio de candidata técnica
 
-Puede marcarse **RELEASE_CANDIDATE_READY** solo cuando:
-1. Android CI esté verde;
-2. CodeQL no tenga hallazgos bloqueantes;
-3. release unsigned se genere correctamente;
-4. QA físico pendiente quede validado;
-5. memoria oficial quede reconciliada.
+**RELEASE_CANDIDATE_READY — VERIFICADO.**
+
+Criterios cerrados:
+1. Android CI verde;
+2. CodeQL sin hallazgos bloqueantes;
+3. release unsigned generado correctamente;
+4. QA físico final validado;
+5. memoria oficial reconciliada en este cierre.
 
 La firma y publicación son un gate separado.
