@@ -408,10 +408,10 @@ Añadido:
 - artefacto `OclAx-release-unsigned`;
 - CodeQL Java/Kotlin en PR/main/semanal.
 
-Gate actual:
-- CI Android;
-- CodeQL;
-- QA visual final.
+Gate técnico final:
+- CI Android: VERIFICADO;
+- CodeQL: VERIFICADO;
+- QA visual final: VERIFICADO.
 
 
 ## QA físico final — 2026-10-20
