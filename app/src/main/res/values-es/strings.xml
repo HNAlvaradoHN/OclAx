@@ -1,0 +1,175 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">OclAx</string>
+    <string name="share_target_label">Guardar en OclAx</string>
+    <string name="picker_target_label">Elegir con OclAx</string>
+
+    <string name="device_tab">Mi dispositivo</string>
+    <string name="cancel">Cancelar</string>
+    <string name="delete">Eliminar</string>
+    <string name="rename">Renombrar</string>
+    <string name="name">Nombre</string>
+    <string name="select">Seleccionar</string>
+    <string name="select_all">Todos</string>
+    <string name="select_none">Ninguno</string>
+    <string name="share">Compartir</string>
+    <string name="copy">Copiar</string>
+    <string name="categories">Categorías</string>
+    <string name="results">Resultados</string>
+    <string name="never">Nunca</string>
+    <string name="exit">Salir</string>
+    <string name="no">No</string>
+    <string name="grant_access">Conceder acceso</string>
+
+    <string name="tagline">Tu contenido, listo donde lo necesitás.</string>
+    <string name="search_oclax">Buscar en OclAx</string>
+    <string name="search_device">Buscar en mi dispositivo</string>
+    <string name="retention_title">Autolimpieza</string>
+    <string name="retention_explainer">Las copias de OclAx caducan según este tiempo. Si una captura recién creada se compartió dentro de 60 s, OclAx también intentará borrar su original.</string>
+
+    <string name="filter_all">Todo</string>
+    <string name="filter_pinned">Fijados</string>
+    <string name="filter_images">Imágenes</string>
+    <string name="filter_documents">Documentos</string>
+    <string name="filter_pdf">PDF</string>
+    <string name="filter_saved_apk">APK guardados</string>
+    <string name="filter_apk">APK</string>
+    <string name="filter_text">Texto/Código</string>
+    <string name="filter_video">Video</string>
+    <string name="filter_audio">Audio</string>
+    <string name="filter_other">Otros</string>
+    <string name="filter_apps">Apps</string>
+    <string name="filter_recent">Recientes</string>
+    <string name="filter_applications">Aplicaciones</string>
+
+    <string name="content_all_title">Todo tu contenido OclAx</string>
+    <string name="content_pinned_title">No caduca automáticamente</string>
+    <string name="empty_oclax">Todavía no hay elementos. Compartí contenido hacia OclAx.</string>
+    <string name="empty_search">No se encontraron elementos para esa búsqueda.</string>
+    <string name="empty_device_search">No se encontró contenido con ese nombre.</string>
+    <string name="empty_apps_search">No se encontraron aplicaciones para esa búsqueda.</string>
+    <string name="empty_device_category">No se encontraron %1$s accesibles.</string>
+
+    <string name="exit_title">¿Salir de OclAx?</string>
+    <string name="exit_message">Podés elegir Salir o quedarte. Si volvés a presionar Atrás, OclAx se cerrará.</string>
+    <string name="delete_oclax_title">¿Eliminar de OclAx?</string>
+    <string name="delete_oclax_message">Se eliminará únicamente la copia interna de OclAx. El archivo original del teléfono no se tocará.</string>
+    <string name="rename_linked_original">OclAx intentará aplicar el mismo nombre al archivo original.</string>
+    <string name="rename_unlinked">Este elemento no conserva un original enlazado.</string>
+    <string name="delete_many_title">¿Eliminar %1$d elementos de OclAx?</string>
+    <string name="delete_many_message">Solo se eliminarán las copias internas de OclAx. Los archivos originales del dispositivo no se tocarán.</string>
+    <string name="delete_copies">Eliminar copias</string>
+
+    <string name="selected_count">%1$d seleccionados</string>
+    <string name="share_selected">Compartir seleccionados</string>
+    <string name="pin_selected">Fijar seleccionados</string>
+    <string name="unpin_selected">Desfijar seleccionados</string>
+    <string name="delete_selected">Eliminar seleccionados</string>
+    <string name="select_item">Seleccionar %1$s</string>
+    <string name="rename_item">Renombrar %1$s</string>
+    <string name="share_item">Compartir %1$s</string>
+    <string name="copy_item">Copiar %1$s</string>
+    <string name="pin_item">Fijar %1$s</string>
+    <string name="unpin_item">Desfijar %1$s</string>
+    <string name="delete_item">Eliminar %1$s</string>
+    <string name="thumbnail_of">Miniatura de %1$s</string>
+    <string name="icon_of">Icono de %1$s</string>
+
+    <string name="recent_screenshot_pinned">Captura reciente · original protegido mientras esté fijada</string>
+    <string name="recent_screenshot_cleanup">Captura reciente · original se limpiará al vencer</string>
+
+    <string name="installed_app">Aplicación instalada</string>
+    <string name="system_app">Aplicación del sistema</string>
+    <string name="system_short">Sistema</string>
+    <string name="installed_short">Instalada</string>
+    <string name="installed_on_device">Instaladas en este dispositivo</string>
+    <string name="requires_access">Requiere acceso</string>
+    <string name="modified_at">Modificado · %1$s</string>
+    <string name="loading_device">Leyendo contenido del dispositivo…</string>
+
+    <string name="delete_device_title">¿Eliminar del dispositivo?</string>
+    <string name="delete_device_message">Se eliminará el archivo original “%1$s”. Esta acción no es la autolimpieza de OclAx y puede no tener deshacer.</string>
+    <string name="delete_original">Eliminar original</string>
+    <string name="rename_original_title">Renombrar archivo original</string>
+    <string name="rename_original_message">El cambio se aplicará al archivo real del dispositivo.</string>
+    <string name="grid_view">Ver %1$s en cuadrícula</string>
+    <string name="list_view">Ver %1$s como lista</string>
+    <string name="file_access_title">Acceso a archivos necesario</string>
+    <string name="file_access_message">Para mostrar imágenes, videos, documentos, PDF, APK y otros archivos reales del teléfono, Android necesita que autoricés a OclAx a administrar archivos.</string>
+
+    <string name="picker_instruction_multiple">Elegí uno o varios archivos.</string>
+    <string name="picker_instruction_single">Elegí un archivo para continuar.</string>
+    <string name="picker_loading">Leyendo archivos del dispositivo…</string>
+    <string name="picker_empty_compatible">No se encontró contenido compatible.</string>
+    <string name="picker_empty_apps">No se encontraron aplicaciones compatibles.</string>
+    <string name="picker_empty_files">No se encontraron archivos compatibles.</string>
+    <string name="picker_use_one">Usar 1 archivo</string>
+    <string name="picker_use_many">Usar %1$d archivos</string>
+    <string name="picker_no_cleanup">Guardados sin autolimpieza</string>
+    <string name="picker_device_access_title">Acceso a Mi dispositivo</string>
+    <string name="picker_device_access_message">Para elegir archivos reales del teléfono, autorizá el acceso desde Android. La bandeja privada de OclAx sigue disponible sin ese permiso.</string>
+    <string name="picker_preparing_apk">Preparando APK…</string>
+    <string name="selected">Seleccionado</string>
+
+    <string name="toast_file_deleted">Archivo eliminado.</string>
+    <string name="toast_named_file_deleted">Se eliminó “%1$s”.</string>
+    <string name="toast_file_not_deleted">No se eliminó el archivo.</string>
+    <string name="toast_oclax_copy_delete_failed">No se pudo eliminar la copia de OclAx.</string>
+    <string name="toast_renamed_both">Se renombró en OclAx y en el dispositivo.</string>
+    <string name="toast_renamed_oclax_only">Se renombró en OclAx; el origen no permite renombrado.</string>
+    <string name="toast_renamed_oclax">Se renombró en OclAx.</string>
+    <string name="toast_rename_failed">No se pudo renombrar: %1$s</string>
+    <string name="toast_original_renamed">Archivo original renombrado.</string>
+    <string name="unknown_error">error desconocido</string>
+    <string name="toast_no_opener">No hay una aplicación disponible para abrir este tipo de archivo.</string>
+    <string name="chooser_share_device">Compartir desde Mi dispositivo</string>
+    <string name="toast_share_failed">No se pudo compartir: %1$s</string>
+    <string name="toast_share_many_failed">No se pudieron compartir los archivos: %1$s</string>
+    <string name="toast_share_limit">Podés compartir hasta %1$d archivos a la vez.</string>
+    <string name="toast_text_too_large">Ese texto es demasiado grande para copiarlo al portapapeles.</string>
+    <string name="toast_copied">Copiado al portapapeles.</string>
+    <string name="toast_copy_failed">No se pudo copiar: %1$s</string>
+    <string name="toast_delete_failed">No se pudo eliminar: %1$s</string>
+    <string name="toast_preparing_app">Preparando %1$s…</string>
+    <string name="chooser_share_installed_app">Compartir aplicación instalada</string>
+    <string name="toast_share_single_apk">Se comparte solo el APK de instalación; no tus datos.</string>
+    <string name="toast_share_split_apks">Se comparten %1$d APK del paquete; no tus datos.</string>
+    <string name="toast_prepare_app_failed">No se pudo preparar la app: %1$s</string>
+    <string name="toast_app_limit">Podés compartir hasta %1$d aplicaciones a la vez.</string>
+    <string name="toast_preparing_apps">Preparando %1$d aplicaciones…</string>
+    <string name="toast_too_many_apks">La selección genera demasiados APK para compartir en una sola operación.</string>
+    <string name="chooser_installed_apps">Aplicaciones instaladas</string>
+    <string name="chooser_share_installed_apps">Compartir aplicaciones instaladas</string>
+    <string name="toast_share_apps_failed">No se pudieron compartir las aplicaciones: %1$s</string>
+    <string name="toast_prepare_apps_failed">No se pudieron preparar las aplicaciones: %1$s</string>
+    <string name="toast_no_app_screen">Esta aplicación no tiene una pantalla que se pueda abrir.</string>
+    <string name="toast_open_app_failed">No se pudo abrir %1$s.</string>
+    <string name="toast_open_failed">No se pudo abrir: %1$s</string>
+    <string name="chooser_share_oclax">Compartir desde OclAx</string>
+    <string name="toast_share_items_limit">Podés compartir hasta %1$d elementos a la vez.</string>
+    <string name="toast_share_items_failed">No se pudieron compartir los elementos: %1$s</string>
+    <string name="toast_pinned_many">Se fijaron %1$d de %2$d elementos.</string>
+    <string name="toast_unpinned_many">Se desfijaron %1$d de %2$d elementos.</string>
+    <string name="toast_deleted_many">Se eliminaron %1$d de %2$d copias de OclAx.</string>
+
+    <string name="share_none_compatible">No había contenido compatible.</string>
+    <string name="share_saved_clipboard">Guardado en OclAx y listo para pegar.</string>
+    <string name="share_saved">Guardado en OclAx.</string>
+    <string name="share_save_failed">No se pudo guardar en OclAx: %1$s</string>
+    <string name="share_uri_limit">OclAx acepta hasta %1$d archivos por operación.</string>
+
+    <string name="picker_select_failed">No se pudo seleccionar: %1$s</string>
+    <string name="picker_split_requires_multiple">Esta aplicación usa varios APK. La app receptora debe permitir varios archivos.</string>
+    <string name="picker_app_over_limit">La aplicación supera el límite de %1$d archivos seleccionados.</string>
+    <string name="picker_prepare_app_failed">No se pudo preparar la aplicación: %1$s</string>
+    <string name="picker_selection_limit">Podés seleccionar hasta %1$d archivos por vez.</string>
+
+    <string name="retention_1h">1 h</string>
+    <string name="retention_24h">24 h</string>
+    <string name="retention_3d">3 d</string>
+    <string name="retention_7d">7 d</string>
+    <string name="retention_1_hour">1 hora</string>
+    <string name="retention_24_hours">24 horas</string>
+    <string name="retention_3_days">3 días</string>
+    <string name="retention_7_days">7 días</string>
+</resources>
