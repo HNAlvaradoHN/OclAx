@@ -9,6 +9,14 @@
 
 La función LAN fue retirada. La interfaz no debe reservar espacio ni lenguaje para motores, peers o conexiones.
 
+## Icono de aplicación
+
+- launcher icon adaptativo propio de OclAx;
+- fondo casi negro `#101010`;
+- marca geométrica **O + X** en naranja OclAx `#FF6500` con acento blanco;
+- se usa como icono normal y redondo;
+- debe permanecer reconocible con máscaras de launcher distintas.
+
 ## Paleta
 
 Identidad aprobada:
@@ -197,7 +205,6 @@ Apps:
 ## Pendientes visuales
 
 No bloqueantes:
-- logo gráfico oficial cuando exista asset aprobado;
 - espaciado fino;
 - densidad en pantallas muy pequeñas;
 - revisión modo claro;

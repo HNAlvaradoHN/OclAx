@@ -2,6 +2,29 @@
 
 ## Prioridad actual
 
+### BRAND-001 — Icono propio de OclAx
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Objetivo:
+- sustituir el icono Android genérico por una identidad propia visible en launcher, recientes, información de app y superficies que consumen el icono del paquete.
+
+Implementado en `feat/app-launcher-icon`:
+- icono adaptativo negro/naranja con marca O+X;
+- variante redonda;
+- referencias `android:icon` y `android:roundIcon` en el Manifest;
+- sin dependencias ni permisos nuevos.
+
+Validado en PR #91:
+- Android CI run 356 verde;
+- CodeQL run 10 verde.
+
+Pendiente:
+- validar físicamente el icono instalado y su recorte en el launcher/recientes del dispositivo.
+
+---
+
+
 ### PRODUCT-006 — Selección múltiple segura en Mi dispositivo
 **Estado:** DONE  
 **Prioridad:** alta

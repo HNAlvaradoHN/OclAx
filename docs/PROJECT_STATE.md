@@ -291,6 +291,21 @@ VERIFICADO:
 - assembleRelease y artefacto release unsigned IMPLEMENTADOS en CI;
 - checklist creado en docs/RELEASE_CHECKLIST.md.
 
+## Cambio visual actual — BRAND-001
+
+IMPLEMENTADO_PENDIENTE_VALIDACIÓN en `feat/app-launcher-icon`:
+- OclAx ya declara icono de aplicación propio;
+- el icono adaptativo usa fondo casi negro, naranja OclAx y una marca geométrica O+X;
+- sustituye el icono Android genérico que aparecía por no existir `android:icon` en el Manifest;
+- Android CI run 356 y CodeQL run 10 del PR #91 están verdes;
+- falta validación física del recorte/renderizado en el dispositivo.
+
+Diagnóstico de la opción OEM **Mini**:
+- el Manifest no fija orientación ni marca la actividad como no redimensionable;
+- `MainActivity` no fuerza orientación ni flags de ventana especiales;
+- el sistema ya ofrece **Formato libre** a OclAx;
+- no se añade Picture-in-Picture ni un cambio especulativo de Manifest: **Mini** es una función del gestor de ventanas/OEM y no existe evidencia de un bloqueo propio de OclAx que deba corregirse.
+
 ## Pendientes reales / bloqueos
 
 **IMPLEMENTADO_PENDIENTE_VALIDACIÓN:**
