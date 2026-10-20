@@ -323,18 +323,30 @@ Resultado:
 
 No hay bloqueos técnicos abiertos para la candidata local.
 
-**DECISIÓN PENDIENTE PARA PUBLICAR:**
-- canal de distribución;
-- firma de producción;
-- licencia propia del código si el dueño desea declarar reutilización open source;
-- si se usa Google Play, cumplimiento de políticas para permisos amplios.
+**PUBLICACIÓN:**
+- canal elegido: **GitHub Releases**;
+- firma de producción: pendiente;
+- licencia propia del código: pendiente solo si el dueño desea declarar reutilización open source;
+- Google Play no forma parte del canal elegido actual.
+
+## Trabajo actual — I18N-001 / preparación pública
+
+IMPLEMENTADO_PENDIENTE_VALIDACIÓN en `feat/bilingual-release-docs`:
+- interfaz Android preparada en inglés + español;
+- inglés como fallback y español en `values-es`;
+- `localeConfig` declara ambos idiomas;
+- README internacional en inglés + README español;
+- documentación pública explica funciones, privacidad, permisos e instalación por GitHub Releases;
+- sin cambios de permisos, red, dependencias ni modelo de datos.
+
+Feedback no bloqueante registrado:
+- la confirmación visual del portapapeles del sistema/OEM no se debe confundir con el Toast propio de OclAx; posible mejora futura: evitar confirmación duplicada manteniendo la copia automática;
+- propuesta **Conservar original** para capturas recientes sin necesidad de Fijar, aún no implementada.
 
 ## Siguiente paso exacto
 
-La candidata técnica local está cerrada. No iniciar otra funcionalidad automáticamente.
-
-Para publicar, el siguiente paso requiere una decisión explícita del dueño sobre:
-1. canal de distribución;
-2. firma de producción;
-3. licencia del código si se desea declarar reutilización open source;
-4. cumplimiento de políticas de permisos amplios si se elige Google Play.
+1. completar revisión de i18n y build;
+2. abrir PR y exigir Android CI + CodeQL verdes;
+3. fusionar y verificar main;
+4. entregar APK para validación física rápida en inglés/español;
+5. después definir firma de producción y crear la primera GitHub Release.
