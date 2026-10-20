@@ -4,6 +4,7 @@ import android.content.Context
 import android.net.Uri
 import android.os.StatFs
 import androidx.core.content.FileProvider
+import io.github.hnalvaradohn.oclax.R
 import java.io.File
 import java.io.IOException
 
@@ -34,22 +35,22 @@ class InstalledAppExporter(context: Context) {
             .filter { it.isFile }
 
         require(sourcePaths.isNotEmpty()) {
-            "No se encontraron APK legibles para ${app.label}."
+            appContext.getString(R.string.error_no_readable_apk, app.label)
         }
 
         val totalBytes = sourcePaths.sumOf { source -> source.length().coerceAtLeast(0L) }
         if (totalBytes <= 0L || totalBytes > MAX_EXPORT_BYTES) {
-            throw IOException("La aplicación supera el límite seguro de exportación de OclAx.")
+            throw IOException(appContext.getString(R.string.error_app_export_limit))
         }
         val availableBytes = StatFs(appContext.cacheDir.absolutePath).availableBytes
         if (availableBytes - RESERVED_FREE_BYTES < totalBytes) {
-            throw IOException("No hay espacio libre suficiente para preparar la aplicación.")
+            throw IOException(appContext.getString(R.string.error_insufficient_app_space))
         }
 
         // Este directorio contiene únicamente copias temporales del código APK instalado.
         // No se toca dataDir ni ningún directorio de datos del usuario.
         check(exportRoot.mkdirs() || exportRoot.isDirectory) {
-            "No se pudo preparar el directorio temporal de exportación."
+            appContext.getString(R.string.error_prepare_export_dir)
         }
         cleanupOldExports()
 
@@ -58,7 +59,7 @@ class InstalledAppExporter(context: Context) {
             safeSegment(app.packageName) + "-" + System.currentTimeMillis(),
         )
         check(appDir.mkdirs()) {
-            "No se pudo preparar la exportación de la aplicación."
+            appContext.getString(R.string.error_prepare_export)
         }
 
         val copiedApks = try {

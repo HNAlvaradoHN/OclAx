@@ -10,7 +10,9 @@ import android.os.ParcelFileDescriptor
 import android.os.StatFs
 import android.provider.DocumentsContract
 import android.provider.DocumentsProvider
+import androidx.annotation.StringRes
 import androidx.core.graphics.drawable.toBitmap
+import io.github.hnalvaradohn.oclax.R
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.StoredItem
@@ -53,19 +55,19 @@ class OclAxDocumentsProvider : DocumentsProvider() {
 
     private enum class Category(
         val id: String,
-        val label: String,
+        @StringRes val labelRes: Int,
         val prefersGrid: Boolean = false,
     ) {
-        PINNED("pinned", "Fijados"),
-        APPLICATIONS("applications", "Aplicaciones", prefersGrid = true),
-        IMAGES("images", "Imágenes", prefersGrid = true),
-        DOCUMENTS("documents", "Documentos"),
-        PDF("pdf", "PDF"),
-        APK("apk", "APK"),
-        TEXT("text", "Texto/Código"),
-        VIDEO("video", "Video", prefersGrid = true),
-        AUDIO("audio", "Audio"),
-        OTHER("other", "Otros"),
+        PINNED("pinned", R.string.filter_pinned),
+        APPLICATIONS("applications", R.string.filter_applications, prefersGrid = true),
+        IMAGES("images", R.string.filter_images, prefersGrid = true),
+        DOCUMENTS("documents", R.string.filter_documents),
+        PDF("pdf", R.string.filter_pdf),
+        APK("apk", R.string.filter_apk),
+        TEXT("text", R.string.filter_text),
+        VIDEO("video", R.string.filter_video, prefersGrid = true),
+        AUDIO("audio", R.string.filter_audio),
+        OTHER("other", R.string.filter_other),
         ;
 
         fun matches(mimeType: String, pinned: Boolean = false): Boolean {
@@ -156,18 +158,18 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                     cursor,
                     columns,
                     DEVICE_ROOT_DOCUMENT_ID,
-                    "Mi dispositivo",
+                    requireNotNull(context).getString(R.string.device_tab),
                     prefersGrid = true,
                 )
 
             Category.fromOclAxDocumentId(documentId) != null -> {
                 val category = requireNotNull(Category.fromOclAxDocumentId(documentId))
-                addDirectory(cursor, columns, documentId, category.label, category.prefersGrid)
+                addDirectory(cursor, columns, documentId, requireNotNull(context).getString(category.labelRes), category.prefersGrid)
             }
 
             Category.fromDeviceDocumentId(documentId) != null -> {
                 val category = requireNotNull(Category.fromDeviceDocumentId(documentId))
-                addDirectory(cursor, columns, documentId, category.label, category.prefersGrid)
+                addDirectory(cursor, columns, documentId, requireNotNull(context).getString(category.labelRes), category.prefersGrid)
             }
 
             InstalledAppDocumentIds.parse(documentId) != null ->
@@ -211,7 +213,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                     cursor,
                     columns,
                     DEVICE_ROOT_DOCUMENT_ID,
-                    "Mi dispositivo",
+                    requireNotNull(context).getString(R.string.device_tab),
                     prefersGrid = true,
                 )
                 Category.entries
@@ -221,7 +223,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                             cursor,
                             columns,
                             category.oclaxDocumentId,
-                            category.label,
+                            requireNotNull(context).getString(category.labelRes),
                             category.prefersGrid,
                         )
                     }
@@ -238,7 +240,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                     cursor,
                     columns,
                     Category.APPLICATIONS.deviceDocumentId,
-                    Category.APPLICATIONS.label,
+                    requireNotNull(context).getString(Category.APPLICATIONS.labelRes),
                     Category.APPLICATIONS.prefersGrid,
                 )
 
@@ -252,7 +254,7 @@ class OclAxDocumentsProvider : DocumentsProvider() {
                                 cursor,
                                 columns,
                                 category.deviceDocumentId,
-                                category.label,
+                                requireNotNull(context).getString(category.labelRes),
                                 category.prefersGrid,
                             )
                         }

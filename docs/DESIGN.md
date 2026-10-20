@@ -255,3 +255,16 @@ Límites visuales/funcionales:
 - archivos reales admiten hasta 100 seleccionados;
 - aplicaciones instaladas admiten hasta 20;
 - la app debe seguir dejando claro que compartir aplicaciones significa APK de instalación, no datos privados.
+
+## Idiomas de interfaz
+
+OclAx soporta inicialmente:
+- inglés;
+- español.
+
+Reglas:
+- inglés es el fallback internacional;
+- español usa recursos `values-es`;
+- no incrustar copy visible nuevo directamente en Kotlin cuando corresponda un recurso Android;
+- nombres de archivo, labels de apps instaladas, package names y datos del usuario no se traducen;
+- revisar especialmente anchura de botones, categorías y diálogos en inglés antes de release.

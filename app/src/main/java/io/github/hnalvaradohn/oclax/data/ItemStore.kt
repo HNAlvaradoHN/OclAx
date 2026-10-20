@@ -9,6 +9,7 @@ import android.os.Build
 import android.os.StatFs
 import android.provider.MediaStore
 import android.provider.OpenableColumns
+import io.github.hnalvaradohn.oclax.R
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import org.json.JSONObject
 import java.io.File
@@ -81,11 +82,11 @@ class ItemStore(private val context: Context) {
 
     @Synchronized
     fun renameItem(id: String, rawName: String): ItemRenameResult {
-        if (!isSafeId(id)) throw IOException("Identificador inválido.")
+        if (!isSafeId(id)) throw IOException(context.getString(R.string.error_invalid_id))
         val directory = File(itemsDir, id)
-        val current = readItem(directory) ?: throw IOException("El archivo ya no existe en OclAx.")
+        val current = readItem(directory) ?: throw IOException(context.getString(R.string.error_missing_oclax_file))
         val safeName = SafeNames.sanitize(rawName, current.displayName)
-        if (safeName.isBlank()) throw IOException("El nombre no es válido.")
+        if (safeName.isBlank()) throw IOException(context.getString(R.string.error_invalid_name))
 
         var sourceRenamed: Boolean? = null
         var sourceUri: Uri? = null
@@ -104,10 +105,10 @@ class ItemStore(private val context: Context) {
                 val changed = runCatching {
                     context.contentResolver.update(uri, values, null, null)
                 }.getOrElse { error ->
-                    throw IOException("Android no permitió renombrar el archivo original.", error)
+                    throw IOException(context.getString(R.string.error_original_rename_denied), error)
                 }
                 if (changed <= 0) {
-                    throw IOException("Android no permitió renombrar el archivo original.")
+                    throw IOException(context.getString(R.string.error_original_rename_denied))
                 }
                 sourceRenamed = true
                 updatedSourceName = safeName
@@ -188,8 +189,8 @@ class ItemStore(private val context: Context) {
 
     @Synchronized
     fun importText(text: String, suggestedName: String? = null): StoredItem {
-        if (text.isBlank()) throw IOException("El texto está vacío.")
-        if (text.length > MAX_TEXT_CHARS) throw IOException("El texto supera el límite seguro de OclAx.")
+        if (text.isBlank()) throw IOException(context.getString(R.string.error_empty_text))
+        if (text.length > MAX_TEXT_CHARS) throw IOException(context.getString(R.string.error_text_limit))
 
         val displayName = SafeNames.sanitize(
             suggestedName?.takeIf { it.isNotBlank() }?.let {
@@ -212,7 +213,7 @@ class ItemStore(private val context: Context) {
     @Synchronized
     fun importUri(uri: Uri, fallbackMimeType: String?): StoredItem {
         if (uri.scheme != ContentResolver.SCHEME_CONTENT) {
-            throw IOException("OclAx solo acepta ubicaciones de contenido seguras.")
+            throw IOException(context.getString(R.string.error_unsafe_content_uri))
         }
 
         val resolver = context.contentResolver
@@ -222,7 +223,7 @@ class ItemStore(private val context: Context) {
         val displayName = SafeNames.sanitize(metadata.displayName, fallbackNameFor(mimeType))
 
         metadata.byteSize?.let {
-            if (it < 0L || it > MAX_ITEM_BYTES) throw IOException("El archivo supera el límite seguro de OclAx.")
+            if (it < 0L || it > MAX_ITEM_BYTES) throw IOException(context.getString(R.string.error_file_limit))
             ensureFreeSpace(it)
         }
 
@@ -246,7 +247,7 @@ class ItemStore(private val context: Context) {
             deleteSourceOnExpiry = deleteSourceOnExpiry,
         ) { destination ->
             resolver.openInputStream(uri).use { input ->
-                if (input == null) throw IOException("No se pudo abrir el archivo compartido.")
+                if (input == null) throw IOException(context.getString(R.string.error_open_shared_file))
                 FileOutputStream(destination).use { output ->
                     val buffer = ByteArray(64 * 1024)
                     var total = 0L
@@ -256,7 +257,7 @@ class ItemStore(private val context: Context) {
                         if (read < 0) break
                         total += read
                         sinceSpaceCheck += read
-                        if (total > MAX_ITEM_BYTES) throw IOException("El archivo supera el límite seguro de OclAx.")
+                        if (total > MAX_ITEM_BYTES) throw IOException(context.getString(R.string.error_file_limit))
                         if (sinceSpaceCheck >= STORAGE_RECHECK_BYTES) {
                             ensureFreeSpace(1L)
                             sinceSpaceCheck = 0L
@@ -271,10 +272,10 @@ class ItemStore(private val context: Context) {
     }
 
     fun payloadFile(item: StoredItem): File {
-        if (!isSafeId(item.id)) throw IOException("Identificador inválido.")
+        if (!isSafeId(item.id)) throw IOException(context.getString(R.string.error_invalid_id))
         val directory = File(itemsDir, item.id).canonicalFile
         val payload = File(directory, item.payloadName).canonicalFile
-        if (payload.parentFile != directory) throw IOException("Ruta de archivo inválida.")
+        if (payload.parentFile != directory) throw IOException(context.getString(R.string.error_invalid_path))
         return payload
     }
 
@@ -305,13 +306,13 @@ class ItemStore(private val context: Context) {
         val id = UUID.randomUUID().toString()
         val tempDir = File(itemsDir, ".tmp-$id")
         val finalDir = File(itemsDir, id)
-        if (!tempDir.mkdirs()) throw IOException("No se pudo preparar el almacenamiento local.")
+        if (!tempDir.mkdirs()) throw IOException(context.getString(R.string.error_prepare_storage))
 
         try {
             val payloadName = SafeNames.storageFileName(displayName, mimeType)
             val payloadFile = File(tempDir, payloadName)
             val actualBytes = writer(payloadFile)
-            if (actualBytes <= 0L || !payloadFile.isFile) throw IOException("El archivo compartido está vacío.")
+            if (actualBytes <= 0L || !payloadFile.isFile) throw IOException(context.getString(R.string.error_empty_shared_file))
 
             val item = StoredItem(
                 id = id,
@@ -328,7 +329,7 @@ class ItemStore(private val context: Context) {
                 deleteSourceOnExpiry = deleteSourceOnExpiry,
             )
             writeMeta(tempDir, item)
-            if (!tempDir.renameTo(finalDir)) throw IOException("No se pudo confirmar el archivo en OclAx.")
+            if (!tempDir.renameTo(finalDir)) throw IOException(context.getString(R.string.error_confirm_oclax_file))
             RetentionScheduler.schedule(context)
             return item
         } catch (error: Exception) {
@@ -356,7 +357,7 @@ class ItemStore(private val context: Context) {
         val temp = File(directory, "$META_FILE.tmp")
         temp.writeText(json.toString(), Charsets.UTF_8)
         val target = File(directory, META_FILE)
-        if (!temp.renameTo(target)) throw IOException("No se pudo guardar la metadata del archivo.")
+        if (!temp.renameTo(target)) throw IOException(context.getString(R.string.error_save_metadata))
     }
 
     private fun readItem(directory: File): StoredItem? = try {
@@ -405,7 +406,7 @@ class ItemStore(private val context: Context) {
     private fun ensureFreeSpace(bytesNeeded: Long) {
         val available = StatFs(context.filesDir.absolutePath).availableBytes
         if (available - RESERVED_FREE_BYTES < bytesNeeded) {
-            throw IOException("No hay suficiente espacio libre para guardar este archivo.")
+            throw IOException(context.getString(R.string.error_insufficient_storage))
         }
     }
 

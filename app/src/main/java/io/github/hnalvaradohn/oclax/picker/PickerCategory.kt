@@ -1,22 +1,24 @@
 package io.github.hnalvaradohn.oclax.picker
 
+import androidx.annotation.StringRes
+import io.github.hnalvaradohn.oclax.R
 import io.github.hnalvaradohn.oclax.model.ContentType
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
 
 internal const val INSTALLED_APP_MIME_TYPE = "application/vnd.android.package-archive"
 
-internal enum class PickerCategory(val label: String) {
-    RECENT("Recientes"),
-    PINNED("Fijados"),
-    APPLICATIONS("Aplicaciones"),
-    IMAGES("Imágenes"),
-    DOCUMENTS("Documentos"),
-    PDF("PDF"),
-    APK("APK"),
-    TEXT("Texto/Código"),
-    VIDEO("Video"),
-    AUDIO("Audio"),
-    OTHER("Otros"),
+internal enum class PickerCategory(@StringRes val labelRes: Int) {
+    RECENT(R.string.filter_recent),
+    PINNED(R.string.filter_pinned),
+    APPLICATIONS(R.string.filter_applications),
+    IMAGES(R.string.filter_images),
+    DOCUMENTS(R.string.filter_documents),
+    PDF(R.string.filter_pdf),
+    APK(R.string.filter_apk),
+    TEXT(R.string.filter_text),
+    VIDEO(R.string.filter_video),
+    AUDIO(R.string.filter_audio),
+    OTHER(R.string.filter_other),
 }
 
 internal fun PickerCategory.matches(

@@ -3,6 +3,7 @@ package io.github.hnalvaradohn.oclax.share
 import android.app.Activity
 import android.os.Bundle
 import android.widget.Toast
+import io.github.hnalvaradohn.oclax.R
 
 class ShareReceiverActivity : Activity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -13,13 +14,16 @@ class ShareReceiverActivity : Activity() {
             val message = try {
                 val result = ShareIngestor(applicationContext).ingest(incomingIntent)
                 when {
-                    result.storedCount == 0 -> "No había contenido compatible."
+                    result.storedCount == 0 -> getString(R.string.share_none_compatible)
                     result.clipboardKind != ShareIngestor.ClipboardKind.NONE ->
-                        "Guardado en OclAx y listo para pegar."
-                    else -> "Guardado en OclAx."
+                        getString(R.string.share_saved_clipboard)
+                    else -> getString(R.string.share_saved)
                 }
             } catch (error: Exception) {
-                "No se pudo guardar en OclAx: " + (error.message ?: "error desconocido")
+                getString(
+                    R.string.share_save_failed,
+                    error.message ?: getString(R.string.unknown_error),
+                )
             }
 
             runOnUiThread {

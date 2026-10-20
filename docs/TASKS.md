@@ -406,3 +406,50 @@ Validado físicamente:
 ## Alcance retirado
 
 El bloque histórico TRANSFER-001/002/003/004 y sus errores LAN dejan de ser tareas activas por **DEC-032**. No se mantienen como deuda ni como funcionalidad futura implícita. Si el dueño quisiera transmisión entre dispositivos otra vez, sería una nueva decisión/tarea y no una reactivación automática del código eliminado.
+
+---
+
+### I18N-001 — Inglés + español y documentación pública
+**Estado:** IMPLEMENTED_PENDING_VALIDATION  
+**Prioridad:** alta
+
+Autorizado por el dueño para preparar la publicación por GitHub.
+
+Implementado en `feat/bilingual-release-docs`:
+- inglés como recursos por defecto;
+- español en `values-es`;
+- `localeConfig` para inglés/español;
+- extracción de copy principal de MainActivity, Mi dispositivo, picker, Share Sheet, provider y errores visibles;
+- README principal en inglés y README equivalente en español;
+- explicación pública de funciones, privacidad, permisos e instalación prevista mediante GitHub Releases;
+- sin permisos, dependencias, red ni telemetría nuevos.
+
+Pendiente:
+- Android CI + lint + build;
+- CodeQL;
+- validación física rápida en inglés y español, incluyendo ventana estrecha por posibles textos ingleses más largos.
+
+### FEEDBACK-001 — Confirmación flotante del portapapeles
+**Estado:** PENDING  
+**Tipo:** hallazgo no bloqueante / comportamiento de plataforma
+
+VERIFICADO:
+- OclAx copia automáticamente texto/imágenes compartidos al portapapeles mediante `ClipboardManager.setPrimaryClip`;
+- Android puede mostrar su propia confirmación/preview del portapapeles;
+- OclAx además muestra su propio Toast al terminar el ingreso.
+
+Propuesta pendiente de autorización:
+- conservar la copia automática;
+- evitar confirmación duplicada propia cuando la versión de Android ya muestra confirmación del sistema.
+- no prometer que OclAx puede suprimir la UI de portapapeles del sistema/OEM.
+
+### FEEDBACK-002 — Conservar original de captura sin fijar
+**Estado:** PENDING  
+**Tipo:** mejora de producto no bloqueante
+
+Idea del dueño:
+- permitir que una captura reciente siga la autolimpieza normal de su copia OclAx, pero que su original quede protegido permanentemente sin convertir el elemento en Fijado.
+
+Propuesta técnica:
+- acción/estado explícito **Conservar original** que desactive `deleteSourceOnExpiry` para ese elemento;
+- Fijar conserva su significado actual: mantener la copia OclAx sin vencimiento.

@@ -423,3 +423,19 @@ VERIFICADO por el dueño con el APK que incorpora PR #91:
 - icono propio OclAx visible correctamente en el dispositivo.
 
 Resultado: QA físico final cerrado para la candidata técnica local.
+
+## I18N-001 — Validación bilingüe
+
+Automática:
+1. `testDebugUnitTest`;
+2. `lintDebug`, incluyendo recursos/localización;
+3. `assembleDebug`;
+4. `assembleRelease`;
+5. CodeQL sin hallazgos bloqueantes.
+
+Física pendiente:
+1. cambiar idioma de la app/sistema a inglés;
+2. revisar OclAx, categorías, autolimpieza, Mi dispositivo y picker;
+3. compartir texto/imagen y revisar mensajes;
+4. repetir en español;
+5. comprobar una ventana estrecha para detectar truncados o solapamientos causados por textos ingleses más largos.

@@ -127,15 +127,16 @@ La candidata generada por CI es **release unsigned**.
 
 No se reutiliza automáticamente la firma estable de pruebas como firma de producción.
 
-Para una release pública falta una decisión explícita de distribución:
-- APK directo / GitHub Release;
-- tienda de aplicaciones;
-- otro canal.
+Canal de distribución elegido por el dueño: **GitHub Releases** con APK de producción firmado.
 
-Si el canal es Google Play, revisar antes de publicar las políticas aplicables a:
-- `MANAGE_EXTERNAL_STORAGE`;
-- `QUERY_ALL_PACKAGES`;
-- `REQUEST_INSTALL_PACKAGES`.
+No se requiere revisión de políticas de Google Play para el canal elegido actual. Los permisos sensibles siguen documentados públicamente porque afectan confianza e instalación, aunque no se publique en Play Store.
+
+Antes de la primera GitHub Release:
+- completar validación bilingüe inglés/español;
+- crear/definir firma de producción protegida;
+- generar y verificar el APK firmado;
+- publicar notas de versión e instrucciones de instalación;
+- no subir keystore, contraseña ni material privado de firma.
 
 Crear o usar una clave de producción implica material criptográfico sensible y no se hace automáticamente desde esta revisión.
 

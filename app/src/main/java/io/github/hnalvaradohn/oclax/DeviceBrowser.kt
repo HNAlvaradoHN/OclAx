@@ -2,6 +2,7 @@ package io.github.hnalvaradohn.oclax
 
 import android.graphics.Bitmap
 import androidx.activity.compose.BackHandler
+import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -62,6 +63,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -84,18 +86,18 @@ private const val MAX_DEVICE_APP_SELECTION = 20
 
 private enum class DeviceFilter(
     val key: String,
-    val label: String,
+    @StringRes val labelRes: Int,
     val defaultViewMode: ContentViewMode,
 ) {
-    APPS("apps", "Apps", ContentViewMode.GRID),
-    IMAGES("images", "Imágenes", ContentViewMode.GRID),
-    DOCUMENTS("documents", "Documentos", ContentViewMode.LIST),
-    PDF("pdf", "PDF", ContentViewMode.LIST),
-    APK("apk", "APK", ContentViewMode.LIST),
-    TEXT("text", "Texto/Código", ContentViewMode.LIST),
-    VIDEO("video", "Video", ContentViewMode.GRID),
-    AUDIO("audio", "Audio", ContentViewMode.LIST),
-    OTHER("other", "Otros", ContentViewMode.LIST),
+    APPS("apps", R.string.filter_apps, ContentViewMode.GRID),
+    IMAGES("images", R.string.filter_images, ContentViewMode.GRID),
+    DOCUMENTS("documents", R.string.filter_documents, ContentViewMode.LIST),
+    PDF("pdf", R.string.filter_pdf, ContentViewMode.LIST),
+    APK("apk", R.string.filter_apk, ContentViewMode.LIST),
+    TEXT("text", R.string.filter_text, ContentViewMode.LIST),
+    VIDEO("video", R.string.filter_video, ContentViewMode.GRID),
+    AUDIO("audio", R.string.filter_audio, ContentViewMode.LIST),
+    OTHER("other", R.string.filter_other, ContentViewMode.LIST),
 }
 
 @Composable
@@ -142,12 +144,9 @@ fun DeviceBrowser(
     pendingDelete?.let { file ->
         AlertDialog(
             onDismissRequest = { pendingDelete = null },
-            title = { Text("¿Eliminar del dispositivo?") },
+            title = { Text(stringResource(R.string.delete_device_title)) },
             text = {
-                Text(
-                    "Se eliminará el archivo original “${file.displayName}”. " +
-                        "Esta acción no es la autolimpieza de OclAx y puede no tener deshacer.",
-                )
+                Text(stringResource(R.string.delete_device_message, file.displayName))
             },
             confirmButton = {
                 TextButton(
@@ -156,12 +155,12 @@ fun DeviceBrowser(
                         onDeleteFile(file)
                     },
                 ) {
-                    Text("Eliminar original", color = MaterialTheme.colorScheme.error)
+                    Text(stringResource(R.string.delete_original), color = MaterialTheme.colorScheme.error)
                 }
             },
             dismissButton = {
                 TextButton(onClick = { pendingDelete = null }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             },
         )
@@ -170,18 +169,18 @@ fun DeviceBrowser(
     pendingRename?.let { file ->
         AlertDialog(
             onDismissRequest = { pendingRename = null },
-            title = { Text("Renombrar archivo original") },
+            title = { Text(stringResource(R.string.rename_original_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text(
-                        "El cambio se aplicará al archivo real del dispositivo.",
+                        stringResource(R.string.rename_original_message),
                         style = MaterialTheme.typography.bodySmall,
                     )
                     OutlinedTextField(
                         value = renameText,
                         onValueChange = { renameText = it },
                         singleLine = true,
-                        label = { Text("Nombre") },
+                        label = { Text(stringResource(R.string.name)) },
                     )
                 }
             },
@@ -193,12 +192,12 @@ fun DeviceBrowser(
                         onRenameFile(target, renameText)
                     },
                 ) {
-                    Text("Renombrar")
+                    Text(stringResource(R.string.rename))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { pendingRename = null }) {
-                    Text("Cancelar")
+                    Text(stringResource(R.string.cancel))
                 }
             },
         )
@@ -233,13 +232,11 @@ fun DeviceBrowser(
         }
     }
 
-    val categoryOverview = remember(files, apps, hasBroadFileAccess) {
-        deviceCategoryOverviewItems(
-            files = files,
-            apps = apps,
-            hasBroadFileAccess = hasBroadFileAccess,
-        )
-    }
+    val categoryOverview = deviceCategoryOverviewItems(
+        files = files,
+        apps = apps,
+        hasBroadFileAccess = hasBroadFileAccess,
+    )
     val selectedFiles = remember(files, selectedFileUris) {
         files.filter { it.uri.toString() in selectedFileUris }
     }
@@ -260,7 +257,7 @@ fun DeviceBrowser(
             modifier = Modifier.fillMaxWidth(),
             enabled = !selecting,
             singleLine = true,
-            label = { Text("Buscar en mi dispositivo") },
+            label = { Text(stringResource(R.string.search_device)) },
         )
         Spacer(Modifier.height(10.dp))
 
@@ -295,11 +292,11 @@ fun DeviceBrowser(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
-                    Text("Categorías")
+                    Text(stringResource(R.string.categories))
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Resultados",
+                    stringResource(R.string.results),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -307,7 +304,7 @@ fun DeviceBrowser(
             Spacer(Modifier.height(8.dp))
 
             if (visibleApps.isEmpty() && visibleFiles.isEmpty()) {
-                Text("No se encontró contenido con ese nombre.")
+                Text(stringResource(R.string.empty_device_search))
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -417,11 +414,11 @@ fun DeviceBrowser(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
-                    Text("Categorías")
+                    Text(stringResource(R.string.categories))
                 }
                 Spacer(Modifier.width(6.dp))
                 Text(
-                    activeFilter.label,
+                    stringResource(activeFilter.labelRes),
                     modifier = Modifier.weight(1f),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
@@ -436,7 +433,7 @@ fun DeviceBrowser(
                             selectedAppPackages = emptySet()
                         },
                     ) {
-                        Text("Seleccionar")
+                        Text(stringResource(R.string.select))
                     }
                 }
                 IconButton(
@@ -456,9 +453,15 @@ fun DeviceBrowser(
                             Icons.Outlined.ViewList
                         },
                         contentDescription = if (viewMode == ContentViewMode.LIST) {
-                            "Ver ${activeFilter.label} en cuadrícula"
+                            stringResource(
+                                R.string.grid_view,
+                                stringResource(activeFilter.labelRes),
+                            )
                         } else {
-                            "Ver ${activeFilter.label} como lista"
+                            stringResource(
+                                R.string.list_view,
+                                stringResource(activeFilter.labelRes),
+                            )
                         },
                     )
                 }
@@ -472,9 +475,9 @@ fun DeviceBrowser(
         }
 
         when {
-            isLoading -> Text("Leyendo contenido del dispositivo…")
+            isLoading -> Text(stringResource(R.string.loading_device))
             activeFilter == DeviceFilter.APPS && visibleApps.isEmpty() ->
-                Text("No se encontraron aplicaciones para esa búsqueda.")
+                Text(stringResource(R.string.empty_apps_search))
             activeFilter == DeviceFilter.APPS -> {
                 if (viewMode == ContentViewMode.GRID) {
                     LazyVerticalGrid(
@@ -529,7 +532,12 @@ fun DeviceBrowser(
                 }
             }
             visibleFiles.isEmpty() ->
-                Text("No se encontraron ${activeFilter.label.lowercase()} accesibles.")
+                Text(
+                    stringResource(
+                        R.string.empty_device_category,
+                        stringResource(activeFilter.labelRes).lowercase(),
+                    ),
+                )
             viewMode == ContentViewMode.GRID -> {
                 LazyVerticalGrid(
                     columns = GridCells.Adaptive(148.dp),
@@ -602,6 +610,7 @@ fun DeviceBrowser(
     }
 }
 
+@Composable
 private fun deviceCategoryOverviewItems(
     files: List<DeviceFileInfo>,
     apps: List<InstalledAppInfo>,
@@ -611,16 +620,16 @@ private fun deviceCategoryOverviewItems(
         if (filter == DeviceFilter.APPS) {
             CategoryOverviewItem(
                 key = filter.key,
-                label = "Aplicaciones",
+                label = stringResource(R.string.filter_applications),
                 icon = Icons.Outlined.Android,
                 count = apps.size,
-                note = "Instaladas en este dispositivo",
+                note = stringResource(R.string.installed_on_device),
             )
         } else {
             val matching = files.filter { matchesDeviceFilter(it, filter) }
             CategoryOverviewItem(
                 key = filter.key,
-                label = filter.label,
+                label = stringResource(filter.labelRes),
                 icon = deviceFilterIcon(filter),
                 count = matching.size,
                 totalBytes = if (hasBroadFileAccess) {
@@ -628,7 +637,7 @@ private fun deviceCategoryOverviewItems(
                 } else {
                     null
                 },
-                note = if (hasBroadFileAccess) null else "Requiere acceso",
+                note = if (hasBroadFileAccess) null else stringResource(R.string.requires_access),
             )
         }
     }
@@ -662,16 +671,20 @@ private fun DeviceBulkSelectionBar(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Text(
-                "$selectedCount seleccionados",
+                stringResource(R.string.selected_count, selectedCount),
                 modifier = Modifier.weight(1f),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
             )
             TextButton(onClick = onToggleAll) {
-                Text(if (allVisibleSelected) "Ninguno" else "Todos")
+                Text(
+                stringResource(
+                    if (allVisibleSelected) R.string.select_none else R.string.select_all,
+                ),
+            )
             }
             TextButton(onClick = onCancel) {
-                Text("Cancelar")
+                Text(stringResource(R.string.cancel))
             }
         }
         Row(
@@ -684,7 +697,7 @@ private fun DeviceBulkSelectionBar(
             ) {
                 Icon(
                     imageVector = Icons.Outlined.Share,
-                    contentDescription = "Compartir seleccionados",
+                    contentDescription = stringResource(R.string.share_selected),
                     tint = MaterialTheme.colorScheme.primary,
                 )
             }
@@ -701,19 +714,18 @@ private fun AccessRequiredCard(onRequestBroadAccess: () -> Unit) {
     ) {
         Column(modifier = Modifier.padding(14.dp)) {
             Text(
-                "Acceso a archivos necesario",
+                stringResource(R.string.file_access_title),
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary,
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                "Para mostrar imágenes, videos, documentos, PDF, APK y otros archivos reales " +
-                    "del teléfono, Android necesita que autoricés a OclAx a administrar archivos.",
+                stringResource(R.string.file_access_message),
                 style = MaterialTheme.typography.bodySmall,
             )
             Spacer(Modifier.height(10.dp))
             Button(onClick = onRequestBroadAccess) {
-                Text("Conceder acceso")
+                Text(stringResource(R.string.grant_access))
             }
         }
     }
@@ -749,18 +761,19 @@ private fun DeviceAppListCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (selectionMode) {
+                val selectDescription = stringResource(R.string.select_item, app.label)
                 Checkbox(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = "Seleccionar ${app.label}"
+                        contentDescription = selectDescription
                     },
                 )
                 Spacer(Modifier.width(4.dp))
             }
             Image(
                 bitmap = bitmap,
-                contentDescription = "Icono de ${app.label}",
+                contentDescription = stringResource(R.string.icon_of, app.label),
                 modifier = Modifier.size(38.dp),
             )
             Spacer(Modifier.width(10.dp))
@@ -771,7 +784,9 @@ private fun DeviceAppListCard(
                     fontWeight = FontWeight.Medium,
                 )
                 Text(
-                    if (app.isSystemApp) "Aplicación del sistema" else "Aplicación instalada",
+                    stringResource(
+                        if (app.isSystemApp) R.string.system_app else R.string.installed_app,
+                    ),
                     style = MaterialTheme.typography.labelSmall,
                 )
             }
@@ -779,7 +794,7 @@ private fun DeviceAppListCard(
                 IconButton(onClick = { onShare(app) }) {
                     Icon(
                         imageVector = Icons.Outlined.Share,
-                        contentDescription = "Compartir ${app.label}",
+                        contentDescription = stringResource(R.string.share_item, app.label),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
@@ -818,17 +833,18 @@ private fun DeviceAppGridCard(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (selectionMode) {
+                val selectDescription = stringResource(R.string.select_item, app.label)
                 Checkbox(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = "Seleccionar ${app.label}"
+                        contentDescription = selectDescription
                     },
                 )
             }
             Image(
                 bitmap = bitmap,
-                contentDescription = "Icono de ${app.label}",
+                contentDescription = stringResource(R.string.icon_of, app.label),
                 modifier = Modifier.size(58.dp),
             )
             Spacer(Modifier.height(8.dp))
@@ -846,7 +862,7 @@ private fun DeviceAppGridCard(
                 IconButton(onClick = { onShare(app) }) {
                     Icon(
                         imageVector = Icons.Outlined.Share,
-                        contentDescription = "Compartir ${app.label}",
+                        contentDescription = stringResource(R.string.share_item, app.label),
                         tint = MaterialTheme.colorScheme.primary,
                     )
                 }
@@ -885,11 +901,12 @@ private fun DeviceFileListCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (selectionMode) {
+                val selectDescription = stringResource(R.string.select_item, file.displayName)
                 Checkbox(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = "Seleccionar ${file.displayName}"
+                        contentDescription = selectDescription
                     },
                 )
                 Spacer(Modifier.width(4.dp))
@@ -909,12 +926,12 @@ private fun DeviceFileListCard(
                     maxLines = 2,
                 )
                 Text(
-                    file.type.label + " · " + formatDeviceBytes(file.byteSize),
+                    stringResource(file.type.labelRes) + " · " + formatDeviceBytes(file.byteSize),
                     style = MaterialTheme.typography.bodySmall,
                 )
                 formatDeviceModifiedAt(file.modifiedAt)?.let { modified ->
                     Text(
-                        "Modificado · $modified",
+                        stringResource(R.string.modified_at, modified),
                         style = MaterialTheme.typography.labelSmall,
                     )
                 }
@@ -960,11 +977,12 @@ private fun DeviceFileGridCard(
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
             if (selectionMode) {
+                val selectDescription = stringResource(R.string.select_item, file.displayName)
                 Checkbox(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = "Seleccionar ${file.displayName}"
+                        contentDescription = selectDescription
                     },
                 )
             }
@@ -989,7 +1007,7 @@ private fun DeviceFileGridCard(
             )
             formatDeviceModifiedAt(file.modifiedAt)?.let { modified ->
                 Text(
-                    "Modificado · $modified",
+                    stringResource(R.string.modified_at, modified),
                     style = MaterialTheme.typography.labelSmall,
                     maxLines = 1,
                 )
@@ -1105,7 +1123,7 @@ private fun DeviceFileVisual(
             Box(contentAlignment = Alignment.Center) {
                 Icon(
                     imageVector = deviceTypeIcon(file.type),
-                    contentDescription = file.type.label,
+                    contentDescription = stringResource(file.type.labelRes),
                     modifier = Modifier.size(28.dp),
                 )
             }

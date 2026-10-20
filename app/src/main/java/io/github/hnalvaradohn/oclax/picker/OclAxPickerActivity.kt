@@ -17,6 +17,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.FileProvider
+import io.github.hnalvaradohn.oclax.R
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import io.github.hnalvaradohn.oclax.model.contentTypeFor
@@ -207,7 +208,10 @@ class OclAxPickerActivity : ComponentActivity() {
         }.getOrElse { error ->
             Toast.makeText(
                 this,
-                "No se pudo seleccionar: " + (error.message ?: "error desconocido"),
+                getString(
+                    R.string.picker_select_failed,
+                    error.message ?: getString(R.string.unknown_error),
+                ),
                 Toast.LENGTH_SHORT,
             ).show()
             return
@@ -246,7 +250,7 @@ class OclAxPickerActivity : ComponentActivity() {
                     if (!allowMultiple && exported.apkCount != 1) {
                         Toast.makeText(
                             this,
-                            "Esta aplicación usa varios APK. La app receptora debe permitir varios archivos.",
+                            getString(R.string.picker_split_requires_multiple),
                             Toast.LENGTH_LONG,
                         ).show()
                         return@onSuccess
@@ -275,7 +279,7 @@ class OclAxPickerActivity : ComponentActivity() {
                     if (selected.size + appSelections.size > MAX_SELECTIONS) {
                         Toast.makeText(
                             this,
-                            "La aplicación supera el límite de $MAX_SELECTIONS archivos seleccionados.",
+                            getString(R.string.picker_app_over_limit, MAX_SELECTIONS),
                             Toast.LENGTH_SHORT,
                         ).show()
                         return@onSuccess
@@ -284,8 +288,10 @@ class OclAxPickerActivity : ComponentActivity() {
                 }.onFailure { error ->
                     Toast.makeText(
                         this,
-                        "No se pudo preparar la aplicación: " +
-                            (error.message ?: "error desconocido"),
+                        getString(
+                            R.string.picker_prepare_app_failed,
+                            error.message ?: getString(R.string.unknown_error),
+                        ),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -305,7 +311,7 @@ class OclAxPickerActivity : ComponentActivity() {
             if (selected.size >= MAX_SELECTIONS) {
                 Toast.makeText(
                     this,
-                    "Podés seleccionar hasta $MAX_SELECTIONS archivos por vez.",
+                    getString(R.string.picker_selection_limit, MAX_SELECTIONS),
                     Toast.LENGTH_SHORT,
                 ).show()
                 return
