@@ -272,17 +272,17 @@ Hallazgos y acciones:
 1. **BLOQUEANTE — supply chain / Kotlin tooling**
    - Kotlin plugin 2.4.10 está afectado por CVE-2026-53914 (deserialización insegura de metadata de build cache).
    - Acción: actualizar a 2.4.21 antes de release.
-   - Estado: IMPLEMENTADO_PENDIENTE_CI.
+   - Estado: VERIFICADO; corregido en Kotlin 2.4.21 y CI verde.
 
 2. **BLOQUEANTE — abuso de ShareReceiverActivity exportada**
    - ACTION_SEND/ACTION_SEND_MULTIPLE es una superficie intencionalmente exportada.
    - Sin límite de cantidad, una app podía intentar entregar un lote arbitrariamente grande en una sola operación.
    - Acción: límite de 100 URI entrantes, rechazo temprano de lotes crudos sobredimensionados cuando su tamaño es observable y test unitario.
-   - Estado: IMPLEMENTADO_PENDIENTE_CI.
+   - Estado: VERIFICADO; límite y test integrados con CI verde.
 
 3. **Defense in depth**
    - CodeQL Java/Kotlin añadido para PR/main/semanal con suite `security-extended`.
-   - Estado: IMPLEMENTADO_PENDIENTE_PR_CI.
+   - Estado: VERIFICADO; CodeQL operativo y verde en PR #90/#91.
 
 No se detectaron:
 - credenciales o llaves embebidas;
