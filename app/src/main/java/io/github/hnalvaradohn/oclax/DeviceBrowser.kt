@@ -232,13 +232,11 @@ fun DeviceBrowser(
         }
     }
 
-    val categoryOverview = remember(files, apps, hasBroadFileAccess) {
-        deviceCategoryOverviewItems(
-            files = files,
-            apps = apps,
-            hasBroadFileAccess = hasBroadFileAccess,
-        )
-    }
+    val categoryOverview = deviceCategoryOverviewItems(
+        files = files,
+        apps = apps,
+        hasBroadFileAccess = hasBroadFileAccess,
+    )
     val selectedFiles = remember(files, selectedFileUris) {
         files.filter { it.uri.toString() in selectedFileUris }
     }
@@ -767,7 +765,7 @@ private fun DeviceAppListCard(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = stringResource(R.string.select_item, app.label)
+                        contentDescription = app.label
                     },
                 )
                 Spacer(Modifier.width(4.dp))
@@ -838,7 +836,7 @@ private fun DeviceAppGridCard(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = stringResource(R.string.select_item, app.label)
+                        contentDescription = app.label
                     },
                 )
             }
@@ -905,7 +903,7 @@ private fun DeviceFileListCard(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = stringResource(R.string.select_item, file.displayName)
+                        contentDescription = file.displayName
                     },
                 )
                 Spacer(Modifier.width(4.dp))
@@ -980,7 +978,7 @@ private fun DeviceFileGridCard(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = stringResource(R.string.select_item, file.displayName)
+                        contentDescription = file.displayName
                     },
                 )
             }
