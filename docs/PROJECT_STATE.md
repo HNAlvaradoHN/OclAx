@@ -296,8 +296,9 @@ VERIFICADO:
 IMPLEMENTADO_PENDIENTE_VALIDACIÓN en `feat/app-launcher-icon`:
 - OclAx ya declara icono de aplicación propio;
 - el icono adaptativo usa fondo casi negro, naranja OclAx y una marca geométrica O+X;
-- se eliminará el icono Android genérico que aparecía por no existir `android:icon` en el Manifest;
-- falta CI y validación física del recorte/renderizado en el dispositivo.
+- sustituye el icono Android genérico que aparecía por no existir `android:icon` en el Manifest;
+- Android CI run 356 y CodeQL run 10 del PR #91 están verdes;
+- falta validación física del recorte/renderizado en el dispositivo.
 
 Diagnóstico de la opción OEM **Mini**:
 - el Manifest no fija orientación ni marca la actividad como no redimensionable;
