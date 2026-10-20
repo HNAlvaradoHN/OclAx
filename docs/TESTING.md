@@ -408,7 +408,18 @@ Añadido:
 - artefacto `OclAx-release-unsigned`;
 - CodeQL Java/Kotlin en PR/main/semanal.
 
-Gate actual:
-- CI Android;
-- CodeQL;
-- QA visual final.
+Gate técnico final:
+- CI Android: VERIFICADO;
+- CodeQL: VERIFICADO;
+- QA visual final: VERIFICADO.
+
+
+## QA físico final — 2026-10-20
+
+VERIFICADO por el dueño con el APK que incorpora PR #91:
+- modo claro correcto;
+- ventana estrecha/Formato libre: scroll y controles utilizables, sin bloqueo por falta de espacio;
+- smoke test final correcto: Share Sheet → OclAx, categorías, búsqueda, Mi dispositivo, abrir/compartir archivo y Atrás;
+- icono propio OclAx visible correctamente en el dispositivo.
+
+Resultado: QA físico final cerrado para la candidata técnica local.
