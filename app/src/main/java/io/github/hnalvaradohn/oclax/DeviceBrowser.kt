@@ -761,11 +761,12 @@ private fun DeviceAppListCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (selectionMode) {
+                val selectDescription = stringResource(R.string.select_item, app.label)
                 Checkbox(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = app.label
+                        contentDescription = selectDescription
                     },
                 )
                 Spacer(Modifier.width(4.dp))
@@ -832,11 +833,12 @@ private fun DeviceAppGridCard(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             if (selectionMode) {
+                val selectDescription = stringResource(R.string.select_item, app.label)
                 Checkbox(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = app.label
+                        contentDescription = selectDescription
                     },
                 )
             }
@@ -899,11 +901,12 @@ private fun DeviceFileListCard(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             if (selectionMode) {
+                val selectDescription = stringResource(R.string.select_item, file.displayName)
                 Checkbox(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = file.displayName
+                        contentDescription = selectDescription
                     },
                 )
                 Spacer(Modifier.width(4.dp))
@@ -974,11 +977,12 @@ private fun DeviceFileGridCard(
     ) {
         Column(modifier = Modifier.padding(8.dp)) {
             if (selectionMode) {
+                val selectDescription = stringResource(R.string.select_item, file.displayName)
                 Checkbox(
                     checked = selected,
                     onCheckedChange = { onToggleSelection() },
                     modifier = Modifier.semantics {
-                        contentDescription = file.displayName
+                        contentDescription = selectDescription
                     },
                 )
             }
