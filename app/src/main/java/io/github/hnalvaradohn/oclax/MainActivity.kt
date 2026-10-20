@@ -18,6 +18,7 @@ import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.activity.result.IntentSenderRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.annotation.StringRes
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
@@ -84,6 +85,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -150,12 +152,16 @@ class MainActivity : ComponentActivity() {
         if (result.resultCode == Activity.RESULT_OK) {
             Toast.makeText(
                 this,
-                if (name.isNullOrBlank()) "Archivo eliminado." else "Se eliminó “$name”.",
+                if (name.isNullOrBlank()) {
+                    getString(R.string.toast_file_deleted)
+                } else {
+                    getString(R.string.toast_named_file_deleted, name)
+                },
                 Toast.LENGTH_SHORT,
             ).show()
             refresh()
         } else {
-            Toast.makeText(this, "No se eliminó el archivo.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_file_not_deleted), Toast.LENGTH_SHORT).show()
             refresh()
         }
     }
@@ -183,7 +189,7 @@ class MainActivity : ComponentActivity() {
                         if (!store.deleteItem(item.id)) {
                             Toast.makeText(
                                 this,
-                                "No se pudo eliminar la copia de OclAx.",
+                                getString(R.string.toast_oclax_copy_delete_failed),
                                 Toast.LENGTH_SHORT,
                             ).show()
                         }
@@ -247,15 +253,18 @@ class MainActivity : ComponentActivity() {
             runOnUiThread {
                 result.onSuccess { renamed ->
                     val message = when (renamed.originalRenamed) {
-                        true -> "Se renombró en OclAx y en el dispositivo."
-                        false -> "Se renombró en OclAx; el origen no permite renombrado."
-                        null -> "Se renombró en OclAx."
+                        true -> getString(R.string.toast_renamed_both)
+                        false -> getString(R.string.toast_renamed_oclax_only)
+                        null -> getString(R.string.toast_renamed_oclax)
                     }
                     Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
                 }.onFailure { error ->
                     Toast.makeText(
                         this,
-                        "No se pudo renombrar: " + (error.message ?: "error desconocido"),
+                        getString(
+                            R.string.toast_rename_failed,
+                            error.message ?: getString(R.string.unknown_error),
+                        ),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -269,11 +278,18 @@ class MainActivity : ComponentActivity() {
             val result = runCatching { deviceContentRepository.rename(file, newName) }
             runOnUiThread {
                 result.onSuccess {
-                    Toast.makeText(this, "Archivo original renombrado.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this,
+                        getString(R.string.toast_original_renamed),
+                        Toast.LENGTH_SHORT,
+                    ).show()
                 }.onFailure { error ->
                     Toast.makeText(
                         this,
-                        "No se pudo renombrar: " + (error.message ?: "error desconocido"),
+                        getString(
+                            R.string.toast_rename_failed,
+                            error.message ?: getString(R.string.unknown_error),
+                        ),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -342,7 +358,7 @@ class MainActivity : ComponentActivity() {
         if (!contentOpener.open(file.uri, file.mimeType)) {
             Toast.makeText(
                 this,
-                "No hay una aplicación disponible para abrir este tipo de archivo.",
+                getString(R.string.toast_no_opener),
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -356,11 +372,14 @@ class MainActivity : ComponentActivity() {
                 clipData = ClipData.newUri(contentResolver, file.displayName, file.uri)
                 addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             }
-            startActivity(Intent.createChooser(intent, "Compartir desde Mi dispositivo"))
+            startActivity(Intent.createChooser(intent, getString(R.string.chooser_share_device)))
         } catch (error: Exception) {
             Toast.makeText(
                 this,
-                "No se pudo compartir: " + (error.message ?: "error desconocido"),
+                getString(
+                    R.string.toast_share_failed,
+                    error.message ?: getString(R.string.unknown_error),
+                ),
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -375,7 +394,7 @@ class MainActivity : ComponentActivity() {
         if (selectedFiles.size > MAX_BULK_SELECTION) {
             Toast.makeText(
                 this,
-                "Podés compartir hasta $MAX_BULK_SELECTION archivos a la vez.",
+                getString(R.string.toast_share_limit, MAX_BULK_SELECTION),
                 Toast.LENGTH_SHORT,
             ).show()
             return
@@ -395,12 +414,14 @@ class MainActivity : ComponentActivity() {
             )
             uris.drop(1).forEach { uri -> clip.addItem(ClipData.Item(uri)) }
             intent.clipData = clip
-            startActivity(Intent.createChooser(intent, "Compartir desde Mi dispositivo"))
+            startActivity(Intent.createChooser(intent, getString(R.string.chooser_share_device)))
         } catch (error: Exception) {
             Toast.makeText(
                 this,
-                "No se pudieron compartir los archivos: " +
-                    (error.message ?: "error desconocido"),
+                getString(
+                    R.string.toast_share_many_failed,
+                    error.message ?: getString(R.string.unknown_error),
+                ),
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -416,7 +437,7 @@ class MainActivity : ComponentActivity() {
                     if (file.byteSize > MAX_CLIPBOARD_TEXT_BYTES) {
                         Toast.makeText(
                             this,
-                            "Ese texto es demasiado grande para copiarlo al portapapeles.",
+                            getString(R.string.toast_text_too_large),
                             Toast.LENGTH_SHORT,
                         ).show()
                         return
@@ -439,11 +460,14 @@ class MainActivity : ComponentActivity() {
 
                 else -> return
             }
-            Toast.makeText(this, "Copiado al portapapeles.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
         } catch (error: Exception) {
             Toast.makeText(
                 this,
-                "No se pudo copiar: " + (error.message ?: "error desconocido"),
+                getString(
+                    R.string.toast_copy_failed,
+                    error.message ?: getString(R.string.unknown_error),
+                ),
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -452,7 +476,11 @@ class MainActivity : ComponentActivity() {
     private fun deleteDeviceFile(file: DeviceFileInfo) {
         when (val result = deviceContentRepository.requestDelete(file)) {
             DeviceDeleteResult.Deleted -> {
-                Toast.makeText(this, "Se eliminó “${file.displayName}”.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    getString(R.string.toast_named_file_deleted, file.displayName),
+                    Toast.LENGTH_SHORT,
+                ).show()
                 refresh()
             }
 
@@ -465,7 +493,10 @@ class MainActivity : ComponentActivity() {
             is DeviceDeleteResult.Failed -> {
                 Toast.makeText(
                     this,
-                    "No se pudo eliminar: " + (result.reason ?: "error desconocido"),
+                    getString(
+                        R.string.toast_delete_failed,
+                        result.reason ?: getString(R.string.unknown_error),
+                    ),
                     Toast.LENGTH_SHORT,
                 ).show()
                 refresh()
@@ -474,7 +505,11 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun shareInstalledApp(app: InstalledAppInfo) {
-        Toast.makeText(this, "Preparando ${app.label}…", Toast.LENGTH_SHORT).show()
+        Toast.makeText(
+            this,
+            getString(R.string.toast_preparing_app, app.label),
+            Toast.LENGTH_SHORT,
+        ).show()
         deviceExecutor.execute {
             val prepared = runCatching { installedAppExporter.prepare(app) }
 
@@ -507,30 +542,36 @@ class MainActivity : ComponentActivity() {
                         startActivity(
                             Intent.createChooser(
                                 sendIntent,
-                                "Compartir aplicación instalada",
+                                getString(R.string.chooser_share_installed_app),
                             ),
                         )
 
                         Toast.makeText(
                             this,
                             if (exported.apkCount == 1) {
-                                "Se comparte solo el APK de instalación; no tus datos."
+                                getString(R.string.toast_share_single_apk)
                             } else {
-                                "Se comparten ${exported.apkCount} APK del paquete; no tus datos."
+                                getString(R.string.toast_share_split_apks, exported.apkCount)
                             },
                             Toast.LENGTH_LONG,
                         ).show()
                     } catch (error: Exception) {
                         Toast.makeText(
                             this,
-                            "No se pudo compartir: " + (error.message ?: "error desconocido"),
+                            getString(
+                                R.string.toast_share_failed,
+                                error.message ?: getString(R.string.unknown_error),
+                            ),
                             Toast.LENGTH_SHORT,
                         ).show()
                     }
                 }.onFailure { error ->
                     Toast.makeText(
                         this,
-                        "No se pudo preparar la app: " + (error.message ?: "error desconocido"),
+                        getString(
+                            R.string.toast_prepare_app_failed,
+                            error.message ?: getString(R.string.unknown_error),
+                        ),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -547,7 +588,7 @@ class MainActivity : ComponentActivity() {
         if (selectedApps.size > MAX_BULK_INSTALLED_APPS) {
             Toast.makeText(
                 this,
-                "Podés compartir hasta $MAX_BULK_INSTALLED_APPS aplicaciones a la vez.",
+                getString(R.string.toast_app_limit, MAX_BULK_INSTALLED_APPS),
                 Toast.LENGTH_SHORT,
             ).show()
             return
@@ -555,7 +596,7 @@ class MainActivity : ComponentActivity() {
 
         Toast.makeText(
             this,
-            "Preparando ${selectedApps.size} aplicaciones…",
+            getString(R.string.toast_preparing_apps, selectedApps.size),
             Toast.LENGTH_SHORT,
         ).show()
 
@@ -579,7 +620,7 @@ class MainActivity : ComponentActivity() {
                         }
                         val clip = ClipData.newUri(
                             contentResolver,
-                            "Aplicaciones instaladas",
+                            getString(R.string.chooser_installed_apps),
                             uris.first(),
                         )
                         uris.drop(1).forEach { uri -> clip.addItem(ClipData.Item(uri)) }
@@ -615,7 +656,7 @@ class MainActivity : ComponentActivity() {
         if (launchIntent == null) {
             Toast.makeText(
                 this,
-                "Esta aplicación no tiene una pantalla que se pueda abrir.",
+                getString(R.string.toast_no_app_screen),
                 Toast.LENGTH_SHORT,
             ).show()
             return
@@ -623,7 +664,11 @@ class MainActivity : ComponentActivity() {
 
         runCatching { startActivity(launchIntent) }
             .onFailure {
-                Toast.makeText(this, "No se pudo abrir " + app.label + ".", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+            this,
+            getString(R.string.toast_open_app_failed, app.label),
+            Toast.LENGTH_SHORT,
+        ).show()
             }
     }
 
@@ -633,14 +678,17 @@ class MainActivity : ComponentActivity() {
             if (!opened) {
                 Toast.makeText(
                     this,
-                    "No hay una aplicación disponible para abrir este tipo de archivo.",
+                    getString(R.string.toast_no_opener),
                     Toast.LENGTH_SHORT,
                 ).show()
             }
         } catch (error: Exception) {
             Toast.makeText(
                 this,
-                "No se pudo abrir: " + (error.message ?: "error desconocido"),
+                getString(
+                    R.string.toast_open_failed,
+                    error.message ?: getString(R.string.unknown_error),
+                ),
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -668,11 +716,14 @@ class MainActivity : ComponentActivity() {
                 }
             }
 
-            startActivity(Intent.createChooser(sendIntent, "Compartir desde OclAx"))
+            startActivity(Intent.createChooser(sendIntent, getString(R.string.chooser_share_oclax)))
         } catch (error: Exception) {
             Toast.makeText(
                 this,
-                "No se pudo compartir: " + (error.message ?: "error desconocido"),
+                getString(
+                    R.string.toast_share_failed,
+                    error.message ?: getString(R.string.unknown_error),
+                ),
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -683,7 +734,7 @@ class MainActivity : ComponentActivity() {
         if (selectedItems.size > MAX_BULK_SELECTION) {
             Toast.makeText(
                 this,
-                "Podés compartir hasta $MAX_BULK_SELECTION elementos a la vez.",
+                getString(R.string.toast_share_items_limit, MAX_BULK_SELECTION),
                 Toast.LENGTH_SHORT,
             ).show()
             return
@@ -719,12 +770,14 @@ class MainActivity : ComponentActivity() {
             }
             sendIntent.clipData = clip
 
-            startActivity(Intent.createChooser(sendIntent, "Compartir desde OclAx"))
+            startActivity(Intent.createChooser(sendIntent, getString(R.string.chooser_share_oclax)))
         } catch (error: Exception) {
             Toast.makeText(
                 this,
-                "No se pudieron compartir los elementos: " +
-                    (error.message ?: "error desconocido"),
+                getString(
+                    R.string.toast_share_items_failed,
+                    error.message ?: getString(R.string.unknown_error),
+                ),
                 Toast.LENGTH_SHORT,
             ).show()
         }
@@ -741,9 +794,9 @@ class MainActivity : ComponentActivity() {
                 Toast.makeText(
                     this,
                     if (pinned) {
-                        "Se fijaron $updated de ${selectedItems.size} elementos."
+                        getString(R.string.toast_pinned_many, updated, selectedItems.size)
                     } else {
-                        "Se desfijaron $updated de ${selectedItems.size} elementos."
+                        getString(R.string.toast_unpinned_many, updated, selectedItems.size)
                     },
                     Toast.LENGTH_SHORT,
                 ).show()
@@ -759,7 +812,7 @@ class MainActivity : ComponentActivity() {
                 refresh()
                 Toast.makeText(
                     this,
-                    "Se eliminaron $deleted de ${selectedItems.size} copias de OclAx.",
+                    getString(R.string.toast_deleted_many, deleted, selectedItems.size),
                     Toast.LENGTH_SHORT,
                 ).show()
             }
@@ -779,7 +832,7 @@ class MainActivity : ComponentActivity() {
                     if (item.byteSize > MAX_CLIPBOARD_TEXT_BYTES) {
                         Toast.makeText(
                             this,
-                            "Ese texto es demasiado grande para copiarlo al portapapeles.",
+                            getString(R.string.toast_text_too_large),
                             Toast.LENGTH_SHORT,
                         ).show()
                         return
@@ -806,33 +859,36 @@ class MainActivity : ComponentActivity() {
                 else -> return
             }
 
-            Toast.makeText(this, "Copiado al portapapeles.", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, getString(R.string.toast_copied), Toast.LENGTH_SHORT).show()
         } catch (error: Exception) {
             Toast.makeText(
                 this,
-                "No se pudo copiar: " + (error.message ?: "error desconocido"),
+                getString(
+                    R.string.toast_copy_failed,
+                    error.message ?: getString(R.string.unknown_error),
+                ),
                 Toast.LENGTH_SHORT,
             ).show()
         }
     }
 }
 
-private enum class ContentFilter(val label: String) {
-    ALL("Todo"),
-    PINNED("Fijados"),
-    IMAGES("Imágenes"),
-    DOCUMENTS("Documentos"),
-    PDF("PDF"),
-    APK("APK guardados"),
-    TEXT("Texto/Código"),
-    VIDEO("Video"),
-    AUDIO("Audio"),
-    OTHER("Otros"),
+private enum class ContentFilter(@StringRes val labelRes: Int) {
+    ALL(R.string.filter_all),
+    PINNED(R.string.filter_pinned),
+    IMAGES(R.string.filter_images),
+    DOCUMENTS(R.string.filter_documents),
+    PDF(R.string.filter_pdf),
+    APK(R.string.filter_saved_apk),
+    TEXT(R.string.filter_text),
+    VIDEO(R.string.filter_video),
+    AUDIO(R.string.filter_audio),
+    OTHER(R.string.filter_other),
 }
 
-private enum class SourceMode(val label: String) {
-    OCLAX("OclAx"),
-    DEVICE("Mi dispositivo"),
+private enum class SourceMode(@StringRes val labelRes: Int) {
+    OCLAX(R.string.app_name),
+    DEVICE(R.string.device_tab),
 }
 
 @Composable
