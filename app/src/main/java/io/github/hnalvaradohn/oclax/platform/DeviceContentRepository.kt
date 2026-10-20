@@ -9,6 +9,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Environment
 import android.provider.MediaStore
+import io.github.hnalvaradohn.oclax.R
 import androidx.annotation.RequiresApi
 import androidx.core.content.ContextCompat
 import android.webkit.MimeTypeMap
@@ -148,12 +149,12 @@ class DeviceContentRepository(context: Context) {
 
     fun rename(file: DeviceFileInfo, rawName: String): DeviceFileInfo {
         if (!hasBroadFileAccess()) {
-            throw IllegalStateException("OclAx no tiene acceso a los archivos del dispositivo.")
+            throw IllegalStateException(context.getString(R.string.error_no_device_access))
         }
 
         val safeName = SafeNames.sanitize(rawName, file.displayName)
         if (safeName.isBlank()) {
-            throw IllegalArgumentException("El nombre no es válido.")
+            throw IllegalArgumentException(context.getString(R.string.error_invalid_name))
         }
 
         val values = ContentValues().apply {
@@ -161,7 +162,7 @@ class DeviceContentRepository(context: Context) {
         }
         val updated = resolver.update(file.uri, values, null, null)
         if (updated <= 0) {
-            throw IllegalStateException("Android no permitió renombrar el archivo original.")
+            throw IllegalStateException(context.getString(R.string.error_original_rename_denied))
         }
 
         return file.copy(
@@ -172,7 +173,7 @@ class DeviceContentRepository(context: Context) {
 
     fun requestDelete(file: DeviceFileInfo): DeviceDeleteResult {
         if (!hasBroadFileAccess()) {
-            return DeviceDeleteResult.Failed("OclAx no tiene acceso a los archivos del dispositivo.")
+            return DeviceDeleteResult.Failed(context.getString(R.string.error_no_device_access))
         }
 
         return when {
@@ -200,7 +201,7 @@ class DeviceContentRepository(context: Context) {
 
         val confirmationUri = mediaDeleteConfirmationUri(file)
             ?: return DeviceDeleteResult.Failed(
-                directDeleteError?.message ?: "Android no permitió eliminar el archivo original.",
+                directDeleteError?.message ?: context.getString(R.string.error_android_delete_denied),
             )
 
         return runCatching {
@@ -238,7 +239,7 @@ class DeviceContentRepository(context: Context) {
             if (deleted > 0) {
                 DeviceDeleteResult.Deleted
             } else {
-                DeviceDeleteResult.Failed("Android no eliminó el archivo.")
+                DeviceDeleteResult.Failed(context.getString(R.string.error_android_not_deleted))
             }
         } catch (error: RecoverableSecurityException) {
             DeviceDeleteResult.NeedsUserConfirmation(
@@ -256,7 +257,7 @@ class DeviceContentRepository(context: Context) {
             if (deleted > 0) {
                 DeviceDeleteResult.Deleted
             } else {
-                DeviceDeleteResult.Failed("Android no eliminó el archivo.")
+                DeviceDeleteResult.Failed(context.getString(R.string.error_android_not_deleted))
             }
         } catch (error: SecurityException) {
             DeviceDeleteResult.Failed(error.message)
