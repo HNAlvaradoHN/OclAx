@@ -615,6 +615,7 @@ fun DeviceBrowser(
     }
 }
 
+@Composable
 private fun deviceCategoryOverviewItems(
     files: List<DeviceFileInfo>,
     apps: List<InstalledAppInfo>,
