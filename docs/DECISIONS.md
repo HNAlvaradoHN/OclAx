@@ -770,3 +770,20 @@ Reglas:
 - borrar, mover o renombrar originales en lote sigue fuera de alcance hasta tener reglas explícitas de seguridad/nombres/destino.
 
 **Motivo:** mantener coherencia entre OclAx y Mi dispositivo sin introducir pérdida accidental de datos reales.
+
+---
+
+## DEC-039 — Distribución por GitHub Releases e interfaz bilingüe
+
+**Canal de distribución:** el dueño elige **GitHub Releases** para la primera publicación pública. No se inicia Google Play ni otra tienda como parte de esta decisión.
+
+**Idiomas iniciales:** OclAx soporta **inglés y español**:
+- inglés como recurso Android por defecto para alcance internacional;
+- español en `values-es`;
+- Android selecciona el idioma según la configuración del sistema/app;
+- `localeConfig` declara `en` y `es` en versiones compatibles;
+- textos visibles y descripciones de accesibilidad deben vivir en recursos, no quedar embebidos en Kotlin salvo valores técnicos que no son copy de interfaz.
+
+**Documentación pública:** `README.md` queda en inglés como entrada internacional y `README.es.md` ofrece la versión española equivalente.
+
+**Motivo:** GitHub permite distribuir directamente el APK firmado sin asumir requisitos de una tienda, y el soporte bilingüe evita limitar OclAx a usuarios hispanohablantes sin sobrecargar el producto con traducciones no validadas.
