@@ -174,4 +174,27 @@
     <string name="retention_7_days">7 días</string>
     <string name="category_one_item">1 elemento</string>
     <string name="category_many_items">%1$d elementos</string>
+    <string name="error_invalid_id">Identificador inválido.</string>
+    <string name="error_missing_oclax_file">El archivo ya no existe en OclAx.</string>
+    <string name="error_invalid_name">El nombre no es válido.</string>
+    <string name="error_original_rename_denied">Android no permitió renombrar el archivo original.</string>
+    <string name="error_empty_text">El texto está vacío.</string>
+    <string name="error_text_limit">El texto supera el límite seguro de OclAx.</string>
+    <string name="error_unsafe_content_uri">OclAx solo acepta ubicaciones de contenido seguras.</string>
+    <string name="error_file_limit">El archivo supera el límite seguro de OclAx.</string>
+    <string name="error_open_shared_file">No se pudo abrir el archivo compartido.</string>
+    <string name="error_invalid_path">Ruta de archivo inválida.</string>
+    <string name="error_prepare_storage">No se pudo preparar el almacenamiento local.</string>
+    <string name="error_empty_shared_file">El archivo compartido está vacío.</string>
+    <string name="error_confirm_oclax_file">No se pudo confirmar el archivo en OclAx.</string>
+    <string name="error_save_metadata">No se pudo guardar la metadata del archivo.</string>
+    <string name="error_insufficient_storage">No hay suficiente espacio libre para guardar este archivo.</string>
+    <string name="error_no_device_access">OclAx no tiene acceso a los archivos del dispositivo.</string>
+    <string name="error_android_delete_denied">Android no permitió eliminar el archivo original.</string>
+    <string name="error_android_not_deleted">Android no eliminó el archivo.</string>
+    <string name="error_no_readable_apk">No se encontraron APK legibles para %1$s.</string>
+    <string name="error_app_export_limit">La aplicación supera el límite seguro de exportación de OclAx.</string>
+    <string name="error_insufficient_app_space">No hay espacio libre suficiente para preparar la aplicación.</string>
+    <string name="error_prepare_export_dir">No se pudo preparar el directorio temporal de exportación.</string>
+    <string name="error_prepare_export">No se pudo preparar la exportación de la aplicación.</string>
 </resources>
