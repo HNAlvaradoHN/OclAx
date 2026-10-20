@@ -8,6 +8,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import androidx.core.content.FileProvider
+import io.github.hnalvaradohn.oclax.R
 import io.github.hnalvaradohn.oclax.data.ItemStore
 import io.github.hnalvaradohn.oclax.model.StoredItem
 import java.io.IOException
@@ -28,7 +29,7 @@ class ShareIngestor(private val context: Context) {
         val incomingUris = collectUris(intent)
         if (!isSupportedIncomingUriCount(incomingUris.size)) {
             throw IOException(
-                "OclAx acepta hasta $MAX_INCOMING_SHARED_URIS archivos por operación.",
+                context.getString(R.string.share_uri_limit, MAX_INCOMING_SHARED_URIS),
             )
         }
         val importedFiles = incomingUris.map { store.importUri(it, intent.type) }
@@ -103,7 +104,7 @@ class ShareIngestor(private val context: Context) {
     private fun requireSupportedIncomingUriCount(count: Int) {
         if (!isSupportedIncomingUriCount(count)) {
             throw IOException(
-                "OclAx acepta hasta $MAX_INCOMING_SHARED_URIS archivos por operación.",
+                context.getString(R.string.share_uri_limit, MAX_INCOMING_SHARED_URIS),
             )
         }
     }
