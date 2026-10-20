@@ -287,8 +287,10 @@ class OclAxPickerActivity : ComponentActivity() {
                 }.onFailure { error ->
                     Toast.makeText(
                         this,
-                        "No se pudo preparar la aplicación: " +
-                            (error.message ?: "error desconocido"),
+                        getString(
+                            R.string.picker_prepare_app_failed,
+                            error.message ?: getString(R.string.unknown_error),
+                        ),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
