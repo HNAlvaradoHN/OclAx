@@ -262,7 +262,7 @@ fun DeviceBrowser(
             modifier = Modifier.fillMaxWidth(),
             enabled = !selecting,
             singleLine = true,
-            label = { Text("Buscar en mi dispositivo") },
+            label = { Text(stringResource(R.string.search_device)) },
         )
         Spacer(Modifier.height(10.dp))
 
@@ -301,7 +301,7 @@ fun DeviceBrowser(
                 }
                 Spacer(Modifier.width(8.dp))
                 Text(
-                    "Resultados",
+                    stringResource(R.string.results),
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                 )
@@ -309,7 +309,7 @@ fun DeviceBrowser(
             Spacer(Modifier.height(8.dp))
 
             if (visibleApps.isEmpty() && visibleFiles.isEmpty()) {
-                Text("No se encontró contenido con ese nombre.")
+                Text(stringResource(R.string.empty_device_search))
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
@@ -419,7 +419,7 @@ fun DeviceBrowser(
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                     )
-                    Text("Categorías")
+                    Text(stringResource(R.string.categories))
                 }
                 Spacer(Modifier.width(6.dp))
                 Text(
