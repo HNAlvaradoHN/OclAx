@@ -6,7 +6,7 @@
 **Aplicación:** funcional en main; vertical local y QA físico final validados.  
 **Repositorio:** público.  
 **Protocol version:** 6.  
-**Autorización actual:** completar revisión final de seguridad/calidad/release y preparar candidata técnica sin firmar ni publicar.
+**Autorización actual:** cierre de candidata técnica local completado; cualquier publicación, firma de producción o nueva funcionalidad requiere objetivo/autorización posterior.
 
 ## Dirección vigente
 
