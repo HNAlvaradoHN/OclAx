@@ -203,9 +203,9 @@ internal fun PickerScreen(
                     )
                     Text(
                         if (allowMultiple) {
-                            "Elegí uno o varios archivos."
+                            stringResource(io.github.hnalvaradohn.oclax.R.string.picker_instruction_multiple)
                         } else {
-                            "Elegí un archivo para continuar."
+                            stringResource(io.github.hnalvaradohn.oclax.R.string.picker_instruction_single)
                         },
                         style = MaterialTheme.typography.bodyMedium,
                     )
@@ -236,9 +236,9 @@ internal fun PickerScreen(
                 label = {
                     Text(
                         if (source == PickerSource.OCLAX) {
-                            "Buscar en OclAx"
+                            stringResource(io.github.hnalvaradohn.oclax.R.string.search_oclax)
                         } else {
-                            "Buscar en mi dispositivo"
+                            stringResource(io.github.hnalvaradohn.oclax.R.string.search_device)
                         },
                     )
                 },
@@ -368,9 +368,12 @@ internal fun PickerScreen(
                 ) {
                     Text(
                         if (selected.size == 1) {
-                            "Usar 1 archivo"
+                            stringResource(io.github.hnalvaradohn.oclax.R.string.picker_use_one)
                         } else {
-                            "Usar ${selected.size} archivos"
+                            stringResource(
+                                io.github.hnalvaradohn.oclax.R.string.picker_use_many,
+                                selected.size,
+                            )
                         },
                     )
                 }
@@ -379,6 +382,7 @@ internal fun PickerScreen(
     }
 }
 
+@Composable
 private fun pickerCategoryOverviewItems(
     source: PickerSource,
     oclaxItems: List<StoredItem>,
@@ -405,7 +409,7 @@ private fun pickerCategoryOverviewItems(
                 count = matching.size,
                 totalBytes = matching.sumOf { it.byteSize },
                 note = if (category == PickerCategory.PINNED) {
-                    "Guardados sin autolimpieza"
+                    stringResource(io.github.hnalvaradohn.oclax.R.string.picker_no_cleanup)
                 } else {
                     null
                 },
@@ -498,8 +502,7 @@ private fun PickerAccessCard(onRequestBroadAccess: () -> Unit) {
             )
             Spacer(Modifier.height(4.dp))
             Text(
-                "Para elegir archivos reales del teléfono, autorizá el acceso desde Android. " +
-                    "La bandeja privada de OclAx sigue disponible sin ese permiso.",
+                stringResource(io.github.hnalvaradohn.oclax.R.string.picker_device_access_message),
                 style = MaterialTheme.typography.bodySmall,
             )
             Spacer(Modifier.height(10.dp))
@@ -543,6 +546,7 @@ private fun oclaxItemsToRows(
     )
 }
 
+@Composable
 private fun deviceFilesToRows(
     files: List<DeviceFileInfo>,
     onSelect: (DeviceFileInfo) -> Unit,
@@ -563,6 +567,7 @@ private fun deviceFilesToRows(
     )
 }
 
+@Composable
 private fun installedAppsToRows(
     apps: List<InstalledAppInfo>,
     exportingAppPackage: String?,
@@ -574,11 +579,11 @@ private fun installedAppsToRows(
         mimeType = INSTALLED_APP_MIME_TYPE,
         byteSize = 0L,
         summary = if (exportingAppPackage == app.packageName) {
-            "Preparando APK…"
+            stringResource(io.github.hnalvaradohn.oclax.R.string.picker_preparing_apk)
         } else if (app.isSystemApp) {
-            "Aplicación del sistema"
+            stringResource(io.github.hnalvaradohn.oclax.R.string.system_app)
         } else {
-            "Aplicación instalada"
+            stringResource(io.github.hnalvaradohn.oclax.R.string.installed_app)
         },
         details = listOf(app.packageName),
         thumbnailVersion = 0L,
