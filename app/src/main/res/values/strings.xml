@@ -174,4 +174,27 @@
     <string name="retention_7_days">7 days</string>
     <string name="category_one_item">1 item</string>
     <string name="category_many_items">%1$d items</string>
+    <string name="error_invalid_id">Invalid identifier.</string>
+    <string name="error_missing_oclax_file">The file no longer exists in OclAx.</string>
+    <string name="error_invalid_name">The name is not valid.</string>
+    <string name="error_original_rename_denied">Android did not allow renaming the original file.</string>
+    <string name="error_empty_text">The text is empty.</string>
+    <string name="error_text_limit">The text exceeds the safe OclAx limit.</string>
+    <string name="error_unsafe_content_uri">OclAx only accepts safe content locations.</string>
+    <string name="error_file_limit">The file exceeds the safe OclAx limit.</string>
+    <string name="error_open_shared_file">Could not open the shared file.</string>
+    <string name="error_invalid_path">Invalid file path.</string>
+    <string name="error_prepare_storage">Could not prepare local storage.</string>
+    <string name="error_empty_shared_file">The shared file is empty.</string>
+    <string name="error_confirm_oclax_file">Could not confirm the file in OclAx.</string>
+    <string name="error_save_metadata">Could not save file metadata.</string>
+    <string name="error_insufficient_storage">There is not enough free space to save this file.</string>
+    <string name="error_no_device_access">OclAx does not have access to device files.</string>
+    <string name="error_android_delete_denied">Android did not allow deleting the original file.</string>
+    <string name="error_android_not_deleted">Android did not delete the file.</string>
+    <string name="error_no_readable_apk">No readable APKs were found for %1$s.</string>
+    <string name="error_app_export_limit">The application exceeds the safe OclAx export limit.</string>
+    <string name="error_insufficient_app_space">There is not enough free space to prepare the application.</string>
+    <string name="error_prepare_export_dir">Could not prepare the temporary export directory.</string>
+    <string name="error_prepare_export">Could not prepare the application export.</string>
 </resources>
