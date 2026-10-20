@@ -149,12 +149,12 @@ class DeviceContentRepository(context: Context) {
 
     fun rename(file: DeviceFileInfo, rawName: String): DeviceFileInfo {
         if (!hasBroadFileAccess()) {
-            throw IllegalStateException(context.getString(R.string.error_no_device_access))
+            throw IllegalStateException(appContext.getString(R.string.error_no_device_access))
         }
 
         val safeName = SafeNames.sanitize(rawName, file.displayName)
         if (safeName.isBlank()) {
-            throw IllegalArgumentException(context.getString(R.string.error_invalid_name))
+            throw IllegalArgumentException(appContext.getString(R.string.error_invalid_name))
         }
 
         val values = ContentValues().apply {
@@ -162,7 +162,7 @@ class DeviceContentRepository(context: Context) {
         }
         val updated = resolver.update(file.uri, values, null, null)
         if (updated <= 0) {
-            throw IllegalStateException(context.getString(R.string.error_original_rename_denied))
+            throw IllegalStateException(appContext.getString(R.string.error_original_rename_denied))
         }
 
         return file.copy(
@@ -173,7 +173,7 @@ class DeviceContentRepository(context: Context) {
 
     fun requestDelete(file: DeviceFileInfo): DeviceDeleteResult {
         if (!hasBroadFileAccess()) {
-            return DeviceDeleteResult.Failed(context.getString(R.string.error_no_device_access))
+            return DeviceDeleteResult.Failed(appContext.getString(R.string.error_no_device_access))
         }
 
         return when {
@@ -201,7 +201,7 @@ class DeviceContentRepository(context: Context) {
 
         val confirmationUri = mediaDeleteConfirmationUri(file)
             ?: return DeviceDeleteResult.Failed(
-                directDeleteError?.message ?: context.getString(R.string.error_android_delete_denied),
+                directDeleteError?.message ?: appContext.getString(R.string.error_android_delete_denied),
             )
 
         return runCatching {
@@ -239,7 +239,7 @@ class DeviceContentRepository(context: Context) {
             if (deleted > 0) {
                 DeviceDeleteResult.Deleted
             } else {
-                DeviceDeleteResult.Failed(context.getString(R.string.error_android_not_deleted))
+                DeviceDeleteResult.Failed(appContext.getString(R.string.error_android_not_deleted))
             }
         } catch (error: RecoverableSecurityException) {
             DeviceDeleteResult.NeedsUserConfirmation(
@@ -257,7 +257,7 @@ class DeviceContentRepository(context: Context) {
             if (deleted > 0) {
                 DeviceDeleteResult.Deleted
             } else {
-                DeviceDeleteResult.Failed(context.getString(R.string.error_android_not_deleted))
+                DeviceDeleteResult.Failed(appContext.getString(R.string.error_android_not_deleted))
             }
         } catch (error: SecurityException) {
             DeviceDeleteResult.Failed(error.message)
