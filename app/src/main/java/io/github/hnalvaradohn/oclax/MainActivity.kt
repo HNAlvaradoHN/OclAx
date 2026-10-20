@@ -1577,11 +1577,12 @@ private fun ItemCard(
         Column(modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (selectionMode) {
+                    val selectDescription = stringResource(R.string.select_item, item.displayName)
                     Checkbox(
                         checked = selected,
                         onCheckedChange = { onToggleSelection() },
                         modifier = Modifier.semantics {
-                            contentDescription = item.displayName
+                            contentDescription = selectDescription
                         },
                     )
                     Spacer(Modifier.width(4.dp))
