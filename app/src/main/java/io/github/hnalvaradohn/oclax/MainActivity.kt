@@ -628,22 +628,26 @@ class MainActivity : ComponentActivity() {
                         startActivity(
                             Intent.createChooser(
                                 intent,
-                                "Compartir aplicaciones instaladas",
+                                getString(R.string.chooser_share_installed_apps),
                             ),
                         )
                     } catch (error: Exception) {
                         Toast.makeText(
                             this,
-                            "No se pudieron compartir las aplicaciones: " +
-                                (error.message ?: "error desconocido"),
+                            getString(
+                                R.string.toast_share_apps_failed,
+                                error.message ?: getString(R.string.unknown_error),
+                            ),
                             Toast.LENGTH_SHORT,
                         ).show()
                     }
                 }.onFailure { error ->
                     Toast.makeText(
                         this,
-                        "No se pudieron preparar las aplicaciones: " +
-                            (error.message ?: "error desconocido"),
+                        getString(
+                            R.string.toast_prepare_apps_failed,
+                            error.message ?: getString(R.string.unknown_error),
+                        ),
                         Toast.LENGTH_SHORT,
                     ).show()
                 }
@@ -1703,7 +1707,7 @@ private fun StoredItemVisual(
     if (bitmap != null) {
         Image(
             bitmap = bitmap.asImageBitmap(),
-            contentDescription = "Miniatura de ${item.displayName}",
+            contentDescription = stringResource(R.string.thumbnail_of, item.displayName),
             modifier = Modifier
                 .size(62.dp)
                 .clip(MaterialTheme.shapes.small),
