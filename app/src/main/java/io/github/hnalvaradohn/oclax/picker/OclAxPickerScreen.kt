@@ -165,23 +165,14 @@ internal fun PickerScreen(
                     )
         }
     }
-    val categoryOverview = remember(
-        source,
-        compatibleOclAxItems,
-        compatibleDeviceFiles,
-        compatibleInstalledApps,
-        installedAppsAllowed,
-        hasBroadFileAccess,
-    ) {
-        pickerCategoryOverviewItems(
-            source = source,
-            oclaxItems = compatibleOclAxItems,
-            deviceFiles = compatibleDeviceFiles,
-            installedApps = compatibleInstalledApps,
-            installedAppsAllowed = installedAppsAllowed,
-            hasBroadFileAccess = hasBroadFileAccess,
-        )
-    }
+    val categoryOverview = pickerCategoryOverviewItems(
+        source = source,
+        oclaxItems = compatibleOclAxItems,
+        deviceFiles = compatibleDeviceFiles,
+        installedApps = compatibleInstalledApps,
+        installedAppsAllowed = installedAppsAllowed,
+        hasBroadFileAccess = hasBroadFileAccess,
+    )
     val selectedKeys = remember(selected) { selected.mapTo(mutableSetOf()) { it.key } }
 
     Surface(modifier = Modifier.fillMaxSize()) {
