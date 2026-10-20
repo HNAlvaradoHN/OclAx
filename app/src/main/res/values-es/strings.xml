@@ -172,4 +172,6 @@
     <string name="retention_24_hours">24 horas</string>
     <string name="retention_3_days">3 días</string>
     <string name="retention_7_days">7 días</string>
+    <string name="category_one_item">1 elemento</string>
+    <string name="category_many_items">%1$d elementos</string>
 </resources>
